@@ -1,0 +1,26 @@
+{
+  "name": "halo-discord-bot",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "nodemon --experimental-specifier-resolution=node",
+    "app": "nodemon --experimental-json-modules"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@firebase/database-compat": "0.1.2",
+    "chalk": "^4.1.1",
+    "discord.js": "^13.3.1",
+    "dotenv": "^10.0.0",
+    "firebase-admin": "^10.0.0",
+    "klaw": "^4.0.1",
+    "moment": "^2.29.1",
+    "path": "^0.12.7",
+    "set-interval-async": "^2.0.3",
+    "superagent": "^6.1.0"
+  }
+}

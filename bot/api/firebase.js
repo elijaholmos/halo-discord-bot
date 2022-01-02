@@ -19,6 +19,15 @@ export const getActiveClasses = async function () {
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
 
+export const getActiveUsersInClass = async function (class_id) {
+    return (await admin
+        .database()
+        .ref(`classes/${class_id}/users`)
+        .orderByChild('status')
+        .equalTo('ACTIVE')
+        .get()).val();
+};
+
 export const getUserCookie = async function (uid) {
     return (await admin.database().ref('cookies').child(uid).get()).val();
 };

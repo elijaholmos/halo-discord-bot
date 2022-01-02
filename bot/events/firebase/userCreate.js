@@ -16,6 +16,7 @@ class UserCreate extends FirebaseEvent {
      * @param {DataSnapshot} snapshot 
      */
     async onAdd(snapshot) {
+		console.log('New user created: ', snapshot.val());
         const db = admin.database();
         //set custom claim
 		await admin.auth().setCustomUserClaims(snapshot.key, {
@@ -23,10 +24,9 @@ class UserCreate extends FirebaseEvent {
 		});
         //update mapping table
         await db.ref('discord_users_map').child(snapshot.val().discord_uid).set(snapshot.key);
-		console.log(snapshot.val());
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = (await db.ref(`cookies/${snapshot.key}`).get()).val();
-		const halo_id = await Halo.getUserId(cookie);
+		const halo_id = await Halo.getUserId({cookie});
 		await db.ref(`users/${snapshot.key}`).child('halo_id').set(halo_id);
 
 		//retrieve and set halo classes
@@ -37,9 +37,11 @@ class UserCreate extends FirebaseEvent {
 				slugId: class_obj.slugId,
 				classCode: class_obj.classCode,
 				courseCode: class_obj.courseCode,
+				stage: class_obj.stage,
 			});
 			await db.ref('classes').child(class_obj.id).child('users').child(snapshot.key).update({
 				discord_uid: snapshot.val().discord_uid,	//storing this may not be necessary if our bot holds a local cache
+				status: class_obj.students.find(student => student.userId === halo_id)?.status,
 			});
 		}
 		//update user information for good measure

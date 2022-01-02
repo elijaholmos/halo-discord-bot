@@ -10,7 +10,7 @@ export class HaloWatcher extends EventEmitter {
 
     async #watchForAnnouncements() {
         //retrieve all courses that need information fetched
-        const COURSES = await Firebase.getAllClasses();
+        const COURSES = await Firebase.getActiveClasses();
 
         //fetch new announcements
         for(const [id, course] of Object.entries(COURSES).slice(0, 1)) {

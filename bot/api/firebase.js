@@ -5,11 +5,18 @@ const ACTIVE_STAGES = [
 ];
 
 export const getActiveClasses = async function () {
-    return (await Promise.all(
-        ACTIVE_STAGES.map(STAGE => {
-            return admin.database().ref('classes').orderByChild('stage').equalTo(STAGE).get();
-        })
-    )).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
+    return (
+		await Promise.all(
+			ACTIVE_STAGES.map((STAGE) =>
+				admin
+					.database()
+					.ref('classes')
+					.orderByChild('stage')
+					.equalTo(STAGE)
+					.get()
+			)
+		)
+	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
 
 export const getUserCookie = async function (uid) {

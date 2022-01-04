@@ -87,9 +87,9 @@ web_modules/
 .next
 out
 
-# Nuxt.js build / generate output
-.nuxt
+# Rollup output
 dist
+dist_packed
 
 # Gatsby files
 .cache/

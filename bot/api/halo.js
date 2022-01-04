@@ -43,10 +43,10 @@ export const getNewAnnouncements = async function ({cookie, class_id, metadata={
     if(!!res.error) throw new Error(res.error);
     //Filter posts that were published in last 10 seconds
     //Inject the class ID so we can use it to get the name later
-    return [res.body.data.announcements.posts
-        //.filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
+    return res.body.data.announcements.posts
+        .filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
         .map(post => ({...post, courseClassId: class_id, metadata}))
-        .pop()];    
+        //.pop()];    
 };
 
 export const getUserOverview = async function ({cookie, uid}) {

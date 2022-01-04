@@ -1,15 +1,24 @@
 {
 	"name": "Halo Notification Service",
-	"description": "Makes Halo better",
+	"description": "Receive notifications for new Halo actions",
 	"version": "1.0",
 	"manifest_version": 3,
 	"host_permissions": ["*://halo.gcu.edu/"],
 	"permissions": ["cookies", "identity", "storage"],
 	"action": {
+		"default_icon": {
+			"48": "static/icon-trans.png"
+		},
 		"default_popup": "popup/popup.html"
 	},
 	"background": {
-        "service_worker": "background.js",
+		"service_worker": "background.js",
 		"type": "module"
-    }
+	},
+	"icons": {
+		"16": "static/icon-trans.png",
+		"32": "static/icon-trans.png",
+		"48": "static/icon-trans.png",
+		"128": "static/icon-trans.png"
+	}
 }

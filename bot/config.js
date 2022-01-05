@@ -4,48 +4,41 @@ export default {
         return {
             // Which users/roles get access to all commands
             command_perms: {
-                moderator: [
-                    {   // Admin
-                        id: '784875278593818694',
-                        type: 'ROLE',
-                        permission: true,
-                    },
-                    {   // Moderator
-                        id: '752363863441145866',
-                        type: 'ROLE',
-                        permission: true,
-                    },
-                    {
-                        // Ollog10
-                        id: '139120967208271872',
-                        type: 'USER',
-                        permission: true,
-                    },
-                ],
-                admin: [
-                    {   // Admin
-                        id: '784875278593818694',
-                        type: 'ROLE',
-                        permission: true,
-                    },
-                    {   // Moderator
-                        id: '752363863441145866',
-                        type: 'ROLE',
-                        permission: true,
-                    },
-                    {
-                        // Ollog10
-                        id: '139120967208271872',
-                        type: 'USER',
-                        permission: true,
-                    },
-                    {   // staff
-                        id: '751919243062411385',
-                        type: 'ROLE',
-                        permission: true,
-                    },
-                ],
-            },
+				categories: {
+					moderator: [
+						{
+							// Moderator
+							id: '904095889558212660',
+							type: 'ROLE',
+							permission: true,
+						},
+					],
+					admin: [
+						{
+							// Moderator
+							id: '904095889558212660',
+							type: 'ROLE',
+							permission: true,
+						},
+						{
+							// staff
+							id: '858144532318519326',
+							type: 'ROLE',
+							permission: true,
+						},
+					],
+				},
+                names: {
+                    awardnft: [
+                        {
+                            // *drops
+                            id: '914642168939962378',
+                            type: 'ROLE',
+                            permission: true,
+                        },
+                    ],
+                },
+			},
             main_guild_id: '270408632863031298',
             channels: {
                 private_log: '928415523652374621',

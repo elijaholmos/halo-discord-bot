@@ -16,8 +16,10 @@ jobs:
                   command: |
                       cd halo-discord
                       git checkout production
+                      git reset --hard origin/production
                       git pull
-                      npm install
+                      cd bot
+                      npm ci
                       pm2 delete all
                       npm run deploy
                   host: ${{ secrets.SSH_HOST }}

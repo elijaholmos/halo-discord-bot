@@ -6,7 +6,7 @@ import { Intents, Message } from 'discord.js';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
 import path from 'path';
-import { AnnouncementService, DiscordHaloBot, HaloWatcher } from './classes';
+import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase } from './classes';
 import { config as dotenv_config } from 'dotenv';
 dotenv_config();
 

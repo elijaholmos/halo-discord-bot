@@ -83,7 +83,6 @@ export class DiscordHaloBot extends Client {
      * @returns {Promise<Message>} Promise which resolves to the sent message
      */
     async logDiscord({embed, ...options}) {
-        return;
         return (await this.channels.fetch(this.config.channels.private_log)).send({
             embeds: [embed],
             ...options,
@@ -98,45 +97,6 @@ export class DiscordHaloBot extends Client {
      */
     async msgBotChannel({embed, ...options}) {
         return (await this.channels.fetch(this.config.channels.public_log)).send({
-            embeds: [embed],
-            ...options,
-        });
-    }
-
-    /**
-     * Sends a discord message on the bot's behalf to a public log channel, specific for rewards
-     * @param {Object} args
-     * @param {EmbedBase} args.embed Singular embed object to be sent in message
-     * @returns {Promise<Message>} Promise which resolves to the sent message
-     */
-    async logReward({embed, ...options}) {
-        return (await this.channels.fetch(this.config.channels.reward_log)).send({
-            embeds: [embed],
-            ...options,
-        });
-    }
-
-    /**
-     * Sends a discord message on the bot's behalf to a public log channel, specific for sentences
-     * @param {Object} args
-     * @param {EmbedBase} args.embed Singular embed object to be sent in message
-     * @returns {Promise<Message>} Promise which resolves to the sent message
-     */
-     async logSentence({embed, ...options}) {
-        return (await this.channels.fetch(this.config.channels.mod_log)).send({
-            embeds: [embed],
-            ...options,
-        });
-    }
-
-    /**
-     * Sends a discord message on the bot's behalf to a private log channel, specific for submissions
-     * @param {Object} args
-     * @param {EmbedBase} args.embed Singular embed object to be sent in message
-     * @returns {Promise<Message>} Promise which resolves to the sent message
-     */
-    async logSubmission({embed, ...options}) {
-        return (await this.channels.fetch(this.config.channels.submission_log)).send({
             embeds: [embed],
             ...options,
         });

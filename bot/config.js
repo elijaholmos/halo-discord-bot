@@ -48,13 +48,8 @@ export default {
             },
             main_guild_id: '270408632863031298',
             channels: {
-                private_log: '843892751276048394',
-                public_log: '810265135419490314',
-                reward_log: '872724760805654538',
-                mod_log: '896539306800328734', //private mod log
-                submission_log: '903056355311644732',   //private submission log
-                ama_vc: '794283967460147221',
-                polls: '790063418898907166',
+                private_log: '928415523652374621',
+                public_log: '928032754824802344',
             },
             events: {
                 goodActs: {

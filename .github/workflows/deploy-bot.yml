@@ -14,7 +14,12 @@ jobs:
               uses: fifsky/ssh-action@master
               with:
                   command: |
-                      mkdir test
+                      cd halo-discord
+                      git checkout production
+                      git pull
+                      npm install
+                      pm2 delete all
+                      npm run deploy
                   host: ${{ secrets.SSH_HOST }}
                   user: github-actions
                   key: ${{ secrets.SSH_PRIVATE_KEY}}

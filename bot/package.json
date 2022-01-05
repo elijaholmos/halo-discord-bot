@@ -1,16 +1,13 @@
 {
   "name": "halo-discord-bot",
   "version": "0.1.0",
-  "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "nodemon --experimental-specifier-resolution=node",
-    "start": "node --experimental-specifier-resolution=node ."
+    "start": "node --experimental-specifier-resolution=node .",
+    "deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@firebase/database-compat": "0.1.2",
     "chalk": "^4.1.1",

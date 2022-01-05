@@ -6,10 +6,8 @@ import creds from './credentials.js';
 export default async function util() {
 	try {
 		const credentials = await creds();
-		console.log(credentials);
 		// Initialize Firebase
 		const app = initializeApp(credentials.firebase);
-		console.log(app);
 		const auth = getAuth(app);
 		const db = getDatabase(app);
 

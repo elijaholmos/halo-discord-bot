@@ -40,7 +40,7 @@ import util from './util/util.js';
         const { discord_uid, discord_access } = await chrome.storage.sync.get(['discord_uid', 'discord_access']);
         if(!discord_uid || !discord_access) return triggerDiscordAuthFlow();
         const { user } = await signInWithEmailAndPassword(auth, `${discord_uid}@discordhalo.app`, discord_access);
-        console.log(auth.currentUser);
+        //console.log(auth.currentUser);
         //await triggerDiscordAuthFlow();
         //const { claims } = await user.getIdTokenResult();
         //console.log(claims);
@@ -105,12 +105,14 @@ import util from './util/util.js';
 
     const triggerDiscordAuthFlow = function () {
         chrome.identity.launchWebAuthFlow({
-            url: `https://discord.com/api/oauth2/authorize?client_id=${credentials.discord.client_id}&redirect_uri=${encodeURIComponent(chrome.identity.getRedirectURL())}&response_type=code&scope=identify`,
+            url: `https://discord.com/api/oauth2/authorize?response_type=code&client_id=${credentials.discord.client_id}&redirect_uri=${encodeURIComponent(chrome.identity.getRedirectURL())}&scope=identify`,
             interactive: true,
         }, async (redirect_url) => {
+            console.log(`https://discord.com/api/oauth2/authorize?response_type=code&client_id=${credentials.discord.client_id}&redirect_uri=${encodeURIComponent(chrome.identity.getRedirectURL())}&scope=identify`)
             console.log(redirect_url);
+            if(!redirect_url) return;
             const discord_tokens = await convertDiscordAuthCodeToToken(new URL(redirect_url).searchParams.get('code'));
-            console.log(discord_tokens);
+            //console.log(discord_tokens);
             //store tokens locally
             chrome.storage.sync.set({discord_access: discord_tokens.access_token});
             chrome.storage.sync.set({discord: discord_tokens});
@@ -122,7 +124,7 @@ import util from './util/util.js';
 
             //create Firebase user
             const { user } = await createUserWithEmailAndPassword(auth, `${discord_user.id}@discordhalo.app`, discord_tokens.access_token);
-            console.log(user);
+            //console.log(user);
 
             //collect halo cookies and store in db BEFORE setting user info in firebase but AFTER authenticating user
             await sweepHaloCookies();

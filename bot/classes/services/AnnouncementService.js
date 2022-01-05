@@ -32,7 +32,7 @@ export class AnnouncementService {
 				const discord_user = await bot.users.fetch(discord_uid);
                 discord_user
                     .send(message)
-                    .catch(e => bot.logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid})`, e));
+                    .catch(e => bot.logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid}): ${e}`));
 			    bot.logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
             }
 		} catch (e) {

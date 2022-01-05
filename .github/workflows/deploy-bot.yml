@@ -1,0 +1,21 @@
+name: Production bot deployment via SSH
+
+on:
+    push:
+        branches: [production]
+
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: SSH into VM
+              uses: fifsky/ssh-action@master
+              with:
+                  command: |
+                      mkdir test
+                  host: ${{ secrets.SSH_HOST }}
+                  user: github-actions
+                  key: ${{ secrets.SSH_PRIVATE_KEY}}
+                  args: '-vvv'

@@ -6,7 +6,7 @@ import { Intents, Message } from 'discord.js';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
 import path from 'path';
-import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase } from './classes';
+import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService } from './classes';
 import { config as dotenv_config } from 'dotenv';
 dotenv_config();
 
@@ -113,7 +113,8 @@ const init = async function () {
     
     // Instantiate the HaloWatcher
     new HaloWatcher()
-        .on('announcement', AnnouncementService.processAnnouncement(bot));
+        .on('announcement', AnnouncementService.processAnnouncement(bot))
+        .on('grade', GradeService.processGrade(bot));
     bot.logger.log('HaloWatcher initialized');
 
     bot.logger.log('Connecting to Discord...');

@@ -56,7 +56,7 @@ export class HaloWatcher extends EventEmitter {
                     ), 'utf8'
                 ).catch(() => '[]'));
 
-                    console.log('cache is ', cache)
+                //console.log('cache is ', cache)
 
                 //get user cookie
                 const cookie = await Firebase.getUserCookie(uid);
@@ -72,17 +72,17 @@ export class HaloWatcher extends EventEmitter {
 
                 //for each published grade that does not appear in the notification cache, emit an event
                 for(const grade of res) {
-                    if(!cache.includes(grade.id)) {
+                    if(!cache.includes(grade.assessment.id)) {
                         //fetch the full feedback
                         this.emit('grade', await Halo.getGradeFeedback({
                             cookie,
-                            assessment_id: grade.id,
+                            assessment_id: grade.assessment.id,
                             uid: await Halo.getUserId({cookie}),
                             metadata: {
                                 courseCode: course.courseCode,
                             },
                         }));
-                        cache.push(grade);  //store the grade in the notification cache
+                        cache.push(grade.assessment.id);  //store the grade in the notification cache
                     }
                 }
 

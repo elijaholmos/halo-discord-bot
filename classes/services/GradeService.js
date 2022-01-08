@@ -26,14 +26,12 @@ export class GradeService {
 	 */
 	static async #publishGrade({ bot, grade, message }) {
 		try {
-            const discord_user = await bot.users.fetch(
-                await Firebase.getDiscordUid(grade.user.id)
-            );
+            const discord_uid = await Firebase.getDiscordUid(grade.user.id);
+            const discord_user = await bot.users.fetch(discord_uid);
             discord_user
                 .send(message)
                 .catch(e => bot.logger.error(`Error sending grade notification to ${discord_user.tag} (${discord_uid}): ${e}`));
             bot.logger.log(`Grade DM sent to ${discord_user.tag} (${discord_uid})`);
-            
 		} catch (e) {
 			bot.logger.warn(`Error pubishing grade: ${e}`);
 		}
@@ -48,6 +46,12 @@ export class GradeService {
 	 */
 	static #parseGradeData({ bot, grade }) {
 		console.log(grade);
+        const parsePercent = function () {
+            return grade.assessment.points < 1
+                ? ''
+                : `(${round((grade.finalPoints / grade.assessment.points) * 100, 2)}%)`;
+        };
+
 		return {
 			content: `New Grade published for **${grade.metadata.courseCode}**:`,
 			embeds: [
@@ -56,16 +60,12 @@ export class GradeService {
 					//description: `Worth ${Math.round(grade.assessment.points / )}% of your total grade`,
 					fields: [
 						{
-							name: 'Score',
-                            value: `**${grade.finalPoints} / ${grade.assessment.points}** \
-                                (${round((grade.finalPoints / grade.assessment.points) * 100, 2)}%)`,
-							value: grade.content
-								.replaceAll('<br>', '\n')
-								.replace(/<\/?[^>]+(>|$)/g, ''),
+							name: 'Score:',
+                            value: `**${grade.finalPoints} / ${grade.assessment.points}** ${parsePercent()}`,
 						},
                         {
-                            name: `Feedback`,
-                            value: !!grade.finalComment
+                            name: `Feedback:`,
+                            value: !!grade.finalComment?.comment
                                 ? grade.finalComment.comment
                                     .replaceAll('<br>', '\n')
                                     .replace(/<\/?[^>]+(>|$)/g, '')

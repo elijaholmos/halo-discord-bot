@@ -86,7 +86,6 @@ export const getAllGrades = async function ({cookie, class_slug_id, metadata={}}
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
 export const getGradeFeedback = async function ({cookie, assessment_id, uid, metadata={}} = {}) {
-    console.log(assessment_id, uid);
     const res = await request.post('https://gateway.halo.gcu.edu')
         .set({
             accept: '*/*',
@@ -104,8 +103,6 @@ export const getGradeFeedback = async function ({cookie, assessment_id, uid, met
         });
 
     if(res.error) return console.error(res.error);
-    console.log(JSON.stringify(cookie));
-    console.log(JSON.stringify(res.body));
     return { ...res.body.data.grade, metadata };
 };
 

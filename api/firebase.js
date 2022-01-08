@@ -46,5 +46,5 @@ export const getDiscordUid = async function (uid) {
         .ref(`users`)
         .orderByChild('halo_id')
         .equalTo(uid)
-        .get()).val()?.discord_uid;
+        .get()).val()[uid].discord_uid;
 };

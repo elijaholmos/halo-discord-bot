@@ -8,6 +8,12 @@
     "start": "node --experimental-specifier-resolution=node .",
     "deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "logs/",
+      "cache/"
+    ]
+  },
   "dependencies": {
     "@firebase/database-compat": "0.1.2",
     "chalk": "^4.1.1",

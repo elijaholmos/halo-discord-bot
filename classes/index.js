@@ -7,3 +7,4 @@ export * from './events/DiscordEvent';
 export * from './events/FirebaseEvent';
 export * from './HaloWatcher';
 export * from './services/AnnouncementService';
+export * from './services/GradeService';

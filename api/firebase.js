@@ -28,6 +28,23 @@ export const getActiveUsersInClass = async function (class_id) {
         .get()).val();
 };
 
+/**
+ * Get the Halo cookie object for a user
+ * @param {string} uid Discord-Halo UID
+ */
 export const getUserCookie = async function (uid) {
     return (await admin.database().ref('cookies').child(uid).get()).val();
+};
+
+/**
+ * Get a user's Discord UID from a Halo UID
+ * @param {string} uid halo user id
+ */
+export const getDiscordUid = async function (uid) {
+	return (await admin
+        .database()
+        .ref(`users`)
+        .orderByChild('halo_id')
+        .equalTo(uid)
+        .get()).val()[uid].discord_uid;
 };

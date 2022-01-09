@@ -43,7 +43,18 @@ class UserCreate extends FirebaseEvent {
 				discord_uid: snapshot.val().discord_uid,	//storing this may not be necessary if our bot holds a local cache
 				status: class_obj.students.find(student => student.userId === halo_id)?.status,
 			});
+			
+			//retrieve all published grades and store in cache
+			const grades = (await Halo.getAllGrades({
+				cookie,
+				class_slug_id: class_obj.slugId,
+			})).filter(grade => grade.status === "PUBLISHED");
+			//create dir if it doesn't exist
+			await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
+			//write file
+			await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${uid}.json`), JSON.stringify(grades));
 		}
+
 		//update user information for good measure
 		await db.ref('users').child(snapshot.key).update({
 			firstName: halo_overview.userInfo.firstName,

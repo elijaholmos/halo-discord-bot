@@ -20,7 +20,8 @@ export class HaloWatcher extends EventEmitter {
 
         //fetch new announcements
         for(const [id, course] of Object.entries(COURSES)) {
-            //console.log(`Getting announcements for ${course.courseCode}...`);
+            if(!course.users) continue;
+            console.log(`Getting announcements for ${course.courseCode}...`);
             for(const data of (await Halo.getNewAnnouncements({
                 class_id: id,
                 //use the cookie of a user from the course
@@ -42,7 +43,7 @@ export class HaloWatcher extends EventEmitter {
 
         //fetch new announcements
         for(const [id, course] of Object.entries(COURSES)) {
-            for(const [uid, user] of Object.entries(course.users)) {
+            for(const [uid, user] of Object.entries(course?.users || {})) {
                 if(user?.grade_notifications === false) return;   //grade notifications are off for this course
                 console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
 
@@ -73,6 +74,11 @@ export class HaloWatcher extends EventEmitter {
                 //for each published grade that does not appear in the notification cache, emit an event
                 for(const grade of res) {
                     if(!cache.includes(grade.assessment.id)) {
+                        cache.push(grade.assessment.id);  //store the grade in the notification cache
+
+                        //TODO: if the user has already viewed the grade, don't send a notification
+                        if(!!grade.userLastSeenDate) continue;
+                        
                         //fetch the full feedback
                         this.emit('grade', await Halo.getGradeFeedback({
                             cookie,
@@ -82,7 +88,6 @@ export class HaloWatcher extends EventEmitter {
                                 courseCode: course.courseCode,
                             },
                         }));
-                        cache.push(grade.assessment.id);  //store the grade in the notification cache
                     }
                 }
 

@@ -45,7 +45,6 @@ export class GradeService {
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
 	static #parseGradeData({ bot, grade }) {
-		console.log(grade);
         const parsePercent = function () {
             return grade.assessment.points < 1
                 ? ''

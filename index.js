@@ -32,7 +32,9 @@ const bot = new DiscordHaloBot({
 const init = async function () {
     //initialize firebase
     admin.initializeApp({
-        databaseURL: 'https://discord-halo-default-rtdb.firebaseio.com',
+        databaseURL: process.env.NODE_ENV === 'production' 
+            ? 'https://discord-halo-default-rtdb.firebaseio.com' 
+            : 'https://halo-discord-dev-default-rtdb.firebaseio.com',
     });
     if(admin.apps.length === 0) bot.logger.error('Error initializing firebase app');
     else bot.logger.log('Firebase succesfully initialized');

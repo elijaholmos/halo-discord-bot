@@ -80,9 +80,9 @@ export const getAllGrades = async function ({cookie, class_slug_id, metadata={}}
 /**
  * @param {Object} args Desctructured arguments
  * @param {Object} args.cookie The cookie object retrieved from Firebase
- * @param {string} args.assessment_id unique class slug ID of format COURSE_CODE-SECTION-ID
- * @param {string} args.uid
- * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
+ * @param {string} args.assessment_id the unique assessment ID
+ * @param {string} args.uid Halo UID of assessment submission author
+ * @param {Object} [args.metadata] Optional metadata to be injected into the response object
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
 export const getGradeFeedback = async function ({cookie, assessment_id, uid, metadata={}} = {}) {
@@ -129,6 +129,12 @@ export const getUserOverview = async function ({cookie, uid}) {
     return res.body.data;    
 };
 
+/**
+ * Get the Halo user ID from a Halo cookie object
+ * @param {Object} args Destructured arguments
+ * @param {Object} args.cookie Cookie object of the user
+ * @returns {string} Halo UID, pulled from the cookie
+ */
 export const getUserId = async function ({cookie}) {
     const res = await request.post('https://halo.gcu.edu/api/token-validate/')
 		.set({

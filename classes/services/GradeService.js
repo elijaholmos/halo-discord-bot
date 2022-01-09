@@ -6,7 +6,7 @@ export class GradeService {
 	/**
 	 * Designed for currying
 	 * @param {DiscordHaloBot} bot The bot instance
-	 * @returns {Function} An anonymous function that handles the announcement publication
+	 * @returns {Function} An anonymous function that handles the grade notification
 	 */
 	static processGrade(bot) {
 		return (grade) =>

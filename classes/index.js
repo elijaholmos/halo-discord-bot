@@ -8,3 +8,4 @@ export * from './events/FirebaseEvent';
 export * from './HaloWatcher';
 export * from './services/AnnouncementService';
 export * from './services/GradeService';
+export * from './CookieWatcher';

@@ -1,6 +1,8 @@
 import admin from 'firebase-admin';
 import { FirebaseEvent } from '../../classes';
 import { Halo } from '../../api';
+import fs from 'node:fs/promises';
+import path from 'path';
 
 class UserCreate extends FirebaseEvent {
     constructor(bot) {
@@ -48,11 +50,12 @@ class UserCreate extends FirebaseEvent {
 			const grades = (await Halo.getAllGrades({
 				cookie,
 				class_slug_id: class_obj.slugId,
-			})).filter(grade => grade.status === "PUBLISHED");
+			})).filter(grade => grade.status === "PUBLISHED")
+				.map(grade => grade.assessment.id);
 			//create dir if it doesn't exist
 			await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
 			//write file
-			await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${uid}.json`), JSON.stringify(grades));
+			await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`), JSON.stringify(grades));
 		}
 
 		//update user information for good measure

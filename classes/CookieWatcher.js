@@ -8,7 +8,7 @@ export class CookieWatcher {
 
     static async init() {
         //import local cache
-        const cache = JSON.parse(
+        this.cache = JSON.parse(
             await fs.readFile('./' + path.relative(
                 process.cwd(), 
                 `cache/cookies.json`
@@ -17,7 +17,7 @@ export class CookieWatcher {
 
         //create intervals
         let i = 0;
-        for (const [uid, data] of Object.entries(cache)) {
+        for (const [uid, data] of Object.entries(this.cache)) {
             setTimeout(
                 () => this.refreshUserCookie(uid, data.cookie),
                 Math.max(data.next_update - Date.now(), 0)
@@ -35,15 +35,22 @@ export class CookieWatcher {
                 console.log(`${uid}'s cookie has been changed`);
                 setTimeout(() => this.refreshUserCookie(uid, cookie), this.REFRESH_INTERVAL);
                 
-                cache[uid] = {
+                this.cache[uid] = {
                     cookie,
                     next_update,
                 };
                 
                 //update local cache
-                await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(cache));
+                await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
             });
         return i;
+    }
+
+    static async deleteUserCookie(uid) {
+        delete this.cache[uid];
+        //update local cache
+        await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
+        return;
     }
 
     static async refreshUserCookie(uid, cookie) {
@@ -54,6 +61,7 @@ export class CookieWatcher {
         } catch (e) {
             console.error(`Error refreshing ${uid}'s cookie`);
             console.error(e);
+            await this.deleteUserCookie(uid);
         }
     }
 };

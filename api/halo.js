@@ -10,7 +10,7 @@ export const refreshToken = async function ({cookie}) {
             contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
             cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
         });
-    if(!res.body?.TE1TX0FVVEg) return console.error(`Error fetching token, `);
+    if(!res.body?.TE1TX0FVVEg) throw `Error fetching token: ${res.body.error}`;
     
     return {
         TE1TX0FVVEg: res.body['TE1TX0FVVEg'],

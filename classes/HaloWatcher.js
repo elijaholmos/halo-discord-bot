@@ -77,7 +77,7 @@ export class HaloWatcher extends EventEmitter {
                         if(!cache.includes(grade.assessment.id)) {
                             cache.push(grade.assessment.id);  //store the grade in the notification cache
 
-                            //TODO: if the user has already viewed the grade, don't send a notification
+                            //if the user has already viewed the grade, don't send a notification
                             if(!!grade.userLastSeenDate) continue;
                             
                             //fetch the full feedback

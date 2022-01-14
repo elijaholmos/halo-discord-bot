@@ -34,6 +34,12 @@ export class AnnouncementService {
                     .send(message)
                     .catch(e => bot.logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid}): ${e}`));
 			    bot.logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
+				bot.logDiscord({
+					embed: new EmbedBase(bot, {
+						title: 'Announcement Message Sent',
+						description: `Sent to ${bot.formatUser(discord_user)})`,
+					}),
+				});
             }
 		} catch (e) {
 			bot.logger.warn(`Error pubishing announcement: ${e}`);

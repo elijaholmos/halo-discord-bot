@@ -32,6 +32,12 @@ export class GradeService {
                 .send(message)
                 .catch(e => bot.logger.error(`Error sending grade notification to ${discord_user.tag} (${discord_uid}): ${e}`));
             bot.logger.log(`Grade DM sent to ${discord_user.tag} (${discord_uid})`);
+			bot.logDiscord({
+				embed: new EmbedBase(bot, {
+					title: 'Grade Message Sent',
+					description: `Sent to ${bot.formatUser(discord_user)})`,
+				}),
+			});
 		} catch (e) {
 			bot.logger.warn(`Error pubishing grade: ${e}`);
 		}

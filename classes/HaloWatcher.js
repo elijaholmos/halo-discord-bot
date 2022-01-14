@@ -44,55 +44,62 @@ export class HaloWatcher extends EventEmitter {
         //fetch new announcements
         for(const [id, course] of Object.entries(COURSES)) {
             for(const [uid, user] of Object.entries(course?.users || {})) {
-                if(user?.grade_notifications === false) return;   //grade notifications are off for this course
-                console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
+                try {
+                    if(user?.grade_notifications === false) return;   //grade notifications are off for this course
+                    console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
 
-                //import cached grade notifications
-                //create file first, if it does not exist
-                await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
-                const cache = JSON.parse(
-                    await fs.readFile('./' + path.relative(
-                        process.cwd(), 
-                        `cache/grade_notifications/${uid}.json`
-                    ), 'utf8'
-                ).catch(() => '[]'));
+                    //import cached grade notifications
+                    //create file first, if it does not exist
+                    await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
+                    const cache = JSON.parse(
+                        await fs.readFile('./' + path.relative(
+                            process.cwd(), 
+                            `cache/grade_notifications/${uid}.json`
+                        ), 'utf8'
+                    ).catch(() => '[]'));
 
-                //console.log('cache is ', cache)
+                    //console.log('cache is ', cache)
 
-                //get user cookie
-                const cookie = await Firebase.getUserCookie(uid);
+                    //get user cookie
+                    const cookie = await Firebase.getUserCookie(uid);
 
-                //fetch current grades
-                const res = (await Halo.getAllGrades({
-                    cookie,
-                    class_slug_id: course.slugId,
-                    metadata: {
-                        courseCode: course.courseCode,
-                    },
-                })).filter(grade => grade.status === "PUBLISHED");
+                    //fetch current grades
+                    const res = (await Halo.getAllGrades({
+                        cookie,
+                        class_slug_id: course.slugId,
+                        metadata: {
+                            courseCode: course.courseCode,
+                        },
+                    })).filter(grade => grade.status === "PUBLISHED");
 
-                //for each published grade that does not appear in the notification cache, emit an event
-                for(const grade of res) {
-                    if(!cache.includes(grade.assessment.id)) {
-                        cache.push(grade.assessment.id);  //store the grade in the notification cache
+                    //for each published grade that does not appear in the notification cache, emit an event
+                    for(const grade of res) {
+                        if(!cache.includes(grade.assessment.id)) {
+                            cache.push(grade.assessment.id);  //store the grade in the notification cache
 
-                        //TODO: if the user has already viewed the grade, don't send a notification
-                        if(!!grade.userLastSeenDate) continue;
-                        
-                        //fetch the full feedback
-                        this.emit('grade', await Halo.getGradeFeedback({
-                            cookie,
-                            assessment_id: grade.assessment.id,
-                            uid: await Halo.getUserId({cookie}),
-                            metadata: {
-                                courseCode: course.courseCode,
-                            },
-                        }));
+                            //TODO: if the user has already viewed the grade, don't send a notification
+                            if(!!grade.userLastSeenDate) continue;
+                            
+                            //fetch the full feedback
+                            this.emit('grade', await Halo.getGradeFeedback({
+                                cookie,
+                                assessment_id: grade.assessment.id,
+                                uid: await Halo.getUserId({cookie}),
+                                metadata: {
+                                    courseCode: course.courseCode,
+                                },
+                            }));
+                        }
+                    }
+
+                    //write the notification cache to disk
+                    await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${uid}.json`), JSON.stringify(cache));
+                } catch(e) {
+                    if(e.code === 401) {
+                        console.log('401 received');
+                        await Firebase.updateUserCookie(uid, await Halo.refreshToken({cookie: e.cookie}));
                     }
                 }
-
-                //write the notification cache to disk
-                await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${uid}.json`), JSON.stringify(cache));
             }
         }
 

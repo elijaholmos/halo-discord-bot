@@ -14,11 +14,10 @@ jobs:
               uses: fifsky/ssh-action@master
               with:
                   command: |
-                      cd halo-discord
+                      cd halo-discord-bot
                       git checkout production
                       git reset --hard origin/production
                       git pull
-                      cd bot
                       npm ci
                       pm2 delete all
                       npm run deploy

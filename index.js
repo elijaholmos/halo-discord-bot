@@ -2,11 +2,11 @@
 if (process.version.slice(1).split(".")[0] < 16)
     throw new Error("Node 16.6.0 or higher is required.");
 
-import { Intents, Message } from 'discord.js';
+import { Intents } from 'discord.js';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
 import path from 'path';
-import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService } from './classes';
+import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService, CookieWatcher } from './classes';
 import { config as dotenv_config } from 'dotenv';
 dotenv_config();
 
@@ -119,6 +119,9 @@ const init = async function () {
         .on('grade', GradeService.processGrade(bot));
     bot.logger.log('HaloWatcher initialized');
 
+    // Instantiate the CookieWatcher
+    bot.logger.log(`CookieWatcher initialized with ${await CookieWatcher.init()} intervals`);
+
     bot.logger.log('Connecting to Discord...');
     bot.login(process.env.BOT_TOKEN).then(() => {
         bot.logger.debug(`Bot succesfully initialized. Environment: ${process.env.NODE_ENV}. Version: ${bot.CURRENT_VERSION}`);
@@ -164,5 +167,5 @@ init();
 // Prevent the bot from crashing on unhandled rejections
 process.on("unhandledRejection", function (err, promise) {
     bot.logger.error(`Unhandled rejection: ${err.name}`);
-    console.error("Unhandled rejection:\n", promise, "\n\nReason:\n", err);
+    console.error(err);
 });

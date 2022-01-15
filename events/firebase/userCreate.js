@@ -31,7 +31,10 @@ class UserCreate extends FirebaseEvent {
 		const halo_id = await Halo.getUserId({cookie});
 		await db.ref(`users/${snapshot.key}`).child('halo_id').set(halo_id);
 
-		//retrieve and set halo classes
+		//retrieve and set halo classes & grades
+		//create grade_notifications dir if it doesn't exist
+		await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
+		const grade_nofitication_cache = [];
 		const halo_overview = await Halo.getUserOverview({cookie, uid: halo_id});
 		for(const class_obj of halo_overview.classes) {
 			await db.ref('classes').child(class_obj.id).update({
@@ -47,16 +50,15 @@ class UserCreate extends FirebaseEvent {
 			});
 			
 			//retrieve all published grades and store in cache
-			const grades = (await Halo.getAllGrades({
+			grade_nofitication_cache.push(...(await Halo.getAllGrades({
 				cookie,
 				class_slug_id: class_obj.slugId,
 			})).filter(grade => grade.status === "PUBLISHED")
-				.map(grade => grade.assessment.id);
-			//create dir if it doesn't exist
-			await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
-			//write file
-			await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`), JSON.stringify(grades));
+				.map(grade => grade.assessment.id));
 		}
+			
+		//write grade_notifications cache file
+		await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`), JSON.stringify(grade_nofitication_cache));
 
 		//update user information for good measure
 		await db.ref('users').child(snapshot.key).update({

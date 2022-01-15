@@ -165,3 +165,65 @@ export const getUserId = async function ({cookie}) {
     if(res.error) return console.error(res.error);
     return res.body.payload.userid;
 };
+
+/**
+ * Acknowledge an announcement on behalf of a user
+ * @param {Object} args Destructured arguments
+ * @param {Object} args.cookie Cookie object of the user
+ * @param {string} args.announcement_id ID of the announcement to acknowledge
+ * @returns {Promise<boolean>} True if the announcement was acknowledged
+ */
+export const acknowledgeAnnouncement = async function ({cookie, announcement_id}) {
+    const res = await request.post('https://gateway.halo.gcu.edu')
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
+			contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'markPostsAsRead',
+            variables: {
+                postIds: [announcement_id],
+            },
+            query: 'mutation markPostsAsRead($postIds: [String]) {\n  markPostsAsRead(postIds: $postIds)\n}\n',
+		});
+
+    if(res.body?.errors?.[0]?.message?.includes('401'))
+        throw { code: 401, cookie };
+    //Error handling and data validation could be improved
+    if(res.error) return console.error(res.error);
+    return res.body.data?.markPostsAsRead; //true if successful
+};
+
+/**
+ * Mark a grade as read on behalf of a user
+ * @param {Object} args Destructured arguments
+ * @param {Object} args.cookie Cookie object of the user
+ * @param {string} args.grade_id ID of the grade to acknowledge (seperate from the assessment ID)
+ * @returns {Promise<boolean>} True if the grade was acknowledged
+ */
+ export const acknowledgeGrade = async function ({cookie, grade_id}) {
+    const res = await request.post('https://gateway.halo.gcu.edu')
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
+			contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'AddStudentGradeSeenDateTime',
+            variables: {
+                userCourseClassAssessmentGradeId: grade_id,
+            },
+            query: 'mutation AddStudentGradeSeenDateTime($userCourseClassAssessmentGradeId: String!) {\n  addStudentGradeSeenDateTime(\n    userCourseClassAssessmentGradeId: $userCourseClassAssessmentGradeId\n  ) {\n    userLastSeenDate\n    __typename\n  }\n}\n',
+		});
+
+    if(res.body?.errors?.[0]?.message?.includes('401'))
+        throw { code: 401, cookie };
+    //Error handling and data validation could be improved
+    if(res.error) return console.error(res.error);
+    return !!res.body.data?.addStudentGradeSeenDateTime; //true if successful
+};

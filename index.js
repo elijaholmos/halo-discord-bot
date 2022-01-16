@@ -138,6 +138,7 @@ const init = async function () {
 const postInit = async function () {
     //register commands with Discord
     await (async function registerCommands() {
+        //register cmds in main guild
         const cmds = await bot.main_guild.commands.set(bot.commands.map(({ run, ...data }) => data))
             .catch(err => bot.logger.error(`registerCommands err: ${err}`));
 
@@ -156,7 +157,15 @@ const postInit = async function () {
                     ],
                 })),
         }).catch(err => bot.logger.error(`registerCommands err: ${err}`));
-        bot.logger.log(`Registered ${cmds.size} out of ${bot.commands.size} commands to Discord`);
+
+        //register cmds in all guilds
+        const global_cmds = await bot.application.commands.set(
+            bot.commands
+                //remove commands with categorical permissions
+                .filter(({category}) => !bot.config.command_perms.categories.hasOwnProperty(category))
+                .map(({ run, ...data }) => data)
+        ).catch(err => bot.logger.error(`registerCommands global err: ${err}`));;
+        bot.logger.log(`Registered ${cmds.size} out of ${bot.commands.size} commands to Discord (${global_cmds.size} global)`);
     })();
 
     bot.logger.debug('Post-initialization complete');

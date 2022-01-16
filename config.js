@@ -43,6 +43,7 @@ export default {
             channels: {
                 private_log: '928415523652374621',
                 public_log: '928032754824802344',
+                connection_log: '932058303779983470',
             },
             events: {
                 goodActs: {
@@ -112,11 +113,7 @@ export default {
             channels: {
                 private_log: '858141871788392448',
                 public_log: '858141914841481246',
-                reward_log: '904081593029759006',
-                mod_log: '892268882285457439',  //private mod log
-                submission_log: '903055896173764659',   //private submission log
-                ama_vc: '869993145499287604',
-                polls: '877229054456107069',
+                connection_log: '932058303779983470',
             },
             events: {
                 goodActs: {

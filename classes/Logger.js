@@ -54,6 +54,14 @@ export class Logger {
           )}]: ${content}`
         );
       }
+      case "uninstall": {
+        //create file first, if it does not exist
+        await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+        fs.appendFile('./' + path.relative(process.cwd(), 'log/uninstall.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${content}\n`);
+        return console.log(
+          `${timestamp} [${chalk.yellow(type.toUpperCase())}]: ${content} `
+        );
+      }
       default:
         throw new TypeError(
           "Logger type must be either warn, debug, log, ready, cmd or error."
@@ -79,5 +87,9 @@ export class Logger {
 
   static ready(content) {
     return this.log(content, "ready");
+  }
+
+  static uninstall(content) {
+    return this.log(content, "uninstall");
   }
 }

@@ -84,15 +84,16 @@ const init = async function () {
         if (!eventFile.ext || eventFile.ext !== '.js') continue;
         try {
             const firebase_event = new (await import('./' + path.relative(process.cwd(), `${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`))).default(bot);
+            if(!firebase_event.create_on_init) continue;
             const query = admin.database()
-                .ref(firebase_event.ref)
-                .orderByChild('created_on')
-                .startAfter(Date.now());
-            query.on('child_added', (snapshot) => {
-                console.log('snapshot received');
-                if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
-                if(snapshot.empty) return;
-                firebase_event.onAdd(snapshot);
+                .ref(firebase_event.ref);
+            query.orderByChild('created_on')
+                .startAfter(Date.now())
+                .on('child_added', (snapshot) => {
+                    console.log('snapshot received');
+                    if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
+                    if(snapshot.empty) return;
+                    firebase_event.onAdd(snapshot);
             });
             query.on('child_changed', (snapshot) => {
                 if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
@@ -124,7 +125,7 @@ const init = async function () {
 
     bot.logger.log('Connecting to Discord...');
     bot.login(process.env.BOT_TOKEN).then(() => {
-        bot.logger.debug(`Bot succesfully initialized. Environment: ${process.env.NODE_ENV}. Version: ${bot.CURRENT_VERSION}`);
+        bot.logger.log(`Bot succesfully initialized. Environment: ${process.env.NODE_ENV}. Version: ${bot.CURRENT_VERSION}`);
         process.env.NODE_ENV !== 'development' &&   //send message in log channel when staging/prod bot is online
             bot.logDiscord({embed: new EmbedBase(bot, {
                 description: `\`${process.env.NODE_ENV}\` environment online, running version ${bot.CURRENT_VERSION}`,
@@ -168,7 +169,7 @@ const postInit = async function () {
         bot.logger.log(`Registered ${cmds.size} out of ${bot.commands.size} commands to Discord (${global_cmds.size} global)`);
     })();
 
-    bot.logger.debug('Post-initialization complete');
+    bot.logger.log('Post-initialization complete');
 };
 
 init();

@@ -36,6 +36,15 @@ export const getActiveUsersInClass = async function (class_id) {
         };
 };
 
+
+export const getAllUserClasses = async function (uid) {
+    return Object.keys((await admin
+        .database()
+        .ref(`users_classes_map`)
+        .child(uid)
+        .get()).toJSON());
+};
+
 /**
  * Get the Halo cookie object for a user
  * @param {string} uid Discord-Halo UID
@@ -72,4 +81,8 @@ export const getDiscordUid = async function (uid) {
             .equalTo(uid)
             .get()).val()[uid].discord_uid
         : '139120967208271872';
+};
+
+export const getFirebaseUserSnapshot = async function (uid) {
+    return (await admin.database().ref('users').child(uid).once('value')).val();
 };

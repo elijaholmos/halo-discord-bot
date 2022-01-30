@@ -5,8 +5,10 @@ import { Firebase, Halo } from '../api';
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieWatcher {
     static REFRESH_INTERVAL = 1000 * 60 * 60 * 6; //6 hours
+    static timeouts = new Map();    //to track and clear timeouts
 
     static async init() {
+        const { timeouts, REFRESH_INTERVAL } = this;
         //import local cache
         this.cache = JSON.parse(
             await fs.readFile('./' + path.relative(
@@ -18,12 +20,15 @@ export class CookieWatcher {
         //create intervals
         let i = 0;
         for (const [uid, data] of Object.entries(this.cache)) {
-            setTimeout(
-                () => this.refreshUserCookie(uid, data.cookie),
-                Math.max(data.next_update - Date.now(), 0)
-            );
-            i++;
-        }
+			timeouts.set(
+				uid,
+				setTimeout(
+					() => this.refreshUserCookie(uid, data.cookie),
+					Math.max(data.next_update - Date.now(), 0)
+				)
+			);
+			i++;
+		}
 
         //watch db for changes
         admin.database()
@@ -31,9 +36,13 @@ export class CookieWatcher {
             .on('child_changed', async (snapshot) => {
                 const uid = snapshot.key;
                 const cookie = snapshot.val();
-                const next_update = Date.now() + this.REFRESH_INTERVAL;
+                const next_update = Date.now() + REFRESH_INTERVAL;
                 console.log(`${uid}'s cookie has been changed`);
-                setTimeout(() => this.refreshUserCookie(uid, cookie), this.REFRESH_INTERVAL);
+                clearTimeout(timeouts.get(uid));    //clear timeout if it already exists for this user
+                timeouts.set(
+                    uid, 
+                    setTimeout(() => this.refreshUserCookie(uid, cookie), REFRESH_INTERVAL)
+                );
                 
                 this.cache[uid] = {
                     cookie,

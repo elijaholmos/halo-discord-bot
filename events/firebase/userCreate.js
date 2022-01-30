@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { EmbedBase, FirebaseEvent } from '../../classes';
+import { EmbedBase, FirebaseEvent, Logger } from '../../classes';
 import { Halo } from '../../api';
 import fs from 'node:fs/promises';
 import path from 'path';
@@ -20,7 +20,7 @@ class UserCreate extends FirebaseEvent {
     async onAdd(snapshot) {
 		const { bot } = this;
 		const { discord_uid } = snapshot.val();
-		console.log('New user created: ', snapshot.val());
+		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
         const db = admin.database();
         //set custom claim
 		await admin.auth().setCustomUserClaims(snapshot.key, {
@@ -100,7 +100,7 @@ class UserCreate extends FirebaseEvent {
     }
 
     onRemove(doc) {
-        console.log('Doc Deleted', doc.val());
+        Logger.debug(`Doc Deleted: ${JSON.stringify(doc.val())}`);
     }
 }
 

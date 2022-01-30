@@ -1,11 +1,13 @@
 /*
 Logger class for easy and aesthetically pleasing console logging | Credit to York
 */
-import chalk from "chalk";
-import moment from "moment";
+import chalk from 'chalk';
+import moment from 'moment';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 export class Logger {
-  static log(content, type = "log") {
+  static async log(content, type = "log") {
     const timestamp = `[${chalk.white(moment().format("YYYY-MM-DD HH:mm:ss"))}]`;
     switch (type) {
       case "log": {
@@ -23,11 +25,17 @@ export class Logger {
         );
       }
       case "error": {
+        //create file first, if it does not exist
+        await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+        fs.appendFile('./' + path.relative(process.cwd(), 'log/error.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${content}\n`);
         return console.log(
           `${timestamp} [${chalk.bgRed(type.toUpperCase())}]: ${content} `
         );
       }
       case "debug": {
+        //create file first, if it does not exist
+        await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+        fs.appendFile('./' + path.relative(process.cwd(), 'log/debug.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${content}\n`);
         return console.log(
           `${timestamp} [${chalk.green(type.toUpperCase())}]: ${content} `
         );

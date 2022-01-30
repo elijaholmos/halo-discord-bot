@@ -31,9 +31,8 @@ export class CookieWatcher {
 		}
 
         //watch db for changes
-        admin.database()
-            .ref('cookies')
-            .on('child_changed', async (snapshot) => {
+        const ref = admin.database().ref('cookies');
+        ref.on('child_changed', async (snapshot) => {
                 const uid = snapshot.key;
                 const cookie = snapshot.val();
                 const next_update = Date.now() + REFRESH_INTERVAL;
@@ -52,6 +51,15 @@ export class CookieWatcher {
                 //update local cache
                 await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
             });
+        //cookie was deleted, check to see it if was an uninstall
+        ref.on('child_removed', async (snapshot) => {
+            const uid = snapshot.key;
+            if(!(await Firebase.getFirebaseUserSnapshot(uid))?.uninstalled) return;
+            
+            console.log(`${uid}'s cookie has been removed`);
+            clearTimeout(timeouts.get(uid));    //clear timeout if it already exists for this user
+            this.deleteUserCookie(uid);         //remove their cookie from cache
+        });
         return i;
     }
 

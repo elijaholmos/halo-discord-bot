@@ -1,7 +1,19 @@
 import request from 'superagent';
 
+const url = {
+    gateway: process.env.NODE_ENV === 'production'
+        ? 'https://gateway.halo.gcu.edu'
+        : 'http://localhost:3000/gateway',
+    token: process.env.NODE_ENV === 'production'
+        ? 'https://halo.gcu.edu/api/refresh-token'
+        : 'http://localhost:3000/refresh-token',
+    validate: process.env.NODE_ENV === 'production'
+        ? 'https://halo.gcu.edu/api/token-validate/'
+        : 'http://localhost:3000/token-validate/',
+};
+
 export const refreshToken = async function ({cookie}) {
-    const res = await request.post('https://halo.gcu.edu/api/refresh-token')
+    const res = await request.post(url.token)
         .set({
             Accept: '*/*',
             authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
@@ -26,7 +38,7 @@ export const refreshToken = async function ({cookie}) {
  * @returns {Promise<Array>} Array of announcements published within the past 10 seconds
  */
 export const getNewAnnouncements = async function ({cookie, class_id, metadata={}} = {}) {
-    const res = await request.post('https://gateway.halo.gcu.edu')
+    const res = await request.post(url.token)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -61,7 +73,7 @@ export const getNewAnnouncements = async function ({cookie, class_id, metadata={
  * @returns {Promise<Array>} Array of all grades for the user whose `cookie` was provided
  */
 export const getAllGrades = async function ({cookie, class_slug_id, metadata={}} = {}) {
-    const res = await request.post('https://gateway.halo.gcu.edu')
+    const res = await request.post(url.token)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -92,7 +104,7 @@ export const getAllGrades = async function ({cookie, class_slug_id, metadata={}}
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
 export const getGradeFeedback = async function ({cookie, assessment_id, uid, metadata={}} = {}) {
-    const res = await request.post('https://gateway.halo.gcu.edu')
+    const res = await request.post(url.token)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -115,7 +127,7 @@ export const getGradeFeedback = async function ({cookie, assessment_id, uid, met
 };
 
 export const getUserOverview = async function ({cookie, uid}) {
-    const res = await request.post('https://gateway.halo.gcu.edu')
+    const res = await request.post(url.token)
 		.set({
 			accept: '*/*',
 			'content-type': 'application/json',
@@ -147,7 +159,7 @@ export const getUserOverview = async function ({cookie, uid}) {
  * @returns {Promise<string>} Halo UID, pulled from the cookie
  */
 export const getUserId = async function ({cookie}) {
-    const res = await request.post('https://halo.gcu.edu/api/token-validate/')
+    const res = await request.post(url.validate)
 		.set({
 			accept: '*/*',
 			'content-type': 'application/json',

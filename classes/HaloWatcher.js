@@ -21,7 +21,7 @@ export class HaloWatcher extends EventEmitter {
         //fetch new announcements
         for(const [id, course] of Object.entries(COURSES)) {
             if(!course.users) continue;
-            console.log(`Getting announcements for ${course.courseCode}...`);
+            //console.log(`Getting announcements for ${course.courseCode}...`);
             for(const data of (await Halo.getNewAnnouncements({
                 class_id: id,
                 //use the cookie of a user from the course
@@ -46,7 +46,7 @@ export class HaloWatcher extends EventEmitter {
             for(const [uid, user] of Object.entries(course?.users || {})) {
                 try {
                     if(user?.grade_notifications === false) return;   //grade notifications are off for this course
-                    console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
+                    //console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
 
                     //import cached grade notifications
                     //create file first, if it does not exist

@@ -38,7 +38,7 @@ export const refreshToken = async function ({cookie}) {
  * @returns {Promise<Array>} Array of announcements published within the past 10 seconds
  */
 export const getNewAnnouncements = async function ({cookie, class_id, metadata={}} = {}) {
-    const res = await request.post(url.token)
+    const res = await request.post(url.gateway)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -73,7 +73,7 @@ export const getNewAnnouncements = async function ({cookie, class_id, metadata={
  * @returns {Promise<Array>} Array of all grades for the user whose `cookie` was provided
  */
 export const getAllGrades = async function ({cookie, class_slug_id, metadata={}} = {}) {
-    const res = await request.post(url.token)
+    const res = await request.post(url.gateway)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -104,7 +104,7 @@ export const getAllGrades = async function ({cookie, class_slug_id, metadata={}}
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
 export const getGradeFeedback = async function ({cookie, assessment_id, uid, metadata={}} = {}) {
-    const res = await request.post(url.token)
+    const res = await request.post(url.gateway)
         .set({
             accept: '*/*',
             'content-type': 'application/json',
@@ -127,7 +127,7 @@ export const getGradeFeedback = async function ({cookie, assessment_id, uid, met
 };
 
 export const getUserOverview = async function ({cookie, uid}) {
-    const res = await request.post(url.token)
+    const res = await request.post(url.gateway)
 		.set({
 			accept: '*/*',
 			'content-type': 'application/json',

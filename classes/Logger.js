@@ -27,7 +27,7 @@ export class Logger {
       case "error": {
         //create file first, if it does not exist
         await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
-        fs.appendFile('./' + path.relative(process.cwd(), 'log/error.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${content}\n`);
+        fs.appendFile('./' + path.relative(process.cwd(), 'log/error.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${JSON.stringify(content)}\n`);
         return console.log(
           `${timestamp} [${chalk.bgRed(type.toUpperCase())}]: ${content} `
         );

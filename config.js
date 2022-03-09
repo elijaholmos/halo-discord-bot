@@ -111,8 +111,8 @@ export default {
 			},
             main_guild_id: '270408632863031298',
             channels: {
-                private_log: '858141871788392448',
-                public_log: '858141914841481246',
+                private_log: '928415523652374621',
+                public_log: '270745162089496586',
                 connection_log: '932058303779983470',
             },
             events: {

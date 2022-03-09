@@ -115,7 +115,7 @@ const init = async function () {
     bot.logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
     
     // Instantiate the HaloWatcher
-    new HaloWatcher()
+    (await new HaloWatcher())
         .on('announcement', AnnouncementService.processAnnouncement(bot))
         .on('grade', GradeService.processGrade(bot));
     bot.logger.log('HaloWatcher initialized');
@@ -176,6 +176,6 @@ init();
 
 // Prevent the bot from crashing on unhandled rejections
 process.on("unhandledRejection", function (err, promise) {
-    bot.logger.error(`Unhandled rejection: ${err.name}`);
+    bot.logger.error(err);
     console.error(err);
 });

@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import moment from 'moment';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { serializeError } from 'serialize-error';
 
 export class Logger {
   static async log(content, type = "log") {
@@ -27,7 +28,7 @@ export class Logger {
       case "error": {
         //create file first, if it does not exist
         await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
-        fs.appendFile('./' + path.relative(process.cwd(), 'log/error.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${JSON.stringify(content)}\n`);
+        fs.appendFile('./' + path.relative(process.cwd(), 'log/error.log'), `[${moment().format("YYYY-MM-DD HH:mm:ss")}]: ${JSON.stringify(serializeError(content))}\n`);
         return console.log(
           `${timestamp} [${chalk.bgRed(type.toUpperCase())}]: ${content} `
         );

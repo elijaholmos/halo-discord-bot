@@ -26,18 +26,19 @@ export const refreshToken = async function ({cookie}) {
     
     return {
         TE1TX0FVVEg: res.body['TE1TX0FVVEg'],
-        TE1TX0NPTlRFWFQ: res.body['TE1TX0NPTlRFWFQ']
+        TE1TX0NPTlRFWFQ: res.body['TE1TX0NPTlRFWFQ'],
     };
 };
 
 /**
+ * Get all published announcements for a class
  * @param {Object} args Desctructured arguments
  * @param {Object} args.cookie The cookie object retrieved from Firebase
  * @param {string} args.class_id unique class ID
  * @param {Object} [args.metadata] Optional metadata to be injected into the announcement object
  * @returns {Promise<Array>} Array of announcements published within the past 10 seconds
  */
-export const getNewAnnouncements = async function ({cookie, class_id, metadata={}} = {}) {
+export const getClassAnnouncements = async function ({cookie, class_id, metadata={}} = {}) {
     const res = await request.post(url.gateway)
         .set({
             accept: '*/*',
@@ -60,9 +61,9 @@ export const getNewAnnouncements = async function ({cookie, class_id, metadata={
     //Filter posts that were published in last 10 seconds
     //Inject the class ID so we can use it to get the name later
     return res.body.data.announcements.posts
-        .filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
-        .map(post => ({...post, courseClassId: class_id, metadata}))
-        //.pop()];    
+        .filter(post => post.postStatus === 'PUBLISHED')
+        //.filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
+        .map(post => ({...post, courseClassId: class_id, metadata}));
 };
 
 /**

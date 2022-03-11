@@ -73,7 +73,7 @@ export const updateUserCookie = async function (uid, cookie) {
  * @param {string} uid halo user id
  */
 export const getDiscordUid = async function (uid) {
-	return process.env.NODE_ENV === 'development' 
+	return process.env.NODE_ENV === 'production' 
         ? Object.values(
             (await admin 
                 .database()

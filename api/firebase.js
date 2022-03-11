@@ -73,13 +73,15 @@ export const updateUserCookie = async function (uid, cookie) {
  * @param {string} uid halo user id
  */
 export const getDiscordUid = async function (uid) {
-	return process.env.NODE_ENV === 'production' 
-        ? (await admin
-            .database()
-            .ref(`users`)
-            .orderByChild('halo_id')
-            .equalTo(uid)
-            .get()).val()[uid].discord_uid
+	return process.env.NODE_ENV === 'development' 
+        ? Object.values(
+            (await admin 
+                .database()
+                .ref(`users`)
+                .orderByChild('halo_id')
+                .equalTo(uid)
+                .get()).val()
+            )[0].discord_uid
         : '139120967208271872';
 };
 

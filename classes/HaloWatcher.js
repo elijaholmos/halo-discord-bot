@@ -39,6 +39,7 @@ export class HaloWatcher extends EventEmitter {
             cache.class_announcements.set(file_path.name.split('.')[0], 
 				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
         }
+        //console.log(cache.class_announcements.size);
 
         //create dir first, if it does not exist
         await fs.mkdir('./' + path.relative(process.cwd(), paths.grade_notifications), { recursive: true });
@@ -48,6 +49,8 @@ export class HaloWatcher extends EventEmitter {
             cache.grade_notifications.set(file_path.name.split('.')[0], 
 				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
         }
+        //console.log(cache.grade_notifications.size);
+        //console.log(cache);
     }
 
     /**
@@ -91,6 +94,8 @@ export class HaloWatcher extends EventEmitter {
                     courseCode: course.courseCode,
                 },
             });
+            //console.log(old_announcements.length);
+            //console.log(new_announcements.length);
             const diff_announcements = [];
             
             cache.set(id, new_announcements);
@@ -103,6 +108,7 @@ export class HaloWatcher extends EventEmitter {
             //new annoucnements were detected
             // !== rather than > because teachers can remove announcements
             if(new_announcements.length !== old_announcements.length) {
+                console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
                 //add to a diff array
                 diff_announcements.push(...this.#locateDifferenceInArrays(new_announcements, old_announcements));
                 //locally write cache to file, only if changes were detected

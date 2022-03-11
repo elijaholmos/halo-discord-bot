@@ -101,7 +101,8 @@ export class HaloWatcher extends EventEmitter {
             } 
 
             //new annoucnements were detected
-            if(new_announcements.length > old_announcements.length) {
+            // !== rather than > because teachers can remove announcements
+            if(new_announcements.length !== old_announcements.length) {
                 //add to a diff array
                 diff_announcements.push(...this.#locateDifferenceInArrays(new_announcements, old_announcements));
                 //locally write cache to file, only if changes were detected

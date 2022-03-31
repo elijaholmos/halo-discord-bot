@@ -37,7 +37,7 @@ export class AnnouncementService {
 				bot.logDiscord({
 					embed: new EmbedBase(bot, {
 						title: 'Announcement Message Sent',
-						description: `Sent to ${bot.formatUser(discord_user)})`,
+						description: `Sent to ${bot.formatUser(discord_user)}`,
 					}),
 				});
             }

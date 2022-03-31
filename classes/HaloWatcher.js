@@ -8,11 +8,11 @@ import { Firebase, Halo } from '../api';
 export class HaloWatcher extends EventEmitter {
     paths = {
         class_announcements: 'cache/class_announcements',
-        grade_notifications: 'cache/grade_notifications',
+        user_grades: 'cache/user_grades',
     };
     cache = {
         class_announcements: new Map(),
-        grade_notifications: new Map(),
+        user_grades: new Map(),
     };
     constructor() {
         super();
@@ -42,14 +42,14 @@ export class HaloWatcher extends EventEmitter {
         //console.log(cache.class_announcements.size);
 
         //create dir first, if it does not exist
-        await fs.mkdir('./' + path.relative(process.cwd(), paths.grade_notifications), { recursive: true });
-        for await (const item of klaw('./' + path.relative(process.cwd(), paths.grade_notifications))) {
+        await fs.mkdir('./' + path.relative(process.cwd(), paths.user_grades), { recursive: true });
+        for await (const item of klaw('./' + path.relative(process.cwd(), paths.user_grades))) {
             const file_path = path.parse(item.path);
             if (!file_path.ext || file_path.ext !== '.json') continue;
-            cache.grade_notifications.set(file_path.name.split('.')[0], 
+            cache.user_grades.set(file_path.name.split('.')[0], 
 				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
         }
-        //console.log(cache.grade_notifications.size);
+        //console.log(cache.user_grades.size);
         //console.log(cache);
     }
 
@@ -123,63 +123,67 @@ export class HaloWatcher extends EventEmitter {
     }
 
     async #watchForGrades() {
-        const { paths } = this;
+        const cache = this.cache.user_grades;
+
+        const writeCacheFile = async ({filename, data}) => {
+            return fs.writeFile('./' + path.relative(process.cwd(), `${this.paths.user_grades}/${filename}.json`), JSON.stringify(data));
+        };
+        
         //retrieve all courses that need information fetched
         const COURSES = await Firebase.getActiveClasses();
 
         //fetch new announcements
-        for(const course of Object.values(COURSES)) {
+        for(const [id, course] of Object.entries(COURSES)) {
             for(const [uid, user] of Object.entries(course?.users || {})) {
                 try {
                     if(user?.grade_notifications === false) return;   //grade notifications are off for this course
-                    //console.log(`Getting ${uid}'s grades for ${course.courseCode}...`);
-
-                    //import cached grade notifications
-                    //create file first, if it does not exist
-                    await fs.mkdir('./' + path.relative(process.cwd(), paths.grade_notifications), { recursive: true });
-                    const cache = JSON.parse(
-                        await fs.readFile('./' + path.relative(
-                            process.cwd(), 
-                            `${paths.grade_notifications}/${uid}.json`
-                        ), 'utf8'
-                    ).catch(() => '[]'));
-
-                    //console.log('cache is ', cache)
-
-                    //get user cookie
-                    const cookie = await Firebase.getUserCookie(uid);
-
-                    //fetch current grades
-                    const res = (await Halo.getAllGrades({
-                        cookie,
+                    //console.log(`Getting ${uid} grades for ${course.courseCode}...`);
+                    const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
+                    const old_grades = cache.get(id) || [];
+                    const new_grades = (await Halo.getAllGrades({
                         class_slug_id: course.slugId,
+                        //use the cookie of a user from the course
+                        cookie,
+                        //inject the readable course code into the response objects
                         metadata: {
                             courseCode: course.courseCode,
                         },
                     })).filter(grade => grade.status === "PUBLISHED");
+                    //console.log(old_grades.length);
+                    //console.log(new_grades.length);
+                    const diff_grades = [];
 
-                    //for each published grade that does not appear in the notification cache, emit an event
-                    for(const grade of res) {
-                        if(!cache.includes(grade.assessment.id)) {
-                            cache.push(grade.assessment.id);  //store the grade in the notification cache
+                    cache.set(id, new_grades);
+                    if(!old_grades?.length) {
+                        //skip if there are no old grades (after setting old_grades for next iteration)
+                        await writeCacheFile({filename: id, data: new_grades});
+                        continue;
+                    } 
 
-                            //if the user has already viewed the grade, don't send a notification
-                            if(!!grade.userLastSeenDate) continue;
-                            
-                            //fetch the full feedback
-                            this.emit('grade', await Halo.getGradeFeedback({
-                                cookie,
-                                assessment_id: grade.assessment.id,
-                                uid: await Halo.getUserId({cookie}),
-                                metadata: {
-                                    courseCode: course.courseCode,
-                                },
-                            }));
-                        }
+                    //new grades were detected
+                    // !== rather than > because teachers can remove grades
+                    if(new_grades.length !== old_grades.length) {
+                        console.log(`new_grades: ${new_grades.length}, old_grades: ${old_grades.length}`);
+                        //add to a diff array
+                        diff_grades.push(...this.#locateDifferenceInArrays(new_grades, old_grades));
+                        //locally write cache to file, only if changes were detected
+                        await writeCacheFile({filename: id, data: new_grades});
                     }
 
-                    //write the notification cache to disk
-                    await fs.writeFile('./' + path.relative(process.cwd(), `${paths.grade_notifications}/${uid}.json`), JSON.stringify(cache));
+                    for(const grade of diff_grades) {
+                        //if the user has already viewed the grade, don't send a notification
+                        if(!!grade.userLastSeenDate) continue;
+                        //fetch the full grade feedback
+                        this.emit('grade', await Halo.getGradeFeedback({
+                            cookie,
+                            assessment_id: grade.assessment.id,
+                            //TODO: shift to Firebase.getHaloUid() from a Firebase UID
+                            uid: await Halo.getUserId({cookie}),    //uid in scope of loop is Firebase uid
+                            metadata: {
+                                courseCode: course.courseCode,
+                            },
+                        }));
+                    }
                 } catch(e) {
                     if(e.code === 401) {
                         console.log('401 received');
@@ -191,5 +195,4 @@ export class HaloWatcher extends EventEmitter {
 
         return;
     }
-    
 };

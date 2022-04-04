@@ -4,6 +4,7 @@ import klaw from 'klaw';
 import path from 'path';
 import { setIntervalAsync } from 'set-interval-async/fixed';
 import { Firebase, Halo } from '../api';
+import { get, set } from 'lodash-es';
 
 export class HaloWatcher extends EventEmitter {
     paths = {
@@ -12,7 +13,7 @@ export class HaloWatcher extends EventEmitter {
     };
     cache = {
         class_announcements: new Map(),
-        user_grades: new Map(),
+        user_grades: {},
     };
     constructor() {
         super();
@@ -45,17 +46,17 @@ export class HaloWatcher extends EventEmitter {
         await fs.mkdir('./' + path.relative(process.cwd(), paths.user_grades), { recursive: true });
         for await (const item of klaw('./' + path.relative(process.cwd(), paths.user_grades))) {
             const file_path = path.parse(item.path);
-            if (!file_path.ext || file_path.ext !== '.json') continue;
-            cache.user_grades.set(file_path.name.split('.')[0], 
+            if (!file_path.ext || file_path.ext !== '.json') continue;  //ignore directories and non-json files
+            
+            set(cache.user_grades, [file_path.dir.split(path.sep).pop(), file_path.name],  
 				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
         }
-        //console.log(cache.user_grades.size);
-        //console.log(cache);
+        //console.log(cache.user_grades);
     }
 
     /**
      * returns an array of objects that are present in a1 but not a2
-     * taken from https://stackoverflow.com/a/40538072
+     * adapted from https://stackoverflow.com/a/40538072
      * @param {Array} a1 
      * @param {Array} a2 
      */
@@ -125,8 +126,10 @@ export class HaloWatcher extends EventEmitter {
     async #watchForGrades() {
         const cache = this.cache.user_grades;
 
-        const writeCacheFile = async ({filename, data}) => {
-            return fs.writeFile('./' + path.relative(process.cwd(), `${this.paths.user_grades}/${filename}.json`), JSON.stringify(data));
+        const writeCacheFile = async ({filepath, data}) => {
+            //create dir first, if it does not exist
+            await fs.mkdir('./' + path.relative(process.cwd(), path.parse(`${this.paths.user_grades}/${filepath}`).dir), { recursive: true });
+            return fs.writeFile('./' + path.relative(process.cwd(), `${this.paths.user_grades}/${filepath}`), JSON.stringify(data));
         };
         
         //retrieve all courses that need information fetched
@@ -139,7 +142,8 @@ export class HaloWatcher extends EventEmitter {
                     if(user?.grade_notifications === false) return;   //grade notifications are off for this course
                     //console.log(`Getting ${uid} grades for ${course.courseCode}...`);
                     const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
-                    const old_grades = cache.get(id) || [];
+                    const old_grades = get(cache, [id, uid], []);
+                    //console.log(old_grades);
                     const new_grades = (await Halo.getAllGrades({
                         class_slug_id: course.slugId,
                         //use the cookie of a user from the course
@@ -153,10 +157,10 @@ export class HaloWatcher extends EventEmitter {
                     //console.log(new_grades.length);
                     const diff_grades = [];
 
-                    cache.set(id, new_grades);
+                    set(cache, [id, uid], new_grades);  //update local cache
                     if(!old_grades?.length) {
                         //skip if there are no old grades (after setting old_grades for next iteration)
-                        await writeCacheFile({filename: id, data: new_grades});
+                        await writeCacheFile({filepath: `${id}/${uid}.json`, data: new_grades});
                         continue;
                     } 
 
@@ -167,7 +171,7 @@ export class HaloWatcher extends EventEmitter {
                         //add to a diff array
                         diff_grades.push(...this.#locateDifferenceInArrays(new_grades, old_grades));
                         //locally write cache to file, only if changes were detected
-                        await writeCacheFile({filename: id, data: new_grades});
+                        await writeCacheFile({filepath: `${id}/${uid}.json`, data: new_grades});
                     }
 
                     for(const grade of diff_grades) {

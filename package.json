@@ -24,7 +24,7 @@
     "lodash-es": "^4.17.21",
     "moment": "^2.29.3",
     "path": "^0.12.7",
-    "serialize-error": "^9.1.0",
+    "serialize-error": "^11.0.0",
     "set-interval-async": "^2.0.3",
     "superagent": "^6.1.0"
   }

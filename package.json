@@ -17,7 +17,7 @@
   "dependencies": {
     "@firebase/database-compat": "0.1.2",
     "chalk": "^4.1.1",
-    "discord.js": "^13.6.0",
+    "discord.js": "^13.8.0",
     "dotenv": "^10.0.0",
     "firebase-admin": "^10.0.2",
     "klaw": "^4.0.1",

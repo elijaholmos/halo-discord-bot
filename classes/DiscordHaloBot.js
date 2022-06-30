@@ -1,6 +1,6 @@
 import { Client, Collection, Emoji } from 'discord.js';
 import config from '../config.js';
-import { ConfirmInteraction, EmbedBase, Logger, } from '.';
+import { ConfirmInteraction, EmbedBase, Logger } from '.';
 
 // Custom bot class, based off the discord.js Client (bot)
 export class DiscordHaloBot extends Client {

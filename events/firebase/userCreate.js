@@ -1,6 +1,5 @@
 import admin from 'firebase-admin';
-import { EmbedBase, FirebaseEvent, Logger } from '../../classes';
-import { Firebase, Halo } from '../../api';
+import { EmbedBase, FirebaseEvent, Logger, Firebase, Halo } from '../../classes';
 import fs from 'node:fs/promises';
 import path from 'path';
 

@@ -1,5 +1,4 @@
-import { EmbedBase } from "..";
-import { Firebase } from "../../api";
+import { EmbedBase, Firebase } from "..";
 
 export class AnnouncementService {
 	/**

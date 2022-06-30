@@ -9,3 +9,5 @@ export * from './HaloWatcher';
 export * from './services/AnnouncementService';
 export * from './services/GradeService';
 export * from './CookieWatcher';
+export * as Firebase from './services/FirebaseService';
+export * as Halo from './services/HaloService';

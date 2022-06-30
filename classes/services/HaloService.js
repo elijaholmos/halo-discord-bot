@@ -1,13 +1,13 @@
 import request from 'superagent';
 
 const url = {
-    gateway: process.env.NODE_ENV === 'production'
+    gateway: process.env.NODE_ENV !== 'production'
         ? 'https://gateway.halo.gcu.edu'
         : 'http://localhost:3000/gateway',
-    token: process.env.NODE_ENV === 'production'
+    token: process.env.NODE_ENV !== 'production'
         ? 'https://halo.gcu.edu/api/refresh-token'
         : 'http://localhost:3000/refresh-token',
-    validate: process.env.NODE_ENV === 'production'
+    validate: process.env.NODE_ENV !== 'production'
         ? 'https://halo.gcu.edu/api/token-validate/'
         : 'http://localhost:3000/token-validate/',
 };

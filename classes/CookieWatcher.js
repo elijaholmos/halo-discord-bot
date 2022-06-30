@@ -1,10 +1,10 @@
 import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
 import path from 'path';
-import { Firebase, Halo } from '../api';
+import { Firebase, Halo } from '.';
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieWatcher {
-    static REFRESH_INTERVAL = 1000 * 60 * 60 * 6; //6 hours
+    static REFRESH_INTERVAL = 1000 * 60 * 60 * 3; //3 hours
     static timeouts = new Map();    //to track and clear timeouts
 
     static async init() {

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import klaw from 'klaw';
 import path from 'path';
 import { setIntervalAsync } from 'set-interval-async/fixed';
-import { Firebase, Halo } from '../api';
+import { Firebase, Halo } from '.';
 import { get, set } from 'lodash-es';
 
 export class HaloWatcher extends EventEmitter {

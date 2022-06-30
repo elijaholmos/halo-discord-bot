@@ -1,5 +1,4 @@
-import { Command, EmbedBase } from '../../classes';
-import { Firebase } from '../../api';
+import { Command, EmbedBase, Firebase } from '../../classes';
 
 class test extends Command {
     constructor(bot) {

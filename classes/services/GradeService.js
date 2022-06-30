@@ -1,5 +1,4 @@
-import { EmbedBase } from '..';
-import { Firebase } from '../../api';
+import { EmbedBase, Firebase } from '..';
 import { round } from 'lodash-es';
 
 export class GradeService {

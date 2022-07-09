@@ -1,19 +1,19 @@
-import GetAnnouncementsStudent from '../data/GetAnnouncementsStudent';
-import GetAssessmentFeedback from '../data/GetAssessmentFeedback';
-import GradeOverview from '../data/GradeOverview';
-import HeaderFields from '../data/HeaderFields';
+import GetAnnouncementsStudent from "../data/GetAnnouncementsStudent";
+import GetAssessmentFeedback from "../data/GetAssessmentFeedback";
+import GradeOverview from "../data/GradeOverview";
+import HeaderFields from "../data/HeaderFields";
 
 export class GatewayController {
-  static GetAnnouncementsStudent({courseClassId}) {
+  static GetAnnouncementsStudent({ courseClassId }) {
     return GetAnnouncementsStudent;
   }
-  static GradeOverview({courseClassSlugId, courseClassUserIds}) {
+  static GradeOverview({ courseClassSlugId, courseClassUserIds }) {
     return GradeOverview;
   }
-  static GetAssessmentFeedback({assessmentId, userId}) {
+  static GetAssessmentFeedback({ assessmentId, userId }) {
     return GetAssessmentFeedback;
   }
-  static HeaderFields({userId : uid, skipClasses, skipInboxCount}) {
+  static HeaderFields({ userId: uid, skipClasses, skipInboxCount }) {
     return HeaderFields;
   }
 }

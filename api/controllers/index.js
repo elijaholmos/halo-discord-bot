@@ -1,1 +1,1 @@
-export * from './GatewayController';
+export * from "./GatewayController";

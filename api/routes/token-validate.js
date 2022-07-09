@@ -1,10 +1,9 @@
 import express from 'express';
+
 import TokenValidate from '../data/TokenValidate';
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-	res.send(TokenValidate);
-});
+router.post('/', async (req, res) => { res.send(TokenValidate); });
 
-export { router as tokenValidate };
+export {router as tokenValidate};

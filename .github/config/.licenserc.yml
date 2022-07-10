@@ -1,0 +1,13 @@
+header:
+    license:
+        spdx-id: AGPL-3.0-only
+        copyright-owner: Elijah Olmos
+
+    paths-ignore:
+        - '**/.*'
+        - '**/*.md'
+        - '**/*.json'
+
+    comment: on-failure
+
+    license-location-threshold: 80

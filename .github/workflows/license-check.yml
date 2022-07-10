@@ -1,0 +1,27 @@
+name: License Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check-license-header:
+    name: check-license-header
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+          uses: actions/checkout@v3
+      - name: Fix License Header
+        uses: apache/skywalking-eyes/header@main
+        with:
+          mode: fix
+          log: info
+          config: .github/config/.licenserc.yml
+      - name: Apply Changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          author_name: License Bot
+          author_email: license_bot@github.com
+          message: 'Automatic application of license header'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

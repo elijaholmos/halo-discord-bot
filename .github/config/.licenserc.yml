@@ -4,6 +4,7 @@ header:
         copyright-owner: Elijah Olmos
 
     paths-ignore:
+        - '.github'
         - '**/.*'
         - '**/*.md'
         - '**/*.json'

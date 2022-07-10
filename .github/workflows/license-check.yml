@@ -13,7 +13,7 @@ jobs:
         steps:
             - name: Detect Duplicate
               id: skip_check
-              uses: fkirc/skip-duplicate-actions@main
+              uses: fkirc/skip-duplicate-actions@master
               with:
                   paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
                   do_not_skip: '["workflow_dispatch", "schedule", "pull_request"]'

@@ -12,6 +12,7 @@ header:
 
     paths-ignore:
         - '.github'
+        - 'LICENSE'
         - '**/.*'
         - '**/*.md'
         - '**/*.json'

@@ -2,7 +2,9 @@ name: Check License Headers
 
 on:
     push:
+        branches: [dev]
     pull_request:
+    workflow_dispatch:
 
 jobs:
     detect-duplicate-actions:

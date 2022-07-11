@@ -1,12 +1,12 @@
-name: Check License Header
+name: Check License Headers
 
 on:
     push:
     pull_request:
 
 jobs:
-    detect-duplicate:
-        name: detect-duplicate
+    detect-duplicate-actions:
+        name: detect-duplicate-actions
         runs-on: ubuntu-latest
         outputs:
             should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -17,20 +17,30 @@ jobs:
               with:
                   paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
                   do_not_skip: '["workflow_dispatch", "schedule"]'
-    check-license-header:
-        name: check-license-header
+                  cancel_others: 'true'
+                  concurrent_skipping: 'same_content'
+    check-license-headers:
+        name: check-license-headers
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout Code
+            - name: Checkout Code (Non-PR)
               uses: actions/checkout@v3
+              if: ${{ github.event_name != 'pull_request' }}
+            - name: Checkout Code (PR)
+              uses: actions/checkout@v3
+              if: ${{ github.event_name == 'pull_request' }}
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
             - name: Fix License Header
               uses: apache/skywalking-eyes/header@main
               with:
                   mode: fix
                   log: info
                   config: .github/config/.licenserc.yml
-            - name: Apply Changes
+            - name: Push Changes
               uses: EndBug/add-and-commit@v9
               with:
-                  default_author: github_actions
                   message: 'chore(license): add license header to files'
+                  committer_name: GitHub Actions
+                  committer_email: 41898282+github-actions[bot]@users.noreply.github.com

@@ -10,6 +10,6 @@ header:
         - '**/*.md'
         - '**/*.json'
 
-    comment: always
+    comment: on-failure
 
     license-location-threshold: 80

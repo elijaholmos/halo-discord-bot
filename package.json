@@ -31,7 +31,7 @@
 		"moment": "^2.29.4",
 		"path": "^0.12.7",
 		"serialize-error": "^11.0.0",
-		"set-interval-async": "^3.0.1",
+		"set-interval-async": "^3.0.2",
 		"superagent": "^6.1.0"
 	},
 	"devDependencies": {

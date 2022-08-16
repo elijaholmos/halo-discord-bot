@@ -5,11 +5,16 @@
 	"license": "AGPL-3.0-only",
 	"main": "index.js",
 	"type": "module",
+	"packageManager": "pnpm@7.9.0",
 	"scripts": {
 		"test": "nodemon",
 		"test:api": "nodemon -w api/ api/index.js",
 		"start": "node --experimental-specifier-resolution=node .",
 		"deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
+	},
+	"engines": {
+		"node": ">=16.9.0",
+		"pnpm": ">=7.0.0"
 	},
 	"nodemonConfig": {
 		"ignore": [
@@ -30,8 +35,8 @@
 		"lodash-es": "^4.17.21",
 		"moment": "^2.29.4",
 		"serialize-error": "^11.0.0",
-		"set-interval-async": "^2.0.3",
-		"superagent": "^6.1.0"
+		"set-interval-async": "^3.0.1",
+		"superagent": "^8.0.0"
 	},
 	"devDependencies": {
 		"express": "^4.18.1"

@@ -17,7 +17,7 @@
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs/promises';
 import klaw from 'klaw';
-import path from 'path';
+import path from 'node:path';
 import { setIntervalAsync } from 'set-interval-async/fixed';
 import { Firebase, Halo } from '.';
 import { get, set } from 'lodash-es';

@@ -21,7 +21,7 @@ if (process.version.slice(1).split(".")[0] < 16)
 import { Intents } from 'discord.js';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
-import path from 'path';
+import path from 'node:path';
 import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService, CookieWatcher } from './classes';
 import { config as dotenv_config } from 'dotenv';
 dotenv_config();

@@ -1,6 +1,6 @@
 {
 	"name": "halo-discord-bot",
-	"version": "1.0.0-dev",
+	"version": "2.0.0-dev",
 	"author": "Elijah Olmos",
 	"license": "AGPL-3.0-only",
 	"main": "index.js",
@@ -29,7 +29,6 @@
 		"klaw": "^4.0.1",
 		"lodash-es": "^4.17.21",
 		"moment": "^2.29.4",
-		"path": "^0.12.7",
 		"serialize-error": "^11.0.0",
 		"set-interval-async": "^2.0.3",
 		"superagent": "^6.1.0"

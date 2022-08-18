@@ -16,7 +16,7 @@
 
 import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
-import path from 'path';
+import path from 'node:path';
 const ACTIVE_STAGES = [
     'PRE_START',
     'CURRENT',

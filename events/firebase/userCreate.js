@@ -17,7 +17,7 @@
 import admin from 'firebase-admin';
 import { EmbedBase, FirebaseEvent, Logger, Firebase, Halo } from '../../classes';
 import fs from 'node:fs/promises';
-import path from 'path';
+import path from 'node:path';
 
 class UserCreate extends FirebaseEvent {
     constructor(bot) {

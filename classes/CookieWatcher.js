@@ -16,7 +16,7 @@
 
 import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
-import path from 'path';
+import path from 'node:path';
 import { Firebase, Halo } from '.';
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieWatcher {

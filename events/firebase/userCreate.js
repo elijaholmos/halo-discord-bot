@@ -20,33 +20,31 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 class UserCreate extends FirebaseEvent {
-    constructor(bot) {
-        super(bot, {
-            name: 'UserCreate',
-            description: 'Perform several operations when a user connects their Discord acct',
-            ref: 'users',
-        });
-    }
-
-    /**
-     * 
-     * @param {DataSnapshot} snapshot 
-     */
-    async onAdd(snapshot) {
-		const { bot } = this;
-		const { discord_uid } = snapshot.val();
-		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
-        const db = admin.database();
-        //set custom claim
-		await admin.auth().setCustomUserClaims(snapshot.key, {
-			discordUID: discord_uid,
+	constructor(bot) {
+		super(bot, {
+			name: 'UserCreate',
+			description: 'Perform several operations when a user connects their Discord acct',
+			collection: 'users',
 		});
-        //update mapping table
-        await db.ref('discord_users_map').child(discord_uid).set(snapshot.key);
+	}
+
+	/**
+	 *
+	 * @param {FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>} doc
+	 */
+	async onAdd(doc) {
+		const { bot } = this;
+		const { discord_uid } = doc.data();
+		Logger.debug(`New user created: ${JSON.stringify(doc.data())}`);
+		const db = admin.firestore();
+		//set custom claim
+		await admin.auth().setCustomUserClaims(doc.id, { discord_uid });
+		//update mapping table
+		// await db.ref('discord_users_map').child(discord_uid).set(doc.id);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
-		const cookie = (await db.ref(`cookies/${snapshot.key}`).get()).val();
-		const halo_id = await Halo.getUserId({cookie});
-		await db.ref(`users/${snapshot.key}`).child('halo_id').set(halo_id);
+		const cookie = (await db.doc(`cookies/${doc.id}`).get()).data();
+		const halo_id = await Halo.getUserId({ cookie });
+		await db.doc(`users/${doc.id}`).update({halo_id});
 
 		//(attempt to) send connection message to user
 		const user = await bot.users.fetch(discord_uid);
@@ -64,37 +62,54 @@ class UserCreate extends FirebaseEvent {
 		//create grade_notifications dir if it doesn't exist
 		await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
 		const grade_nofitication_cache = [];
-		const halo_overview = await Halo.getUserOverview({cookie, uid: halo_id});
-		for(const class_obj of halo_overview.classes) {
-			await db.ref('classes').child(class_obj.id).update({
+		const halo_overview = await Halo.getUserOverview({ cookie, uid: halo_id });
+		for (const class_obj of halo_overview.classes) {
+			await db.collection('classes').doc(class_obj.id).set({
 				name: class_obj.name,
 				slugId: class_obj.slugId,
 				classCode: class_obj.classCode,
 				courseCode: class_obj.courseCode,
 				stage: class_obj.stage,
-			});
-			await db.ref('classes').child(class_obj.id).child('users').child(snapshot.key).update({
-				discord_uid,	//storing this may not be necessary if our bot holds a local cache
-				status: class_obj.students.find(student => student.userId === halo_id)?.status,
-			});
-			await db.ref('users_classes_map').child(snapshot.key).child(class_obj.id).update({
-				discord_uid,	//storing this may not be necessary if our bot holds a local cache
-				status: class_obj.students.find(student => student.userId === halo_id)?.status,
-			});
-			
+			}, { merge: true });
+			await db
+				.collection('classes')
+				.doc(class_obj.id)
+				.collection('class_users')	// TODO: rename this to class_users
+				.doc(doc.id)
+				.set({
+					discord_uid, //storing this may not be necessary if our bot holds a local cache
+					status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+				}, { merge: true });
+			// await db
+			// 	.ref('users_classes_map')
+			// 	.child(doc.id)
+			// 	.child(class_obj.id)
+			// 	.update({
+			// 		discord_uid, //storing this may not be necessary if our bot holds a local cache
+			// 		status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+			// 	});
+
 			//retrieve all published grades and store in cache
-			grade_nofitication_cache.push(...(await Halo.getAllGrades({
-				cookie,
-				class_slug_id: class_obj.slugId,
-			})).filter(grade => grade.status === "PUBLISHED")
-				.map(grade => grade.assessment.id));
+			grade_nofitication_cache.push(
+				...(
+					await Halo.getAllGrades({
+						cookie,
+						class_slug_id: class_obj.slugId,
+					})
+				)
+					.filter((grade) => grade.status === 'PUBLISHED')
+					.map((grade) => grade.assessment.id)
+			);
 		}
-			
+
 		//write grade_notifications cache file
-		await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`), JSON.stringify(grade_nofitication_cache));
+		await fs.writeFile(
+			'./' + path.relative(process.cwd(), `cache/grade_notifications/${doc.id}.json`),
+			JSON.stringify(grade_nofitication_cache)
+		);
 
 		//update user information for good measure
-		await db.ref('users').child(snapshot.key).update({
+		await db.collection('users').doc(doc.id).update({
 			firstName: halo_overview.userInfo.firstName,
 			lastName: halo_overview.userInfo.lastName,
 			sourceId: halo_overview.userInfo.sourceId,
@@ -116,40 +131,47 @@ class UserCreate extends FirebaseEvent {
 				],
 			}),
 		});
-    }
+	}
 
 	/**
-     * 
-     * @param {DataSnapshot} snapshot 
-     */
-	 async onModify(snapshot) {
-		console.log(snapshot.val());
+	 *
+	 * @param {FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>} doc
+	 */
+	async onModify(doc) {
+		console.log(doc.data());
 		//extension uninstall process
-		if(!!snapshot.val()?.uninstalled) {
+		if (!!doc.data()?.uninstalled) {
 			const { bot } = this;
-			const { discord_uid } = snapshot.val();
-			const db = admin.database();
+			const { discord_uid } = doc.data();
+			const db = admin.firestore();
 
-			Logger.uninstall(snapshot.key);
-			
+			Logger.uninstall(doc.id);
+
 			//delete user from discord_users_map
-			await db.ref('discord_users_map').child(discord_uid).remove();
+			// await db.ref('discord_users_map').child(discord_uid).remove();
 
 			//remove their discord tokens
-			await db.ref(`discord_tokens/${snapshot.key}`).remove();
+			await db.doc(`discord_tokens/${doc.id}`).delete();
 
 			//remove all classes they were in
-			for(const id of await Firebase.getAllUserClasses(snapshot.key)) {
-				await db.ref('users_classes_map').child(snapshot.key).child(id).remove();
-				await db.ref('classes').child(id).child('users').child(snapshot.key).remove();
-			}
+			//extract to FirebaseService method
+			(await db.collectionGroup('class_users').where('discord_uid', '==', discord_uid).get())
+				.forEach((class_user_doc) => {
+					console.log('in class_user_doc forEach');
+					console.log(class_user_doc.data())
+					class_user_doc.ref.delete();
+				});
+			// for (const id of await Firebase.getAllUserClasses(doc.id)) {
+			// 	//await db.ref('users_classes_map').child(doc.id).child(id).remove();
+			// 	await db.collection('classes').doc(id).collection('class_users').doc(doc.id).delete();
+			// }
 
 			//remove their cookies
-			await db.ref(`cookies/${snapshot.key}`).remove();
+			await db.doc(`cookies/${doc.id}`).delete();
 			//handle further cookie removal in CookieWatcher
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
-			await admin.auth().deleteUser(snapshot.key);
+			await admin.auth().deleteUser(doc.id);
 
 			//send message to bot channel
 			bot.logConnection({
@@ -162,17 +184,19 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: `${snapshot.val().firstName} ${snapshot.val().lastName} (\`${snapshot.val().halo_id}\`)`,
+							value: `${doc.data().firstName} ${doc.data().lastName} (\`${
+								doc.data().halo_id
+							}\`)`,
 						},
 					],
 				}).Error(),
 			});
 		}
-	} 
+	}
 
-    onRemove(snapshot) {
-        Logger.debug(`Doc Deleted: ${JSON.stringify(snapshot.val())}`);
-    }
+	onRemove(doc) {
+		Logger.debug(`Doc Deleted: ${JSON.stringify(doc.data())}`);
+	}
 }
 
 export default UserCreate;

@@ -41,7 +41,9 @@ export class AnnouncementService {
 	static async #publishAnnouncement({ bot, announcement, message }) {
 		try {
 			//get all active users in the class and send the message to them
-			for (const { discord_uid } of await Firebase.getActiveUsersInClass(announcement.courseClassId)) {
+			for (const { discord_uid } of Object.values(
+				await Firebase.getActiveUsersInClass(announcement.courseClassId)
+			)) {
 				const discord_user = await bot.users.fetch(discord_uid);
                 discord_user
                     .send(message)

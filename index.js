@@ -101,25 +101,26 @@ const init = async function () {
         try {
             const firebase_event = new (await import('./' + path.relative(process.cwd(), `${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`))).default(bot);
             if(!firebase_event.create_on_init) continue;
-            admin.firestore().collection(firebase_event.collection).onSnapshot((snapshot) => {
+            const query = admin.database()
+                .ref(firebase_event.ref);
+            query.orderByChild('created_on')
+                .startAfter(Date.now())
+                .on('child_added', (snapshot) => {
+                    console.log('snapshot received');
+                    if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
+                    if(snapshot.empty) return;
+                    firebase_event.onAdd(snapshot);
+            });
+            query.on('child_changed', (snapshot) => {
                 if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
                 if(snapshot.empty) return;
-                for(const {doc, type} of snapshot.docChanges()) {
-                    //if doc was updated before bot came online, ignore it
-                    if(doc.updateTime.toDate() < bot.readyAt) continue;
-                    switch(type) {
-                        case 'added':
-                            firebase_event.onAdd(doc);
-                            break;
-                        case 'modified':
-                            firebase_event.onModify(doc);
-                            break;
-                        case 'removed':
-                            firebase_event.onRemove(doc);
-                            break;
-                    }
-                }
-            }, (err) => bot.logger.error(`FirebaseEvent error with ${firebase_event.name}: ${err}`));
+                firebase_event.onModify(snapshot);
+            });
+            query.on('child_removed', (snapshot) => {
+                if(!bot.readyAt) return;    //ensure bot is initialized before event is fired
+                if(snapshot.empty) return;
+                firebase_event.onRemove(snapshot);
+            });
             bot.firebase_events.set(firebase_event.name, firebase_event);
 
             //delete require.cache[require.resolve(`${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)];

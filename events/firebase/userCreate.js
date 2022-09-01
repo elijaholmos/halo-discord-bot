@@ -20,32 +20,30 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 class UserCreate extends FirebaseEvent {
-    constructor(bot) {
-        super(bot, {
-            name: 'UserCreate',
-            description: 'Perform several operations when a user connects their Discord acct',
-            ref: 'users',
-        });
-    }
+	constructor(bot) {
+		super(bot, {
+			name: 'UserCreate',
+			description: 'Perform several operations when a user connects their Discord acct',
+			ref: 'users',
+		});
+	}
 
-    /**
-     * 
-     * @param {DataSnapshot} snapshot 
-     */
-    async onAdd(snapshot) {
+	/**
+	 *
+	 * @param {DataSnapshot} snapshot
+	 */
+	async onAdd(snapshot) {
 		const { bot } = this;
 		const { discord_uid } = snapshot.val();
 		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
-        const db = admin.database();
-        //set custom claim
-		await admin.auth().setCustomUserClaims(snapshot.key, {
-			discordUID: discord_uid,
-		});
-        //update mapping table
-        await db.ref('discord_users_map').child(discord_uid).set(snapshot.key);
+		const db = admin.database();
+		//set custom claim
+		await admin.auth().setCustomUserClaims(snapshot.key, { discordUID: discord_uid });
+		//update mapping table
+		await db.ref('discord_users_map').child(discord_uid).set(snapshot.key);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = (await db.ref(`cookies/${snapshot.key}`).get()).val();
-		const halo_id = await Halo.getUserId({cookie});
+		const halo_id = await Halo.getUserId({ cookie });
 		await db.ref(`users/${snapshot.key}`).child('halo_id').set(halo_id);
 
 		//(attempt to) send connection message to user
@@ -64,8 +62,8 @@ class UserCreate extends FirebaseEvent {
 		//create grade_notifications dir if it doesn't exist
 		await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
 		const grade_nofitication_cache = [];
-		const halo_overview = await Halo.getUserOverview({cookie, uid: halo_id});
-		for(const class_obj of halo_overview.classes) {
+		const halo_overview = await Halo.getUserOverview({ cookie, uid: halo_id });
+		for (const class_obj of halo_overview.classes) {
 			await db.ref('classes').child(class_obj.id).update({
 				name: class_obj.name,
 				slugId: class_obj.slugId,
@@ -73,25 +71,42 @@ class UserCreate extends FirebaseEvent {
 				courseCode: class_obj.courseCode,
 				stage: class_obj.stage,
 			});
-			await db.ref('classes').child(class_obj.id).child('users').child(snapshot.key).update({
-				discord_uid,	//storing this may not be necessary if our bot holds a local cache
-				status: class_obj.students.find(student => student.userId === halo_id)?.status,
-			});
-			await db.ref('users_classes_map').child(snapshot.key).child(class_obj.id).update({
-				discord_uid,	//storing this may not be necessary if our bot holds a local cache
-				status: class_obj.students.find(student => student.userId === halo_id)?.status,
-			});
-			
+			await db
+				.ref('classes')
+				.child(class_obj.id)
+				.child('users')
+				.child(snapshot.key)
+				.update({
+					discord_uid, //storing this may not be necessary if our bot holds a local cache
+					status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+				});
+			await db
+				.ref('users_classes_map')
+				.child(snapshot.key)
+				.child(class_obj.id)
+				.update({
+					discord_uid, //storing this may not be necessary if our bot holds a local cache
+					status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+				});
+
 			//retrieve all published grades and store in cache
-			grade_nofitication_cache.push(...(await Halo.getAllGrades({
-				cookie,
-				class_slug_id: class_obj.slugId,
-			})).filter(grade => grade.status === "PUBLISHED")
-				.map(grade => grade.assessment.id));
+			grade_nofitication_cache.push(
+				...(
+					await Halo.getAllGrades({
+						cookie,
+						class_slug_id: class_obj.slugId,
+					})
+				)
+					.filter((grade) => grade.status === 'PUBLISHED')
+					.map((grade) => grade.assessment.id)
+			);
 		}
-			
+
 		//write grade_notifications cache file
-		await fs.writeFile('./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`), JSON.stringify(grade_nofitication_cache));
+		await fs.writeFile(
+			'./' + path.relative(process.cwd(), `cache/grade_notifications/${snapshot.key}.json`),
+			JSON.stringify(grade_nofitication_cache)
+		);
 
 		//update user information for good measure
 		await db.ref('users').child(snapshot.key).update({
@@ -116,22 +131,22 @@ class UserCreate extends FirebaseEvent {
 				],
 			}),
 		});
-    }
+	}
 
 	/**
-     * 
-     * @param {DataSnapshot} snapshot 
-     */
-	 async onModify(snapshot) {
+	 *
+	 * @param {DataSnapshot} snapshot
+	 */
+	async onModify(snapshot) {
 		console.log(snapshot.val());
 		//extension uninstall process
-		if(!!snapshot.val()?.uninstalled) {
+		if (!!snapshot.val()?.uninstalled) {
 			const { bot } = this;
 			const { discord_uid } = snapshot.val();
 			const db = admin.database();
 
 			Logger.uninstall(snapshot.key);
-			
+
 			//delete user from discord_users_map
 			await db.ref('discord_users_map').child(discord_uid).remove();
 
@@ -139,7 +154,7 @@ class UserCreate extends FirebaseEvent {
 			await db.ref(`discord_tokens/${snapshot.key}`).remove();
 
 			//remove all classes they were in
-			for(const id of await Firebase.getAllUserClasses(snapshot.key)) {
+			for (const id of await Firebase.getAllUserClasses(snapshot.key)) {
 				await db.ref('users_classes_map').child(snapshot.key).child(id).remove();
 				await db.ref('classes').child(id).child('users').child(snapshot.key).remove();
 			}
@@ -162,17 +177,19 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: `${snapshot.val().firstName} ${snapshot.val().lastName} (\`${snapshot.val().halo_id}\`)`,
+							value: `${snapshot.val().firstName} ${snapshot.val().lastName} (\`${
+								snapshot.val().halo_id
+							}\`)`,
 						},
 					],
 				}).Error(),
 			});
 		}
-	} 
+	}
 
-    onRemove(snapshot) {
-        Logger.debug(`Doc Deleted: ${JSON.stringify(snapshot.val())}`);
-    }
+	onRemove(snapshot) {
+		Logger.debug(`Doc Deleted: ${JSON.stringify(snapshot.val())}`);
+	}
 }
 
 export default UserCreate;

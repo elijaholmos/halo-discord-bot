@@ -63,30 +63,31 @@ class UserCreate extends FirebaseEvent {
 		await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
 		const grade_nofitication_cache = [];
 		const halo_overview = await Halo.getUserOverview({ cookie, uid: halo_id });
-		for (const class_obj of halo_overview.classes) {
-			await db.ref('classes').child(class_obj.id).update({
-				name: class_obj.name,
-				slugId: class_obj.slugId,
-				classCode: class_obj.classCode,
-				courseCode: class_obj.courseCode,
-				stage: class_obj.stage,
+		for (const { id, name, slugId, classCode, courseCode, stage, students } of halo_overview.classes
+			.courseClasses) {
+			await db.ref('classes').child(id).update({
+				name,
+				slugId,
+				classCode,
+				courseCode,
+				stage,
 			});
 			await db
 				.ref('classes')
-				.child(class_obj.id)
+				.child(id)
 				.child('users')
 				.child(snapshot.key)
 				.update({
 					discord_uid, //storing this may not be necessary if our bot holds a local cache
-					status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+					status: students.find(({ userId }) => userId === halo_id)?.status,
 				});
 			await db
 				.ref('users_classes_map')
 				.child(snapshot.key)
-				.child(class_obj.id)
+				.child(id)
 				.update({
 					discord_uid, //storing this may not be necessary if our bot holds a local cache
-					status: class_obj.students.find((student) => student.userId === halo_id)?.status,
+					status: students.find(({ userId }) => userId === halo_id)?.status,
 				});
 
 			//retrieve all published grades and store in cache
@@ -94,11 +95,11 @@ class UserCreate extends FirebaseEvent {
 				...(
 					await Halo.getAllGrades({
 						cookie,
-						class_slug_id: class_obj.slugId,
+						class_slug_id: slugId,
 					})
 				)
-					.filter((grade) => grade.status === 'PUBLISHED')
-					.map((grade) => grade.assessment.id)
+					.filter(({ status }) => status === 'PUBLISHED')
+					.map(({ assessment }) => assessment.id)
 			);
 		}
 

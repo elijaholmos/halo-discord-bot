@@ -19,7 +19,7 @@ import request from 'superagent';
 const url = {
 	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
 	token:
-		process.env.NODE_ENV !== 'production'
+		process.env.NODE_ENV === 'production'
 			? 'https://halo.gcu.edu/api/refresh-token'
 			: 'http://localhost:3000/refresh-token',
 	validate:
@@ -171,6 +171,8 @@ export const getUserOverview = async function ({ cookie, uid }) {
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (res.error) return console.error(res.error);
+	console.log('in getUserOverview')
+	console.log(JSON.stringify(res.body.data))
 	return res.body.data;
 };
 

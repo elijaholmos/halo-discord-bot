@@ -115,13 +115,6 @@ class UserCreate extends FirebaseEvent {
 			JSON.stringify(grade_nofitication_cache)
 		);
 
-		//update user information for good measure
-		await db.ref('users').child(uid).update({
-			firstName: halo_overview.userInfo.firstName,
-			lastName: halo_overview.userInfo.lastName,
-			sourceId: halo_overview.userInfo.sourceId,
-		});
-
 		//send message to bot channel
 		bot.logConnection({
 			embed: new EmbedBase(bot, {

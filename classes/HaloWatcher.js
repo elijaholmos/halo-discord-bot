@@ -15,64 +15,26 @@
  */
 
 import { EventEmitter } from 'node:events';
-import fs from 'node:fs/promises';
-import klaw from 'klaw';
-import path from 'node:path';
 import { setIntervalAsync } from 'set-interval-async/fixed';
 import { Firebase, Halo } from '.';
-import { get, set } from 'lodash-es';
-import { getActiveUsersInClass } from './services/FirebaseService';
+import { CLASS_ANNOUNCEMENTS, USER_GRADES, USER_INBOX } from '../caches';
 
 export class HaloWatcher extends EventEmitter {
-    paths = {
-        class_announcements: 'cache/class_announcements',
-        user_grades: 'cache/user_grades',
-    };
-    cache = {
-        class_announcements: new Map(),
-        user_grades: {},
-    };
     constructor() {
         super();
         return (async () => {
-            //import local cache files
-            await this.#importCacheFiles();
-            
 			//create intervals
 			setIntervalAsync(async () => await this.#watchForAnnouncements(), 10000);
 			setIntervalAsync(async () => await this.#watchForGrades(), 10000);
+            setIntervalAsync(async () => await this.#watchForInboxMessages(), 10000);
 
 			return this;
 		})();
     }
 
-    async #importCacheFiles() {
-        const { cache, paths } = this;
-
-        //create dir first, if it does not exist
-        await fs.mkdir('./' + path.relative(process.cwd(), paths.class_announcements), { recursive: true });
-        for await (const item of klaw('./' + path.relative(process.cwd(), paths.class_announcements))) {
-            const file_path = path.parse(item.path);
-            if (!file_path.ext || file_path.ext !== '.json') continue;
-            cache.class_announcements.set(file_path.name.split('.')[0], 
-				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
-        }
-        //console.log(cache.class_announcements.size);
-
-        //create dir first, if it does not exist
-        await fs.mkdir('./' + path.relative(process.cwd(), paths.user_grades), { recursive: true });
-        for await (const item of klaw('./' + path.relative(process.cwd(), paths.user_grades))) {
-            const file_path = path.parse(item.path);
-            if (!file_path.ext || file_path.ext !== '.json') continue;  //ignore directories and non-json files
-            
-            set(cache.user_grades, [file_path.dir.split(path.sep).pop(), file_path.name],  
-				JSON.parse(await fs.readFile(item.path, 'utf8').catch(() => '[]')));
-        }
-        //console.log(cache.user_grades);
-    }
-
     /**
      * returns an array of objects that are present in a1 but not a2
+     * 
      * adapted from https://stackoverflow.com/a/40538072
      * @param {Array} a1 
      * @param {Array} a2 
@@ -89,20 +51,16 @@ export class HaloWatcher extends EventEmitter {
     };
 
     async #watchForAnnouncements() {
-        const cache = this.cache.class_announcements;
+        const { get, set, writeCacheFile } = CLASS_ANNOUNCEMENTS;
 
-        const writeCacheFile = async ({filename, data}) => {
-            return fs.writeFile('./' + path.relative(process.cwd(), `${this.paths.class_announcements}/${filename}.json`), JSON.stringify(data));
-        };
-        
         //retrieve all courses that need information fetched
         const COURSES = await Firebase.getActiveClasses();
         //fetch new announcements
         for(const [class_id, course] of Object.entries(COURSES)) {
             const active_users = Firebase.getActiveUsersInClass(class_id);
             if(!active_users?.length) continue;
-            //console.log(`Getting announcements for ${course.courseCode}...`);
-            const old_announcements = cache.get(class_id) || [];
+            // console.log(`Getting announcements for ${course.courseCode}...`);
+            const old_announcements = get(class_id) || null;
             const new_announcements = await Halo.getClassAnnouncements({
                 class_id,
                 //use the cookie of a user from the course
@@ -112,43 +70,32 @@ export class HaloWatcher extends EventEmitter {
                     courseCode: course.courseCode,
                 },
             });
-            //console.log(old_announcements.length);
-            //console.log(new_announcements.length);
-            const diff_announcements = [];
-            
-            cache.set(class_id, new_announcements);
-            if(!old_announcements?.length) {
-                //skip if there are no old announcements (after setting old_announcements for next iteration)
-                await writeCacheFile({filename: class_id, data: new_announcements});
+            // console.log(old_announcements?.length);
+            // console.log(new_announcements.length);
+            set(class_id, new_announcements);
+
+            //if no old announcements, user just installed
+            if(old_announcements === null) {
+                writeCacheFile({filepath: class_id, data: new_announcements});
                 continue;
-            } 
-
-            //new annoucnements were detected
-            // !== rather than > because teachers can remove announcements
-            if(new_announcements.length !== old_announcements.length) {
-                console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
-                //add to a diff array
-                diff_announcements.push(...this.#locateDifferenceInArrays(new_announcements, old_announcements));
-                //locally write cache to file, only if changes were detected
-                await writeCacheFile({filename: class_id, data: new_announcements});
             }
-
-            for(const announcement of diff_announcements)
+            
+            // === rather than > because teachers can remove announcements
+            if(new_announcements.length === old_announcements.length) continue;
+            
+            //at this point, new announcements were detected
+            console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
+            //write local cache to file, since changes were detected
+            await writeCacheFile({filepath: class_id, data: new_announcements});
+            
+            for(const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
                 this.emit('announcement', announcement);
         }
-
-        return;
     }
 
     async #watchForGrades() {
-        const cache = this.cache.user_grades;
+        const { get, set, writeCacheFile } = USER_GRADES;
 
-        const writeCacheFile = async ({filepath, data}) => {
-            //create dir first, if it does not exist
-            await fs.mkdir('./' + path.relative(process.cwd(), path.parse(`${this.paths.user_grades}/${filepath}`).dir), { recursive: true });
-            return fs.writeFile('./' + path.relative(process.cwd(), `${this.paths.user_grades}/${filepath}`), JSON.stringify(data));
-        };
-        
         //retrieve all courses that need information fetched
         const COURSES = await Firebase.getActiveClasses();
 
@@ -156,9 +103,9 @@ export class HaloWatcher extends EventEmitter {
         for(const [course_id, course] of Object.entries(COURSES)) {
             for(const uid of Firebase.getActiveUsersInClass(course_id)) {
                 try {
-                    //console.log(`Getting ${uid} grades for ${course.courseCode}...`);
+                    // console.log(`Getting ${uid} grades for ${course.courseCode}...`);
                     const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
-                    const old_grades = get(cache, [course_id, uid], []);
+                    const old_grades = get([course_id, uid], null);
                     //console.log(old_grades);
                     const new_grades = (await Halo.getAllGrades({
                         class_slug_id: course.slugId,
@@ -169,28 +116,25 @@ export class HaloWatcher extends EventEmitter {
                             courseCode: course.courseCode,
                         },
                     })).filter(grade => grade.status === "PUBLISHED");
-                    //console.log(old_grades.length);
-                    //console.log(new_grades.length);
-                    const diff_grades = [];
+                    // console.log(old_grades?.length);
+                    // console.log(new_grades.length);
+                    set([course_id, uid], new_grades);  //update local cache
 
-                    set(cache, [course_id, uid], new_grades);  //update local cache
-                    if(!old_grades?.length) {
-                        //skip if there are no old grades (after setting old_grades for next iteration)
-                        await writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
+                    //if no old grades, user just installed
+                    if(old_grades === null) {
+                        writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
                         continue;
-                    } 
-
-                    //new grades were detected
-                    // !== rather than > because teachers can remove grades
-                    if(new_grades.length !== old_grades.length) {
-                        console.log(`new_grades: ${new_grades.length}, old_grades: ${old_grades.length}`);
-                        //add to a diff array
-                        diff_grades.push(...this.#locateDifferenceInArrays(new_grades, old_grades));
-                        //locally write cache to file, only if changes were detected
-                        await writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
                     }
 
-                    for(const grade of diff_grades) {
+                    // === rather than > because teachers can remove grades
+                    if(new_grades.length === old_grades.length) continue;
+
+                    //at this point, new grades were detected
+                    // console.log(`new_grades: ${new_grades.length}, old_grades: ${old_grades.length}`);
+                    //write local cache to file, since changes were detected
+                    await writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
+
+                    for(const grade of this.#locateDifferenceInArrays(new_grades, old_grades)) {
                         //if the user has already viewed the grade, don't send a notification
                         if(!!grade.userLastSeenDate) continue;
                         //fetch the full grade feedback
@@ -201,6 +145,7 @@ export class HaloWatcher extends EventEmitter {
                             uid: await Halo.getUserId({cookie}),    //uid in scope of loop is Firebase uid
                             metadata: {
                                 courseCode: course.courseCode,
+                                uid,
                             },
                         }));
                     }
@@ -212,7 +157,65 @@ export class HaloWatcher extends EventEmitter {
                 }
             }
         }
+    }
 
-        return;
+    async #watchForInboxMessages() {
+        const { get, set, writeCacheFile } = USER_INBOX;
+
+        const getUnreadMessagesCount = function getUnreadInboxMessagesCountFromCache ({uid, forumId}) {
+            return get([uid, forumId], []).filter(({isRead}) => !isRead).length;
+        };
+        
+        //retrieve all active users
+        const ACTIVE_USERS = await Firebase.getAllActiveUsers();
+
+        try {
+            //retrieve all inbox forums that need information fetched
+            for(const uid of ACTIVE_USERS) {
+                const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
+                for(const {forumId, unreadCount} of await Halo.getUserInbox({cookie})) {
+                    // console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
+
+                    //goal is to minimize halo API calls placed
+                    const old_inbox_posts = get([uid, forumId], null);
+                    //if no old inbox posts, user just installed
+                    //if no unread posts or unread count is same as unread cache count (user has been notified but they have not acknowledged)
+                    if (
+                        old_inbox_posts !== null &&
+                        (!unreadCount || unreadCount === getUnreadMessagesCount({uid, forumId}))
+                    ) continue;
+                    
+                    const new_inbox_posts = await Halo.getPostsForInboxForum({cookie, forumId});
+                    // console.log(old_inbox_posts?.length);
+                    // console.log(new_inbox_posts.length);
+                    set([uid, forumId], new_inbox_posts);  //update local cache
+
+                    //if no old posts, user just installed
+                    if(old_inbox_posts === null) {
+                        writeCacheFile({filepath: `${uid}/${forumId}.json`, data: new_inbox_posts});
+                        continue;
+                    }
+
+                    // === rather than > because teachers can delete messages ??? unconfirmed
+                    if(new_inbox_posts.length === old_inbox_posts.length) continue;
+
+                    //at this point, new inbox posts were detected
+                    console.log(`new_inbox_posts: ${new_inbox_posts.length}, old_inbox_posts: ${old_inbox_posts.length}`);
+                    //write local cache to file, since changes were detected
+                await writeCacheFile({filepath: `${uid}/${forumId}.json`, data: new_inbox_posts});
+                    
+                    for(const post of this.#locateDifferenceInArrays(new_inbox_posts, old_inbox_posts)) {
+                        //if !post.iRead && post.id is not in cache, then dispatch event
+                        if(!!post.isRead) continue;
+                        this.emit('inbox_message', {...post, metadata: { uid }});
+                    }
+                }
+            }
+        } catch(e) {
+            if(e.code === 401) {
+                console.log('401 received');
+                await Firebase.updateUserCookie(uid, await Halo.refreshToken({cookie: e.cookie}));
+            }
+        }
     }
 };

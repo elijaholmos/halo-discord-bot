@@ -12,18 +12,34 @@ export class FirebaseStore {
 		this.bimap = bimap;
 		// Synchronously load data from Firestore and
 		// set up watcher to keep local cache up to date
-		admin
-			.database()
-			.ref(path)
-			.on('value', (snapshot) => {
-				this._cache = snapshot.exists()
-					? this.bimap
-						? new BiMap(snapshot.val())
-						: new Map(Object.entries(snapshot.val()))
-					: new (this.bimap ? BiMap : Map)();
+		(function createCache() {
+			if (admin.apps.length === 0) return setTimeout(createCache.bind(this), 500); //wait until app is initialized
+			admin
+				.database()
+				.ref(path)
+				.on('value', (snapshot) => {
+					this._cache = snapshot.exists()
+						? this.bimap
+							? new BiMap(snapshot.val())
+							: new Map(Object.entries(snapshot.val()))
+						: new (this.bimap ? BiMap : Map)();
 
-				this.ready ||= true;
-			});
+					this.ready ||= true;
+				});
+		}.bind(this)());
+	}
+
+	/**
+	 *
+	 * @returns {Promise<boolean>} Promise that resolves to true when class has finished initialization
+	 */
+	awaitReady() {
+		const self = this;
+		return new Promise((resolve) => {
+			(function resolveReady() {
+				self.ready ? resolve(true) : setTimeout(resolveReady, 500);
+			})();
+		});
 	}
 
 	get(id) {
@@ -40,17 +56,4 @@ export class FirebaseStore {
 	}
 
 	// Implement setter that updates local & cloud?
-
-	/**
-	 *
-	 * @returns {Promise<boolean>} Promise that resolves to true when class has finished initialization
-	 */
-	awaitReady() {
-		const self = this;
-		return new Promise((resolve) => {
-			(function resolveReady() {
-				self.ready ? resolve(true) : setTimeout(resolveReady, 500);
-			})();
-		});
-	}
 }

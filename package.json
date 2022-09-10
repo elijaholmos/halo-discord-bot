@@ -6,7 +6,7 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"test": "nodemon",
+		"test": "nodemon --ignore logs/ --ignore cache/ --ignore api/",
 		"test:api": "nodemon -w api/ api/index.js",
 		"start": "node --experimental-specifier-resolution=node .",
 		"deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"

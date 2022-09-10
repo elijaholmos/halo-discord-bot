@@ -18,6 +18,8 @@ import GetAnnouncementsStudent from '../data/GetAnnouncementsStudent';
 import GradeOverview from '../data/GradeOverview';
 import AssessmentFeedback from '../data/AssessmentFeedback';
 import HeaderFields from '../data/HeaderFields';
+import GetInboxLeftPanelNotification from '../data/GetInboxLeftPanelNotification';
+import getPostsByInboxForumId from '../data/getPostsByInboxForumId';
 
 export class GatewayController {
 	static GetAnnouncementsStudent({ courseClassId }) {
@@ -31,5 +33,11 @@ export class GatewayController {
 	}
 	static HeaderFields({ userId: uid, skipClasses, skipInboxCount }) {
 		return HeaderFields;
+	}
+	static GetInboxLeftPanelNotification({}) {
+		return GetInboxLeftPanelNotification;
+	}
+	static getPostsByInboxForumId({}) {
+		return getPostsByInboxForumId;
 	}
 }

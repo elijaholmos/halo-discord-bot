@@ -18,22 +18,12 @@ import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { CLASS_USERS_MAP, DISCORD_USER_MAP } from '../../stores';
-const ACTIVE_STAGES = [
-    'PRE_START',
-    'CURRENT',
-];
+const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
 export const getActiveClasses = async function () {
-    return (
+	return (
 		await Promise.all(
-			ACTIVE_STAGES.map((STAGE) =>
-				admin
-					.database()
-					.ref('classes')
-					.orderByChild('stage')
-					.equalTo(STAGE)
-					.get()
-			)
+			ACTIVE_STAGES.map((STAGE) => admin.database().ref('classes').orderByChild('stage').equalTo(STAGE).get())
 		)
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
@@ -42,31 +32,27 @@ export const getActiveClasses = async function () {
  * @returns {string[]} array of discord uids
  */
 export const getActiveDiscordUsersInClass = function (class_id) {
-    return process.env.NODE_ENV === 'production'
-        ? Object.keys(CLASS_USERS_MAP.get(class_id) ?? {}).map(DISCORD_USER_MAP.get)
-        : ['139120967208271872'];
+	return process.env.NODE_ENV === 'production'
+		? Object.keys(CLASS_USERS_MAP.get(class_id) ?? {}).map(DISCORD_USER_MAP.get)
+		: ['139120967208271872'];
 };
 
 /**
  * @returns {Promise<string[]>} array of halo-discord IDs
  */
 export const getActiveUsersInClassAsync = async function (class_id) {
-    return Object.keys(await admin.database().ref('class_users_map').child(class_id).get() ?? {});
+	return Object.keys((await admin.database().ref('class_users_map').child(class_id).get()) ?? {});
 };
 
 /**
  * @returns {string[]} array of halo-discord IDs
  */
- export const getActiveUsersInClass = function (class_id) {
-    return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
+export const getActiveUsersInClass = function (class_id) {
+	return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
 };
 
 export const getAllUserClasses = async function (uid) {
-    return Object.keys((await admin
-        .database()
-        .ref(`user_classes_map`)
-        .child(uid)
-        .get()).toJSON());
+	return Object.keys((await admin.database().ref(`user_classes_map`).child(uid).get()).toJSON());
 };
 
 /**
@@ -75,43 +61,51 @@ export const getAllUserClasses = async function (uid) {
  * @param {boolean} check_cache Whether the local cache should be checked first
  */
 export const getUserCookie = async function (uid, check_cache = true) {
-    try {
-        if(!check_cache) throw 'Skipping cache check';
-        const cache = await fs.readFile('./' + path.relative(
-            process.cwd(), 
-            `cache/cookies.json`
-        ), 'utf8');
-        if(uid in cache) return cache[uid].cookie;
-        throw 'User not found in cache';
-    } catch (e) {
-        return (await admin.database().ref('cookies').child(uid).get()).val();
-    }
+	try {
+		if (!check_cache) throw 'Skipping cache check';
+		const cache = await fs.readFile('./' + path.relative(process.cwd(), `cache/cookies.json`), 'utf8');
+		if (uid in cache) return cache[uid].cookie;
+		throw 'User not found in cache';
+	} catch (e) {
+		return (await admin.database().ref('cookies').child(uid).get()).val();
+	}
 };
 
 export const updateUserCookie = async function (uid, cookie) {
-    return await admin.database().ref('cookies').child(uid).update(cookie);
+	return await admin.database().ref('cookies').child(uid).update(cookie);
 };
 
 /**
- * Get a user's Discord UID from a Halo UID
+ * Convert a Halo UID to a Discord UID
  * @param {string} uid halo user id
+ * @returns {Promise<string | null>} discord user id
+ */
+export const getDiscordUidFromHaloUid = async function (uid) {
+	return process.env.NODE_ENV === 'production'
+		? Object.values((await admin.database().ref(`users`).orderByChild('halo_id').equalTo(uid).get()).val())?.[0]
+				?.discord_uid
+		: '139120967208271872';
+};
+
+/**
+ * Convert a halo-discord UID to a Discord UID
+ * @param {string} uid
+ * @returns {string | null} discord uid, if exists in map
  */
 export const getDiscordUid = function (uid) {
-    return process.env.NODE_ENV === 'production' 
-        ? DISCORD_USER_MAP.get(uid)
-        : '139120967208271872';
-	return process.env.NODE_ENV === 'production' 
-        ? Object.values(
-            (/*await*/ admin 
-                .database()
-                .ref(`users`)
-                .orderByChild('halo_id')
-                .equalTo(uid)
-                .get()).val()
-            )[0].discord_uid
-        : '139120967208271872';
+	return process.env.NODE_ENV === 'production' ? DISCORD_USER_MAP.get(uid) : '139120967208271872';
 };
 
 export const getFirebaseUserSnapshot = async function (uid) {
-    return (await admin.database().ref('users').child(uid).once('value')).val();
+	return (await admin.database().ref('users').child(uid).once('value')).val();
+};
+
+/**
+ * Get all users currently using the service
+ * @returns {Promise<string[]>} array of halo-discord uids
+ */
+export const getAllActiveUsers = async function () {
+	return Object.keys(
+		(await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {}
+	);
 };

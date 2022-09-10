@@ -149,6 +149,64 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 	return { ...res.body.data.assessmentFeedback, metadata };
 };
 
+/**
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @returns {Promise<[{forumId: string, unreadCount: number}]>} Array of inbox forum objects for the user whose `cookie` was provided
+ */
+export const getUserInbox = async function getUserInboxForumIds({ cookie } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'GetInboxLeftPanelNotification',
+			query: 'query GetInboxLeftPanelNotification {\n  getInboxLeftPanelNotification {\n    unansweredCount\n    courseClassId\n    inboxForumCount {\n      forumId\n      isUnAnswered\n      forumId\n      unreadCount\n      __typename\n    }\n    __typename\n  }\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return res.body.data.getInboxLeftPanelNotification.reduce(
+		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
+		[]
+	);
+};
+
+/**
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @param {string} args.forumId the unique inbox forum ID
+ * @param {number} [args.pgNum] pagination - the number of pages to skip
+ * @param {number} [args.pgSize] pagination - the number of posts to return
+ * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
+ * @returns {Promise<Object[]>} Array of all inbox posts for the user whose `cookie` was provided
+ */
+export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 1, pgSize = 10, metadata = {} } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'getPostsByInboxForumId',
+			variables: { forumId, pgNum, pgSize },
+			query: 'query getPostsByInboxForumId($forumId: String, $pgNum: Int, $pgSize: Int) {\n  getPostsForInboxForum: getPostsForInboxForum(\n    forumId: $forumId\n    pgNum: $pgNum\n    pgSize: $pgSize\n  ) {\n    content\n    createdBy {\n      ...courseClassUser\n      __typename\n    }\n    expiryDate\n    id\n    parentPostId\n    postStatus\n    isRead\n    publishDate\n    resources {\n      ...resource\n      __typename\n    }\n    wordCount\n    postTags {\n      tag\n      createdBy\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment resource on Resource {\n  id\n  kind\n  name\n  type\n  active\n  context\n  description\n  __typename\n}\n\nfragment courseClassUser on CourseClassUser {\n  baseRoleName\n  courseClassId\n  id\n  roleName\n  status\n  userId\n  user {\n    ...user\n    __typename\n  }\n  __typename\n}\n\nfragment user on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  __typename\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
+};
+
 export const getUserOverview = async function ({ cookie, uid }) {
 	const res = await request
 		.post(url.gateway)

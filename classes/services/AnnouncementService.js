@@ -59,7 +59,6 @@ export class AnnouncementService {
 		} catch (e) {
 			bot.logger.warn(`Error pubishing announcement: ${e}`);
 		}
-		return;
 	}
 
 	/**
@@ -79,13 +78,20 @@ export class AnnouncementService {
 					fields: [
 						{
 							name: 'Message',
-							value: announcement.content.replaceAll('<br>', '\n').replace(/<\/?[^>]+(>|$)/g, ''),
+							value: announcement.content
+								.replaceAll('<br>', '\n')
+								.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
+								.replace(/<\/?[^>]+(>|$)/g, ''),
 						},
-						...(!!announcement.resources.length
+						//TODO: cleanup dry code
+						...(!!announcement.resources.filter(({ kind }) => kind !== 'URL').length
 							? [
 									{
-										name: `Attachments (${announcement.resources.length})`,
+										name: `Attachments (${
+											announcement.resources.filter(({ kind }) => kind !== 'URL').length
+										})`,
 										value: announcement.resources
+											.filter(({ kind }) => kind !== 'URL')
 											.map((rs) => `[\`${rs.name}\`](https://halo.gcu.edu/resource/${rs.id})`)
 											.join(', '),
 									},

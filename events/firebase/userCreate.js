@@ -73,21 +73,11 @@ class UserCreate extends FirebaseEvent {
 				courseCode,
 				stage,
 			});
-			// await db
-			// 	.ref('classes')
-			// 	.child(id)
-			// 	.child('users')
-			// 	.child(uid)
-			// 	.update({
-			// 		discord_uid, //storing this may not be necessary if our bot holds a local cache
-			// 		status: students.find(({ userId }) => userId === halo_id)?.status,
-			// 	});
 			await db
 				.ref('user_classes_map')
 				.child(uid)
 				.child(id)
 				.update({
-					//discord_uid, //storing this may not be necessary if our bot holds a local cache
 					status: students.find(({ userId }) => userId === halo_id)?.status,
 				});
 			await db

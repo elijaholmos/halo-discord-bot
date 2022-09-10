@@ -24,6 +24,7 @@ import klaw from 'klaw';
 import path from 'node:path';
 import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService, CookieWatcher } from './classes';
 import { config as dotenv_config } from 'dotenv';
+import { initStores } from './stores';
 dotenv_config();
 
 
@@ -129,6 +130,9 @@ const init = async function () {
         }
     }
     bot.logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
+
+    //import stores
+    bot.logger.log(`Loaded ${(await initStores()).length} stores`);
     
     // Instantiate the HaloWatcher
     (await new HaloWatcher())

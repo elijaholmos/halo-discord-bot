@@ -21,6 +21,7 @@ import path from 'node:path';
 import { setIntervalAsync } from 'set-interval-async/fixed';
 import { Firebase, Halo } from '.';
 import { get, set } from 'lodash-es';
+import { getActiveUsersInClass } from './services/FirebaseService';
 
 export class HaloWatcher extends EventEmitter {
     paths = {
@@ -96,16 +97,16 @@ export class HaloWatcher extends EventEmitter {
         
         //retrieve all courses that need information fetched
         const COURSES = await Firebase.getActiveClasses();
-
         //fetch new announcements
-        for(const [id, course] of Object.entries(COURSES)) {
-            if(!course.users) continue;
+        for(const [class_id, course] of Object.entries(COURSES)) {
+            const active_users = Firebase.getActiveUsersInClass(class_id);
+            if(!active_users?.length) continue;
             //console.log(`Getting announcements for ${course.courseCode}...`);
-            const old_announcements = cache.get(id) || [];
+            const old_announcements = cache.get(class_id) || [];
             const new_announcements = await Halo.getClassAnnouncements({
-                class_id: id,
+                class_id,
                 //use the cookie of a user from the course
-                cookie: await Firebase.getUserCookie(Object.keys(course.users)[0]),
+                cookie: await Firebase.getUserCookie(active_users[0]),
                 //inject the readable course code into the response objects
                 metadata: {
                     courseCode: course.courseCode,
@@ -115,10 +116,10 @@ export class HaloWatcher extends EventEmitter {
             //console.log(new_announcements.length);
             const diff_announcements = [];
             
-            cache.set(id, new_announcements);
+            cache.set(class_id, new_announcements);
             if(!old_announcements?.length) {
                 //skip if there are no old announcements (after setting old_announcements for next iteration)
-                await writeCacheFile({filename: id, data: new_announcements});
+                await writeCacheFile({filename: class_id, data: new_announcements});
                 continue;
             } 
 
@@ -129,7 +130,7 @@ export class HaloWatcher extends EventEmitter {
                 //add to a diff array
                 diff_announcements.push(...this.#locateDifferenceInArrays(new_announcements, old_announcements));
                 //locally write cache to file, only if changes were detected
-                await writeCacheFile({filename: id, data: new_announcements});
+                await writeCacheFile({filename: class_id, data: new_announcements});
             }
 
             for(const announcement of diff_announcements)
@@ -151,14 +152,13 @@ export class HaloWatcher extends EventEmitter {
         //retrieve all courses that need information fetched
         const COURSES = await Firebase.getActiveClasses();
 
-        //fetch new announcements
-        for(const [id, course] of Object.entries(COURSES)) {
-            for(const [uid, user] of Object.entries(course?.users || {})) {
+        //fetch new grades
+        for(const [course_id, course] of Object.entries(COURSES)) {
+            for(const uid of Firebase.getActiveUsersInClass(course_id)) {
                 try {
-                    if(user?.grade_notifications === false) return;   //grade notifications are off for this course
                     //console.log(`Getting ${uid} grades for ${course.courseCode}...`);
                     const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
-                    const old_grades = get(cache, [id, uid], []);
+                    const old_grades = get(cache, [course_id, uid], []);
                     //console.log(old_grades);
                     const new_grades = (await Halo.getAllGrades({
                         class_slug_id: course.slugId,
@@ -173,10 +173,10 @@ export class HaloWatcher extends EventEmitter {
                     //console.log(new_grades.length);
                     const diff_grades = [];
 
-                    set(cache, [id, uid], new_grades);  //update local cache
+                    set(cache, [course_id, uid], new_grades);  //update local cache
                     if(!old_grades?.length) {
                         //skip if there are no old grades (after setting old_grades for next iteration)
-                        await writeCacheFile({filepath: `${id}/${uid}.json`, data: new_grades});
+                        await writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
                         continue;
                     } 
 
@@ -187,7 +187,7 @@ export class HaloWatcher extends EventEmitter {
                         //add to a diff array
                         diff_grades.push(...this.#locateDifferenceInArrays(new_grades, old_grades));
                         //locally write cache to file, only if changes were detected
-                        await writeCacheFile({filepath: `${id}/${uid}.json`, data: new_grades});
+                        await writeCacheFile({filepath: `${course_id}/${uid}.json`, data: new_grades});
                     }
 
                     for(const grade of diff_grades) {

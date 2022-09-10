@@ -17,6 +17,7 @@
 import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { CLASS_USERS_MAP, DISCORD_USER_MAP } from '../../stores';
 const ACTIVE_STAGES = [
     'PRE_START',
     'CURRENT',
@@ -37,33 +38,40 @@ export const getActiveClasses = async function () {
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
 
-export const getActiveUsersInClass = async function (class_id) {
+/**
+ * @returns {string[]} array of discord uids
+ */
+export const getActiveDiscordUsersInClass = function (class_id) {
     return process.env.NODE_ENV === 'production'
-        ? (await admin
-            .database()
-            .ref(`classes/${class_id}/users`)
-            .orderByChild('status')
-            .equalTo('ACTIVE')
-            .get()).val()
-        : {
-            'ollog10': {
-                discord_uid: '139120967208271872',
-            },
-        };
+        ? Object.keys(CLASS_USERS_MAP.get(class_id) ?? {}).map(DISCORD_USER_MAP.get)
+        : ['139120967208271872'];
 };
 
+/**
+ * @returns {Promise<string[]>} array of halo-discord IDs
+ */
+export const getActiveUsersInClassAsync = async function (class_id) {
+    return Object.keys(await admin.database().ref('class_users_map').child(class_id).get() ?? {});
+};
+
+/**
+ * @returns {string[]} array of halo-discord IDs
+ */
+ export const getActiveUsersInClass = function (class_id) {
+    return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
+};
 
 export const getAllUserClasses = async function (uid) {
     return Object.keys((await admin
         .database()
-        .ref(`users_classes_map`)
+        .ref(`user_classes_map`)
         .child(uid)
         .get()).toJSON());
 };
 
 /**
  * Get the Halo cookie object for a user
- * @param {string} uid Discord-Halo UID
+ * @param {string} uid halo-discord UID
  * @param {boolean} check_cache Whether the local cache should be checked first
  */
 export const getUserCookie = async function (uid, check_cache = true) {
@@ -88,10 +96,13 @@ export const updateUserCookie = async function (uid, cookie) {
  * Get a user's Discord UID from a Halo UID
  * @param {string} uid halo user id
  */
-export const getDiscordUid = async function (uid) {
+export const getDiscordUid = function (uid) {
+    return process.env.NODE_ENV === 'production' 
+        ? DISCORD_USER_MAP.get(uid)
+        : '139120967208271872';
 	return process.env.NODE_ENV === 'production' 
         ? Object.values(
-            (await admin 
+            (/*await*/ admin 
                 .database()
                 .ref(`users`)
                 .orderByChild('halo_id')

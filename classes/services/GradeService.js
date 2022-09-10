@@ -41,7 +41,7 @@ export class GradeService {
 	 */
 	static async #publishGrade({ bot, grade, message }) {
 		try {
-            const discord_uid = await Firebase.getDiscordUid(grade.user.id);
+            const discord_uid = Firebase.getDiscordUid(grade.user.id);
             const discord_user = await bot.users.fetch(discord_uid);
             discord_user
                 .send(message)
@@ -88,6 +88,7 @@ export class GradeService {
                             value: !!grade.finalComment?.comment
                                 ? grade.finalComment.comment
                                     .replaceAll('<br>', '\n')
+									.replaceAll('</p><p>', '\n')	//this is kinda hacky ngl
                                     .replace(/<\/?[^>]+(>|$)/g, '')
                                 : 'None',
                         },

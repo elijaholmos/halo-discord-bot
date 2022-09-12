@@ -17,33 +17,34 @@
 import request from 'superagent';
 
 const url = {
-    gateway: process.env.NODE_ENV === 'production'
-        ? 'https://gateway.halo.gcu.edu'
-        : 'http://localhost:3000/gateway',
-    token: process.env.NODE_ENV === 'production'
-        ? 'https://halo.gcu.edu/api/refresh-token'
-        : 'http://localhost:3000/refresh-token',
-    validate: process.env.NODE_ENV === 'production'
-        ? 'https://halo.gcu.edu/api/token-validate/'
-        : 'http://localhost:3000/token-validate/',
+	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
+	token:
+		process.env.NODE_ENV === 'production'
+			? 'https://halo.gcu.edu/api/refresh-token'
+			: 'http://localhost:3000/refresh-token',
+	validate:
+		process.env.NODE_ENV === 'production'
+			? 'https://halo.gcu.edu/api/token-validate/'
+			: 'http://localhost:3000/token-validate/',
 };
+const AUTHORIZATION_KEY = 'TE1TX0FVVEg';
+const CONTEXT_KEY = 'TE1TX0NPTlRFWFQ';
 
-export const refreshToken = async function ({cookie}) {
-    const res = await request.post(url.token)
-        .set({
-            Accept: '*/*',
-            authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-            //'content-length': 474,
-            'content-type': 'application/json',
-            contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
-            cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
-        });
-    if(!res.body?.TE1TX0FVVEg) throw `Error fetching token: ${res.body.error}`;
-    
-    return {
-        TE1TX0FVVEg: res.body['TE1TX0FVVEg'],
-        TE1TX0NPTlRFWFQ: res.body['TE1TX0NPTlRFWFQ'],
-    };
+export const refreshToken = async function ({ cookie }) {
+	const res = await request.post(url.token).set({
+		Accept: '*/*',
+		authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+		//'content-length': 474,
+		'content-type': 'application/json',
+		contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
+	});
+	if (!res.body?.[AUTHORIZATION_KEY] || !res.body?.[CONTEXT_KEY]) throw `Error fetching token: ${res.body.error}`;
+
+	return {
+		[AUTHORIZATION_KEY]: res.body[AUTHORIZATION_KEY],
+		[CONTEXT_KEY]: res.body[CONTEXT_KEY],
+	};
 };
 
 /**
@@ -54,32 +55,35 @@ export const refreshToken = async function ({cookie}) {
  * @param {Object} [args.metadata] Optional metadata to be injected into the announcement object
  * @returns {Promise<Array>} Array of announcements published within the past 10 seconds
  */
-export const getClassAnnouncements = async function ({cookie, class_id, metadata={}} = {}) {
-    const res = await request.post(url.gateway)
-        .set({
-            accept: '*/*',
-            'content-type': 'application/json',
-            authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-            contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
-        })
-        .send({ //Specific GraphQL query syntax, reverse-engineered
-            operationName: 'GetAnnouncementsStudent',
-            variables: {
-                courseClassId: class_id,
-            },
-            query: 'query GetAnnouncementsStudent($courseClassId: String!) {\n  announcements(courseClassId: $courseClassId) {\n    contextId\n    countUnreadPosts\n    courseClassId\n    dueDate\n    forumId\n    forumType\n    lastPost {\n      isReplied\n      __typename\n    }\n    startDate\n    endDate\n    title\n    posts {\n      content\n      expiryDate\n      forumId\n      forumTitle\n      id\n      isRead\n      modifiedDate\n      originalPostId\n      parentPostId\n      postStatus\n      publishDate\n      startDate\n      tenantId\n      title\n      postReadReceipts {\n        readTime\n        __typename\n      }\n      postTags {\n        tag\n        __typename\n      }\n      createdBy {\n        id\n        user {\n          firstName\n          lastName\n          __typename\n        }\n        __typename\n      }\n      resources {\n        kind\n        name\n        id\n        description\n        type\n        active\n        context\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n',
-        });
+export const getClassAnnouncements = async function ({ cookie, class_id, metadata = {} } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'GetAnnouncementsStudent',
+			variables: {
+				courseClassId: class_id,
+			},
+			query: 'query GetAnnouncementsStudent($courseClassId: String!) {\n  announcements(courseClassId: $courseClassId) {\n    contextId\n    countUnreadPosts\n    courseClassId\n    dueDate\n    forumId\n    forumType\n    lastPost {\n      isReplied\n      __typename\n    }\n    startDate\n    endDate\n    title\n    posts {\n      content\n      expiryDate\n      forumId\n      forumTitle\n      id\n      isRead\n      modifiedDate\n      originalPostId\n      parentPostId\n      postStatus\n      publishDate\n      startDate\n      tenantId\n      title\n      postReadReceipts {\n        readTime\n        __typename\n      }\n      postTags {\n        tag\n        __typename\n      }\n      createdBy {\n        id\n        user {\n          firstName\n          lastName\n          __typename\n        }\n        __typename\n      }\n      resources {\n        kind\n        name\n        id\n        description\n        type\n        active\n        context\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n',
+		});
 
-    if(res.body?.errors?.[0]?.message?.includes('401'))
-        throw { code: 401, cookie };
-    //Error handling and data validation could be improved
-    if(!!res.error) throw new Error(res.error);
-    //Filter posts that were published in last 10 seconds
-    //Inject the class ID so we can use it to get the name later
-    return res.body.data.announcements.posts
-        .filter(post => post.postStatus === 'PUBLISHED')
-        //.filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
-        .map(post => ({...post, courseClassId: class_id, metadata}));
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	//Error handling and data validation could be improved
+	if (!!res.error) throw new Error(res.error);
+	//Filter posts that were published in last 10 seconds
+	//Inject the class ID so we can use it to get the name later
+	return (
+		res.body.data.announcements.posts
+			.filter((post) => post.postStatus === 'PUBLISHED')
+			//.filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
+			.map((post) => ({ ...post, courseClassId: class_id, metadata }))
+	);
 };
 
 /**
@@ -89,27 +93,28 @@ export const getClassAnnouncements = async function ({cookie, class_id, metadata
  * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
  * @returns {Promise<Array>} Array of all grades for the user whose `cookie` was provided
  */
-export const getAllGrades = async function ({cookie, class_slug_id, metadata={}} = {}) {
-    const res = await request.post(url.gateway)
-        .set({
-            accept: '*/*',
-            'content-type': 'application/json',
-            authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-            contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
-        })
-        .send({ //Specific GraphQL query syntax, reverse-engineered
-            operationName: 'GradeOverview',
-            variables: {
-                courseClassSlugId: class_slug_id,
-                courseClassUserIds: "", //auto-retrieved by token, I believe
-            },
-            query: 'query GradeOverview($courseClassSlugId: String!, $courseClassUserIds: [String]) {\n  gradeOverview: getAllClassGrades(\n    courseClassSlugId: $courseClassSlugId\n    courseClassUserIds: $courseClassUserIds\n  ) {\n    finalGrade {\n      id\n      finalPoints\n      gradeValue\n      isPublished\n      maxPoints\n      __typename\n    }\n    grades {\n      userLastSeenDate\n      assignmentSubmission {\n        id\n        submissionDate\n        __typename\n      }\n      assessment {\n        id\n        __typename\n      }\n      post {\n        id\n        publishDate\n        __typename\n      }\n      dueDate\n      accommodatedDueDate\n      finalComment {\n        comment\n        commentResources {\n          resource {\n            id\n            kind\n            name\n            type\n            active\n            context\n            description\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      finalPoints\n      id\n      status\n      userQuizAssessment {\n        accommodatedDuration\n        dueTime\n        duration\n        startTime\n        submissionDate\n        userQuizId\n        __typename\n      }\n      history {\n        comment\n        dueDate\n        status\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n',
-        });
+export const getAllGrades = async function ({ cookie, class_slug_id, metadata = {} } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'GradeOverview',
+			variables: {
+				courseClassSlugId: class_slug_id,
+				courseClassUserIds: '', //auto-retrieved by token, I believe
+			},
+			query: 'query GradeOverview($courseClassSlugId: String!, $courseClassUserIds: [String]) {\n  gradeOverview: getAllClassGrades(\n    courseClassSlugId: $courseClassSlugId\n    courseClassUserIds: $courseClassUserIds\n  ) {\n    finalGrade {\n      id\n      finalPoints\n      gradeValue\n      isPublished\n      maxPoints\n      __typename\n    }\n    grades {\n      userLastSeenDate\n      assignmentSubmission {\n        id\n        submissionDate\n        __typename\n      }\n      assessment {\n        id\n        __typename\n      }\n      post {\n        id\n        publishDate\n        __typename\n      }\n      dueDate\n      accommodatedDueDate\n      finalComment {\n        comment\n        commentResources {\n          resource {\n            id\n            kind\n            name\n            type\n            active\n            context\n            description\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      finalPoints\n      id\n      status\n      userQuizAssessment {\n        accommodatedDuration\n        dueTime\n        duration\n        startTime\n        submissionDate\n        userQuizId\n        __typename\n      }\n      history {\n        comment\n        dueDate\n        status\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n',
+		});
 
-    if(res.body?.errors?.[0]?.message?.includes('401'))
-        throw { code: 401, cookie };
-    if(res.error) return console.error(res.error);
-    return res.body.data.gradeOverview[0].grades.map(grade => ({...grade, metadata}));
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return res.body.data.gradeOverview[0].grades.map((grade) => ({ ...grade, metadata }));
 };
 
 /**
@@ -120,36 +125,96 @@ export const getAllGrades = async function ({cookie, class_slug_id, metadata={}}
  * @param {Object} [args.metadata] Optional metadata to be injected into the response object
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
-export const getGradeFeedback = async function ({cookie, assessment_id, uid, metadata={}} = {}) {
-    const res = await request.post(url.gateway)
-        .set({
-            accept: '*/*',
-            'content-type': 'application/json',
-            authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-            contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
-        })
-        .send({ //Specific GraphQL query syntax, reverse-engineered
-            operationName: 'GetAssessmentFeedback',
-            variables: {
-                assessmentId: assessment_id,
-				userId: uid,
-            },
-            query: 'query GetAssessmentFeedback($assessmentId: String!, $userId: String!) {\n  grade: getGradeForUserCourseClassAssessment(\n    courseClassAssessmentId: $assessmentId\n    userId: $userId\n  ) {\n    modifiedDate\n    id\n    user {\n      id\n      firstName\n      lastName\n      userImgUrl\n      sourceId\n      __typename\n    }\n    assessment {\n      courseClassId\n      inPerson\n      attachments {\n        id\n        resourceId\n        title\n        __typename\n      }\n      description\n      dueDate\n      exemptAccommodations\n      id\n      points\n      requiresLopesWrite\n      rubric {\n        name\n        id\n        __typename\n      }\n      startDate\n      tags\n      title\n      type\n      __typename\n    }\n    assignmentSubmission {\n      id\n      dueDate\n      accommodatedDueDate\n      resources {\n        id\n        isFinal\n        percentQuotedText\n        resource {\n          id\n          kind\n          name\n          type\n          active\n          context\n          description\n          embedReady\n          __typename\n        }\n        similarityReportStatusEnum\n        similarityScore\n        wordCount\n        uploadDate\n        __typename\n      }\n      status\n      submissionDate\n      __typename\n    }\n    participationSummary {\n      allPostsCount\n      endDate\n      substantivePostsSummary {\n        date\n        substantivePostsCount\n        __typename\n      }\n      __typename\n    }\n    post {\n      content\n      expiryDate\n      forumId\n      forumTitle\n      id\n      modifiedDate\n      originalPostId\n      parentPostId\n      postStatus\n      postTags {\n        tag\n        __typename\n      }\n      publishDate\n      resources {\n        id\n        kind\n        type\n        name\n        active\n        context\n        description\n        embedReady\n        __typename\n      }\n      wordCount\n      isRead\n      tenantId\n      __typename\n    }\n    dueDate\n    accommodatedDueDate\n    finalComment {\n      comment\n      commentResources {\n        resource {\n          id\n          name\n          kind\n          type\n          active\n          embedReady\n          context\n          description\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    finalPoints\n    rubricScores {\n      comment\n      criteriaId\n      rubricCellId\n      __typename\n    }\n    status\n    userLastSeenDate\n    userQuizAssessment {\n      accommodatedDuration\n      dueTime\n      duration\n      startTime\n      userQuizId\n      __typename\n    }\n    __typename\n  }\n}\n',
-        });
-
-    if(res.body?.errors?.[0]?.message?.includes('401'))
-        throw { code: 401, cookie };
-    if(res.error) return console.error(res.error);
-    return { ...res.body.data.grade, metadata };
-};
-
-export const getUserOverview = async function ({cookie, uid}) {
-    const res = await request.post(url.gateway)
+export const getGradeFeedback = async function ({ cookie, assessment_id, uid, metadata = {} } = {}) {
+	const res = await request
+		.post(url.gateway)
 		.set({
 			accept: '*/*',
 			'content-type': 'application/json',
-			authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-			contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'AssessmentFeedback',
+			variables: {
+				assessmentId: assessment_id,
+				userId: uid,
+			},
+			query: 'query AssessmentFeedback($assessmentId: String!, $userId: String!) {      assessmentFeedback: getGradeForUserCourseClassAssessment(\n    courseClassAssessmentId: $assessmentId\n    userId: $userId\n  ) {\n    assessment {\n      courseClassId\n      inPerson\n      attachments {\n        id\n        resourceId\n        title\n        __typename\n      }\n      description\n      dueDate\n      exemptAccommodations\n      id\n      points\n      requiresLopesWrite\n      rubric {\n        name\n        id\n        __typename\n      }\n      startDate\n      tags\n      title\n      type\n      __typename\n    }\n    id\n    gradedDate\n    userLastSeenDate\n    dueDate\n    accommodatedDueDate\n    finalPoints\n    finalComment {\n      commentResources {\n        resource {\n          id\n          kind\n          name\n          context\n          description\n          embedReady\n          type\n          __typename\n        }\n        __typename\n      }\n      comment\n      __typename\n    }\n    assignmentSubmission {\n      id\n      dueDate\n      accommodatedDueDate\n      submissionDate\n      resources {\n        id\n        isFinal\n        percentQuotedText\n        similarityReportStatusEnum\n        similarityScore\n        wordCount\n        uploadDate\n        uploadedBy {\n          id\n          firstName\n          lastName\n          userImgUrl\n          __typename\n        }\n        resource {\n          id\n          kind\n          name\n          type\n          context\n          description\n          embedReady\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    rubricScores {\n      comment\n      criteriaId\n      rubricCellId\n      __typename\n    }\n    assessmentGroup {\n      id\n      name\n      groupStatus\n      groupUsers {\n        id\n        status\n        user {\n          id\n          firstName\n          lastName\n          userImgUrl\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    userQuizAssessment {\n      accommodatedDuration\n      dueTime\n      duration\n      startTime\n      userQuizId\n      submissionDate\n      __typename\n    }\n    post {\n      id\n      content\n      expiryDate\n      forumId\n      forumTitle\n      modifiedDate\n      originalPostId\n      parentPostId\n      postStatus\n      postTags {\n        tag\n        __typename\n      }\n      publishDate\n      resources {\n        id\n        kind\n        name\n        type\n        context\n        description\n        embedReady\n        __typename\n      }\n      wordCount\n      isRead\n      tenantId\n      __typename\n    }\n    participationSummary {\n      allPostsCount\n      endDate\n      substantivePostsSummary {\n        date\n        substantivePostsCount\n        totalPostsCount\n        __typename\n      }\n      __typename\n    }\n    user {\n      id\n      firstName\n      lastName\n      userImgUrl\n      sourceId\n      isAccommodated\n      __typename\n    }\n    __typename\n  }\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return { ...res.body.data.assessmentFeedback, metadata };
+};
+
+/**
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @returns {Promise<[{forumId: string, unreadCount: number}]>} Array of inbox forum objects for the user whose `cookie` was provided
+ */
+export const getUserInbox = async function getUserInboxForumIds({ cookie } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'GetInboxLeftPanelNotification',
+			query: 'query GetInboxLeftPanelNotification {\n  getInboxLeftPanelNotification {\n    unansweredCount\n    courseClassId\n    inboxForumCount {\n      forumId\n      isUnAnswered\n      forumId\n      unreadCount\n      __typename\n    }\n    __typename\n  }\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return res.body.data.getInboxLeftPanelNotification.reduce(
+		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
+		[]
+	);
+};
+
+/**
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @param {string} args.forumId the unique inbox forum ID
+ * @param {number} [args.pgNum] pagination - the number of pages to skip
+ * @param {number} [args.pgSize] pagination - the number of posts to return
+ * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
+ * @returns {Promise<Object[]>} Array of all inbox posts for the user whose `cookie` was provided
+ */
+export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 1, pgSize = 10, metadata = {} } = {}) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		})
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'getPostsByInboxForumId',
+			variables: { forumId, pgNum, pgSize },
+			query: 'query getPostsByInboxForumId($forumId: String, $pgNum: Int, $pgSize: Int) {\n  getPostsForInboxForum: getPostsForInboxForum(\n    forumId: $forumId\n    pgNum: $pgNum\n    pgSize: $pgSize\n  ) {\n    content\n    createdBy {\n      ...courseClassUser\n      __typename\n    }\n    expiryDate\n    id\n    parentPostId\n    postStatus\n    isRead\n    publishDate\n    resources {\n      ...resource\n      __typename\n    }\n    wordCount\n    postTags {\n      tag\n      createdBy\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment resource on Resource {\n  id\n  kind\n  name\n  type\n  active\n  context\n  description\n  __typename\n}\n\nfragment courseClassUser on CourseClassUser {\n  baseRoleName\n  courseClassId\n  id\n  roleName\n  status\n  userId\n  user {\n    ...user\n    __typename\n  }\n  __typename\n}\n\nfragment user on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  __typename\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res.error) return console.error(res.error);
+	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
+};
+
+export const getUserOverview = async function ({ cookie, uid }) {
+	const res = await request
+		.post(url.gateway)
+		.set({
+			accept: '*/*',
+			'content-type': 'application/json',
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
 		})
 		.send({
 			//Specific GraphQL query syntax, reverse-engineered
@@ -157,16 +222,14 @@ export const getUserOverview = async function ({cookie, uid}) {
 			variables: {
 				userId: uid,
 				skipClasses: false,
-				skipInboxCount: true,
 			},
-			query: 'query HeaderFields($userId: String!, $skipClasses: Boolean!, $skipInboxCount: Boolean!) {\n  userInfo: getUserById(id: $userId) {\n    id\n    firstName\n    lastName\n    userImgUrl\n    sourceId\n    __typename\n  }\n  inboxPostCounts: getUnansweredOrUnreadPostsCount @skip(if: $skipInboxCount)\n  classes: getCourseClassesForUser @skip(if: $skipClasses) {\n    id\n    classCode\n    slugId\n    startDate\n    endDate\n    name\n    description\n    stage\n    modality\n    version\n    courseCode\n    units {\n      id\n      current\n      title\n      sequence\n      __typename\n    }\n    instructors {\n      ...headerUserFields\n      __typename\n    }\n    students {\n      ...headerUserFields\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment headerUserFields on CourseClassUser {\n  id\n  courseClassId\n  roleName\n  baseRoleName\n  status\n  userId\n  user {\n    ...headerUser\n    __typename\n  }\n  __typename\n}\n\nfragment headerUser on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  __typename\n}\n',
+			query: 'query HeaderFields($userId: String!, $skipClasses: Boolean!) {\n  userInfo: getUserById(id: $userId) {\n    id\n    firstName\n    lastName\n    userImgUrl\n    sourceId\n    __typename\n  }\n  classes: getCourseClassesForUser @skip(if: $skipClasses) {\n    courseClasses {\n      id\n      classCode\n      slugId\n      startDate\n      endDate\n      name\n      description\n      stage\n      modality\n      version\n      courseCode\n      units {\n        id\n        current\n        title\n        sequence\n        __typename\n      }\n      instructors {\n        ...headerUserFields\n        __typename\n      }\n      students {\n        isAccommodated\n        isHonors\n        ...headerUserFields\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment headerUserFields on CourseClassUser {\n  id\n  courseClassId\n  roleName\n  baseRoleName\n  status\n  userId\n  user {\n    ...headerUser\n    __typename\n  }\n  __typename\n}\n\nfragment headerUser on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  sourceId\n  lastLogin\n  __typename\n}\n',
 		});
 
-    if(res.body?.errors?.[0]?.message?.includes('401'))
-        throw { code: 401, cookie };
-    //Error handling and data validation could be improved
-    if(res.error) return console.error(res.error);
-    return res.body.data;    
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	//Error handling and data validation could be improved
+	if (res.error) return console.error(res.error);
+	return res.body.data;
 };
 
 /**
@@ -175,22 +238,22 @@ export const getUserOverview = async function ({cookie, uid}) {
  * @param {Object} args.cookie Cookie object of the user
  * @returns {Promise<string>} Halo UID, pulled from the cookie
  */
-export const getUserId = async function ({cookie}) {
-    const res = await request.post(url.validate)
+export const getUserId = async function ({ cookie }) {
+	const res = await request
+		.post(url.validate)
 		.set({
 			accept: '*/*',
 			'content-type': 'application/json',
-			authorization: `Bearer ${cookie.TE1TX0FVVEg}`,
-			contexttoken: `Bearer ${cookie.TE1TX0NPTlRFWFQ}`,
+			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
 		})
 		.send({
-            userToken: cookie.TE1TX0FVVEg,
-            contextToken: cookie.TE1TX0NPTlRFWFQ,
-        });
+			userToken: cookie[AUTHORIZATION_KEY],
+			contextToken: cookie[CONTEXT_KEY],
+		});
 
-    if(res.body?.errors?.[0]?.message?.includes('401'))
-        throw { code: 401, cookie };
-    //Error handling and data validation could be improved
-    if(res.error) return console.error(res.error);
-    return res.body.payload.userid;
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	//Error handling and data validation could be improved
+	if (res.error) return console.error(res.error);
+	return res.body.payload.userid;
 };

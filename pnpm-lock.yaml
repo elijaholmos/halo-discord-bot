@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@firebase/database-compat': 0.2.0
+  bidirectional-map: ^1.1.1
   chalk: ^5.0.1
   discord.js: ^13.8.1
   dotenv: ^16.0.1
@@ -16,6 +17,7 @@ specifiers:
 
 dependencies:
   '@firebase/database-compat': 0.2.0
+  bidirectional-map: 1.1.1
   chalk: 5.0.1
   discord.js: 13.10.2
   dotenv: 16.0.1
@@ -508,6 +510,10 @@ packages:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
     dev: false
     optional: true
+
+  /bidirectional-map/1.1.1:
+    resolution: {integrity: sha512-qfpqHKQbSpc5Eev0W35FZoPnoNUvItDrHbVU0YYKkAOBCZ4Dp3CYi9tjAQcdmqN6ui/9+ioIkb9m0uz8EZqPkA==}
+    dev: false
 
   /bignumber.js/9.1.0:
     resolution: {integrity: sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==}

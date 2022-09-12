@@ -14,19 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export * from './Command';
-export * from './DiscordHaloBot';
-export * from './Logger';
-export * from './LocalCache';
-export * from './components/EmbedBase';
-export * from './components/ConfirmInteraction';
-export * from './events/DiscordEvent';
-export * from './events/FirebaseEvent';
-export * from './HaloWatcher';
-export * from './services/AnnouncementService';
-export * from './services/GradeService';
-export * from './services/InboxMessageService';
-export * from './CookieWatcher';
-export * from './FirebaseStore';
-export * as Firebase from './services/FirebaseService';
-export * as Halo from './services/HaloService';
+import { FirebaseStore } from './classes';
+
+export const DISCORD_USER_MAP = new FirebaseStore({ path: 'discord_user_map' });
+export const USER_CLASSES_MAP = new FirebaseStore({ path: 'user_classes_map', bimap: false });
+export const CLASS_USERS_MAP = new FirebaseStore({ path: 'class_users_map', bimap: false });
+export const USER_SETTINGS_STORE = new FirebaseStore({ path: 'user_settings', bimap: false });
+export const DEFAULT_SETTINGS_STORE = new FirebaseStore({ path: 'default_settings', bimap: false });

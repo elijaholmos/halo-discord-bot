@@ -17,7 +17,7 @@
 import admin from 'firebase-admin';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CLASS_USERS_MAP, DISCORD_USER_MAP } from '../../stores';
+import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
 export const getActiveClasses = async function () {
@@ -108,4 +108,26 @@ export const getAllActiveUsers = async function () {
 	return Object.keys(
 		(await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {}
 	);
+};
+
+/**
+ * Retrieve a user's settings
+ * @param {string} uid discord-halo uid
+ * @returns {object} user settings
+ */
+export const getUserSettings = function (uid) {
+	return USER_SETTINGS_STORE.get(uid) ?? DEFAULT_SETTINGS_STORE.values().map(({ id, value }) => ({ [id]: value }));
+};
+
+/**
+ * Get the user-set value associated with the `setting_id`
+ * @param {object} args Destructured arguments
+ * @param {string} args.uid discord-halo uid
+ * @param {string | number} args.setting_id ID of setting to retieve
+ * @returns {any} The value of the user's setting if set, otherwise the default setting value
+ */
+export const getUserSettingValue = function ({ uid, setting_id }) {
+	console.log(`Getting user setting value for ${uid} with setting_id ${setting_id}`);
+	console.log(getUserSettings(uid)?.[setting_id]);
+	return getUserSettings(uid)?.[setting_id];
 };

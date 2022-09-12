@@ -55,5 +55,13 @@ export class FirebaseStore {
 		return [...this._cache.values()];
 	}
 
+	entires() {
+		return [...this._cache.entries()];
+	}
+
+	toObject() {
+		return Object.fromEntries(this._cache.entries()) ;
+	}
+
 	// Implement setter that updates local & cloud?
 }

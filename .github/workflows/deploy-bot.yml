@@ -19,7 +19,7 @@ jobs:
                       git reset --hard origin/production
                       git pull
                       pnpm i --frozen-lockfile
-                      pnpx pm2 delete all
+                      pm2 delete all
                       pnpm run deploy
                   host: ${{ secrets.SSH_HOST }}
                   user: eli_olmos9

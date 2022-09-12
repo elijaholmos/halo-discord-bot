@@ -1,31 +1,44 @@
 {
-  "name": "halo-discord-bot",
-  "version": "1.0.0-dev",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "nodemon --experimental-specifier-resolution=node",
-    "start": "node --experimental-specifier-resolution=node .",
-    "deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "logs/",
-      "cache/"
-    ]
-  },
-  "dependencies": {
-    "@firebase/database-compat": "0.1.2",
-    "chalk": "^4.1.1",
-    "discord.js": "^13.6.0",
-    "dotenv": "^10.0.0",
-    "firebase-admin": "^10.0.2",
-    "klaw": "^4.0.1",
-    "lodash-es": "^4.17.21",
-    "moment": "^2.29.1",
-    "path": "^0.12.7",
-    "serialize-error": "^9.1.0",
-    "set-interval-async": "^2.0.3",
-    "superagent": "^6.1.0"
-  }
+	"name": "halo-discord-bot",
+	"version": "2.0.0",
+	"author": "Elijah Olmos",
+	"license": "AGPL-3.0-only",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"test": "nodemon --ignore logs/ --ignore cache/ --ignore api/",
+		"test:api": "nodemon -w api/ api/index.js",
+		"start": "node --experimental-specifier-resolution=node .",
+		"deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
+	},
+	"engines": {
+		"node": ">=16.9.0",
+		"pnpm": ">=7.0.0"
+	},
+	"nodemonConfig": {
+		"ignore": [
+			"logs/",
+			"cache/"
+		],
+		"execMap": {
+			"js": "node --experimental-specifier-resolution=node"
+		}
+	},
+	"dependencies": {
+		"@firebase/database-compat": "0.2.0",
+		"bidirectional-map": "^1.1.1",
+		"chalk": "^5.0.1",
+		"discord.js": "^13.8.1",
+		"dotenv": "^16.0.1",
+		"firebase-admin": "^11.0.0",
+		"klaw": "^4.0.1",
+		"lodash-es": "^4.17.21",
+		"moment": "^2.29.4",
+		"serialize-error": "^11.0.0",
+		"set-interval-async": "^3.0.1",
+		"superagent": "^8.0.0"
+	},
+	"devDependencies": {
+		"express": "^4.18.1"
+	}
 }

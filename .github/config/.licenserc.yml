@@ -1,0 +1,16 @@
+header:
+    license:
+        spdx-id: AGPL-3.0-only
+        copyright-owner: Elijah Olmos
+
+    paths-ignore:
+        - '.github'
+        - 'LICENSE'
+        - '**/.*'
+        - '**/*.md'
+        - '**/*.json'
+        - 'pnpm-lock.yaml'
+
+    comment: on-failure
+
+    license-location-threshold: 80

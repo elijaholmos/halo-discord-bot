@@ -14,24 +14,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Custom class for implementing Discord events. The `run()` method will be called whenever the event `name` is fired
- */
-export class DiscordEvent {
-    constructor(bot, {
-        name        = null,
-        description = null,
-        event_type  = null,
-    }) {
-        this.bot            = bot;
-        this.name           = name;
-        this.description    = description;
-        this.event_type     = event_type;
-        //import event config from bot config
-		Object.assign(this, bot.config.events[this.name]);
-    }
+import express from 'express';
+import { GatewayController } from '../controllers/GatewayController';
 
-    run(data) {
-        throw new Error(`DiscordEvent ${this.name} doesn't provide a run method.`);
-    }
-}
+const router = express.Router();
+
+router.post('/', async (req, res) => {
+	const { operationName, variables={} } = req.body;
+	res.send(await GatewayController[operationName](variables));
+});
+
+export { router as gateway };

@@ -1,0 +1,49 @@
+name: Check License Headers
+
+on:
+    push:
+        branches: [dev]
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    detect-duplicate-actions:
+        name: detect-duplicate-actions
+        runs-on: ubuntu-latest
+        outputs:
+            should_skip: ${{ steps.skip_check.outputs.should_skip }}
+        steps:
+            - name: Detect Duplicate
+              id: skip_check
+              uses: fkirc/skip-duplicate-actions@master
+              with:
+                  paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
+                  do_not_skip: '["workflow_dispatch", "schedule"]'
+                  cancel_others: 'true'
+                  concurrent_skipping: 'same_content'
+    check-license-headers:
+        name: check-license-headers
+        needs: detect-duplicate-actions
+        if: ${{ needs.detect-duplicate-actions.outputs.should_skip != 'true' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code (Non-PR)
+              uses: actions/checkout@v3
+              if: ${{ github.event_name != 'pull_request' }}
+            - name: Checkout Code (PR)
+              uses: actions/checkout@v3
+              if: ${{ github.event_name == 'pull_request' }}
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+            - name: Fix License Header
+              uses: apache/skywalking-eyes/header@main
+              with:
+                  mode: fix
+                  log: info
+                  config: .github/config/.licenserc.yml
+            - name: Push Changes
+              uses: EndBug/add-and-commit@v9
+              with:
+                  message: 'chore(license): add license header to files'
+                  default_author: github_actions

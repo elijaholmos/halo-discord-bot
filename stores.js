@@ -14,24 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Custom class for implementing Discord events. The `run()` method will be called whenever the event `name` is fired
- */
-export class DiscordEvent {
-    constructor(bot, {
-        name        = null,
-        description = null,
-        event_type  = null,
-    }) {
-        this.bot            = bot;
-        this.name           = name;
-        this.description    = description;
-        this.event_type     = event_type;
-        //import event config from bot config
-		Object.assign(this, bot.config.events[this.name]);
-    }
+import { FirebaseStore } from './classes';
 
-    run(data) {
-        throw new Error(`DiscordEvent ${this.name} doesn't provide a run method.`);
-    }
-}
+export const DISCORD_USER_MAP = new FirebaseStore({ path: 'discord_user_map' });
+export const USER_CLASSES_MAP = new FirebaseStore({ path: 'user_classes_map', bimap: false });
+export const CLASS_USERS_MAP = new FirebaseStore({ path: 'class_users_map', bimap: false });
+export const USER_SETTINGS_STORE = new FirebaseStore({ path: 'user_settings', bimap: false });
+export const DEFAULT_SETTINGS_STORE = new FirebaseStore({ path: 'default_settings', bimap: false });

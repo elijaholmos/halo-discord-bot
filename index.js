@@ -1,13 +1,31 @@
+/*
+ * Copyright (C) 2022 Elijah Olmos
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 'use strict';
 if (process.version.slice(1).split(".")[0] < 16)
     throw new Error("Node 16.6.0 or higher is required.");
 
 import { Intents } from 'discord.js';
+import { config as dotenv_config } from 'dotenv';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
-import path from 'path';
-import { AnnouncementService, DiscordHaloBot, HaloWatcher, EmbedBase, GradeService, CookieWatcher } from './classes';
-import { config as dotenv_config } from 'dotenv';
+import path from 'node:path';
+import * as caches from './caches';
+import { AnnouncementService, CookieWatcher, DiscordHaloBot, EmbedBase, GradeService, HaloWatcher, InboxMessageService } from './classes';
+import * as stores from './stores';
 dotenv_config();
 
 
@@ -113,11 +131,20 @@ const init = async function () {
         }
     }
     bot.logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
+
+    //import stores
+    const imported_stores = await Promise.all(Object.values(stores).map(store => store.awaitReady()));
+    bot.logger.log(`Loaded ${imported_stores.length} stores`);
+
+    //import caches
+    const imported_caches = await Promise.all(Object.values(caches).map(cache => cache.loadCacheFiles()));
+    bot.logger.log(`Loaded ${imported_caches.length} local caches`);
     
     // Instantiate the HaloWatcher
     (await new HaloWatcher())
         .on('announcement', AnnouncementService.processAnnouncement(bot))
-        .on('grade', GradeService.processGrade(bot));
+        .on('grade', GradeService.processGrade(bot))
+        .on('inbox_message', InboxMessageService.processInboxMessage(bot));
     bot.logger.log('HaloWatcher initialized');
 
     // Instantiate the CookieWatcher

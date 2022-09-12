@@ -15,9 +15,9 @@
  */
 
 import admin from 'firebase-admin';
-import { EmbedBase, FirebaseEvent, Logger, Firebase, Halo } from '../../classes';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
 	constructor(bot) {
@@ -43,7 +43,7 @@ class UserCreate extends FirebaseEvent {
 		//update mapping table
 		await db.ref('discord_user_map').child(discord_uid).set(uid);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
-		const cookie = (await db.ref(`cookies/${uid}`).get()).val();
+		const cookie = await Firebase.getUserCookie(uid, false);
 		const halo_id = await Halo.getUserId({ cookie });
 		await db.ref(`users/${uid}`).child('halo_id').set(halo_id);
 
@@ -61,11 +61,10 @@ class UserCreate extends FirebaseEvent {
 
 		//retrieve and set halo classes & grades
 		//create grade_notifications dir if it doesn't exist
-		await fs.mkdir('./' + path.relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
+		await mkdir('./' + relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
 		const grade_nofitication_cache = [];
-		const halo_overview = await Halo.getUserOverview({ cookie, uid: halo_id });
-		for (const { id, name, slugId, classCode, courseCode, stage, students } of halo_overview.classes
-			.courseClasses) {
+		const { classes, userInfo } = await Halo.getUserOverview({ cookie, uid: halo_id });
+		for (const { id, name, slugId, classCode, courseCode, stage, students } of classes.courseClasses) {
 			await db.ref('classes').child(id).update({
 				name,
 				slugId,
@@ -80,11 +79,7 @@ class UserCreate extends FirebaseEvent {
 				.update({
 					status: students.find(({ userId }) => userId === halo_id)?.status,
 				});
-			await db
-				.ref('class_users_map')
-				.child(id)
-				.child(uid)
-				.set(true);
+			await db.ref('class_users_map').child(id).child(uid).set(true);
 
 			//retrieve all published grades and store in cache
 			grade_nofitication_cache.push(
@@ -100,8 +95,8 @@ class UserCreate extends FirebaseEvent {
 		}
 
 		//write grade_notifications cache file
-		await fs.writeFile(
-			'./' + path.relative(process.cwd(), `cache/grade_notifications/${uid}.json`),
+		await writeFile(
+			'./' + relative(process.cwd(), `cache/grade_notifications/${uid}.json`),
 			JSON.stringify(grade_nofitication_cache)
 		);
 
@@ -116,7 +111,7 @@ class UserCreate extends FirebaseEvent {
 					},
 					{
 						name: 'Halo User',
-						value: `${halo_overview.userInfo.firstName} ${halo_overview.userInfo.lastName} (\`${halo_id}\`)`,
+						value: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
 					},
 				],
 			}),
@@ -132,11 +127,17 @@ class UserCreate extends FirebaseEvent {
 		//extension uninstall process
 		if (!!snapshot.val()?.uninstalled) {
 			const { bot } = this;
-			const { discord_uid } = snapshot.val();
+			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
 			const db = admin.database();
 
 			Logger.uninstall(uid);
+
+			//retrieve user info for uninstall message
+			const { userInfo } = await Halo.getUserOverview({
+				cookie: await Firebase.getUserCookie(uid, false),
+				uid: halo_id,
+			});
 
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();
@@ -169,9 +170,7 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: `${snapshot.val().firstName} ${snapshot.val().lastName} (\`${
-								snapshot.val().halo_id
-							}\`)`,
+							value: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
 						},
 					],
 				}).Error(),

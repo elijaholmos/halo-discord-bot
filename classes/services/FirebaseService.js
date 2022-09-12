@@ -15,8 +15,8 @@
  */
 
 import admin from 'firebase-admin';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { relative } from 'node:path';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
@@ -63,7 +63,7 @@ export const getAllUserClasses = async function (uid) {
 export const getUserCookie = async function (uid, check_cache = true) {
 	try {
 		if (!check_cache) throw 'Skipping cache check';
-		const cache = await fs.readFile('./' + path.relative(process.cwd(), `cache/cookies.json`), 'utf8');
+		const cache = await readFile('./' + relative(process.cwd(), `cache/cookies.json`), 'utf8');
 		if (uid in cache) return cache[uid].cookie;
 		throw 'User not found in cache';
 	} catch (e) {

@@ -3,7 +3,7 @@
 	"extends": [
 		":ignoreModulesAndTests",
 		":autodetectPinVersions",
-		":prConcurrentLimit5",
+		":prConcurrentLimit10",
 		"group:recommended",
 		"workarounds:all",
 		":semanticCommitType(chore)"

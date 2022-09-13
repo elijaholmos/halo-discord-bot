@@ -76,7 +76,7 @@ export class HaloWatcher extends EventEmitter {
 
             //if no old announcements, user just installed
             if(old_announcements === null) {
-                writeCacheFile({filepath: class_id, data: new_announcements});
+                await writeCacheFile({filepath: class_id, data: new_announcements});
                 continue;
             }
             

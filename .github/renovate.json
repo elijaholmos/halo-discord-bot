@@ -1,4 +1,11 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": ["config:base", ":semanticCommitType(chore)"]
+	"extends": [
+		"ignoreModulesAndTests",
+		":autodetectPinVersions",
+		":prConcurrentLimit5",
+		"group:recommended",
+		"workarounds:all",
+		":semanticCommitType(chore)"
+	]
 }

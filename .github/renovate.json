@@ -7,8 +7,5 @@
 		"group:recommended",
 		"workarounds:all",
 		":semanticCommitType(chore)"
-	],
-	"automerge": true,
-	"automergeStrategy": "squash",
-	"recreateClosed": true
+	]
 }

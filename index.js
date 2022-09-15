@@ -203,6 +203,6 @@ init();
 
 // Prevent the bot from crashing on unhandled rejections
 process.on("unhandledRejection", function (err, promise) {
-    bot.logger.error(err);
+    bot.logger.error(JSON.stringify(err));
     console.error(err);
 });

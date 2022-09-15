@@ -61,8 +61,8 @@ class UserCreate extends FirebaseEvent {
 
 		//retrieve and set halo classes & grades
 		//create grade_notifications dir if it doesn't exist
-		await mkdir('./' + relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
-		const grade_nofitication_cache = [];
+		//await mkdir('./' + relative(process.cwd(), 'cache/grade_notifications'), { recursive: true });
+		//const grade_nofitication_cache = [];
 		const { classes, userInfo } = await Halo.getUserOverview({ cookie, uid: halo_id });
 		for (const { id, name, slugId, classCode, courseCode, stage, students } of classes.courseClasses) {
 			await db.ref('classes').child(id).update({
@@ -82,23 +82,23 @@ class UserCreate extends FirebaseEvent {
 			await db.ref('class_users_map').child(id).child(uid).set(true);
 
 			//retrieve all published grades and store in cache
-			grade_nofitication_cache.push(
-				...(
-					await Halo.getAllGrades({
-						cookie,
-						class_slug_id: slugId,
-					})
-				)
-					.filter(({ status }) => status === 'PUBLISHED')
-					.map(({ assessment }) => assessment.id)
-			);
+			// grade_nofitication_cache.push(
+			// 	...(
+			// 		await Halo.getAllGrades({
+			// 			cookie,
+			// 			class_slug_id: slugId,
+			// 		})
+			// 	)
+			// 		.filter(({ status }) => status === 'PUBLISHED')
+			// 		.map(({ assessment }) => assessment.id)
+			// );
 		}
 
 		//write grade_notifications cache file
-		await writeFile(
-			'./' + relative(process.cwd(), `cache/grade_notifications/${uid}.json`),
-			JSON.stringify(grade_nofitication_cache)
-		);
+		// await writeFile(
+		// 	'./' + relative(process.cwd(), `cache/grade_notifications/${uid}.json`),
+		// 	JSON.stringify(grade_nofitication_cache)
+		// );
 
 		//send message to bot channel
 		bot.logConnection({
@@ -138,6 +138,9 @@ class UserCreate extends FirebaseEvent {
 				cookie: await Firebase.getUserCookie(uid, false),
 				uid: halo_id,
 			});
+
+			//remove user acct
+			await admin.auth().deleteUser(uid);
 
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();

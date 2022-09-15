@@ -57,39 +57,43 @@ export class HaloWatcher extends EventEmitter {
         const COURSES = await Firebase.getActiveClasses();
         //fetch new announcements
         for(const [class_id, course] of Object.entries(COURSES)) {
-            const active_users = Firebase.getActiveUsersInClass(class_id);
-            if(!active_users?.length) continue;
-            // console.log(`Getting announcements for ${course.courseCode}...`);
-            const old_announcements = get(class_id) || null;
-            const new_announcements = await Halo.getClassAnnouncements({
-                class_id,
-                //use the cookie of a user from the course
-                cookie: await Firebase.getUserCookie(active_users[0]),
-                //inject the readable course code into the response objects
-                metadata: {
-                    courseCode: course.courseCode,
-                },
-            });
-            // console.log(old_announcements?.length);
-            // console.log(new_announcements.length);
-            set(class_id, new_announcements);
+            try {
+                const active_users = Firebase.getActiveUsersInClass(class_id);
+                if(!active_users?.length) continue;
+                console.log(`Getting announcements for ${course.courseCode}...`);
+                const old_announcements = get(class_id) || null;
+                const new_announcements = await Halo.getClassAnnouncements({
+                    class_id,
+                    //use the cookie of a user from the course
+                    cookie: await Firebase.getUserCookie(active_users[0]),
+                    //inject the readable course code into the response objects
+                    metadata: {
+                        courseCode: course.courseCode,
+                    },
+                });
+                // console.log(old_announcements?.length);
+                // console.log(new_announcements.length);
+                set(class_id, new_announcements);
 
-            //if no old announcements, user just installed
-            if(old_announcements === null) {
+                //if no old announcements, user just installed
+                if(old_announcements === null) {
+                    await writeCacheFile({filepath: class_id, data: new_announcements});
+                    continue;
+                }
+                
+                // === rather than > because teachers can remove announcements
+                if(new_announcements.length === old_announcements.length) continue;
+                
+                //at this point, new announcements were detected
+                console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
+                //write local cache to file, since changes were detected
                 await writeCacheFile({filepath: class_id, data: new_announcements});
-                continue;
+                
+                for(const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
+                    this.emit('announcement', announcement);
+            } catch(e) {
+                console.error(`Error while fetching announcements for ${course.courseCode}: ${e}`);
             }
-            
-            // === rather than > because teachers can remove announcements
-            if(new_announcements.length === old_announcements.length) continue;
-            
-            //at this point, new announcements were detected
-            console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
-            //write local cache to file, since changes were detected
-            await writeCacheFile({filepath: class_id, data: new_announcements});
-            
-            for(const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
-                this.emit('announcement', announcement);
         }
     }
 
@@ -103,7 +107,7 @@ export class HaloWatcher extends EventEmitter {
         for(const [course_id, course] of Object.entries(COURSES)) {
             for(const uid of Firebase.getActiveUsersInClass(course_id)) {
                 try {
-                    // console.log(`Getting ${uid} grades for ${course.courseCode}...`);
+                    console.log(`Getting ${uid} grades for ${course.courseCode}...`);
                     const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
                     const old_grades = get([course_id, uid], null);
                     //console.log(old_grades);
@@ -153,8 +157,7 @@ export class HaloWatcher extends EventEmitter {
                     }
                 } catch(e) {
                     if(e.code === 401) {
-                        console.log('401 received');
-                        await Firebase.updateUserCookie(uid, await Halo.refreshToken({cookie: e.cookie}));
+                        console.error(`Received 401 while fetching ${uid} grades for course ${course.courseCode}`);
                     }
                 }
             }
@@ -171,12 +174,12 @@ export class HaloWatcher extends EventEmitter {
         //retrieve all active users
         const ACTIVE_USERS = await Firebase.getAllActiveUsers();
 
-        try {
-            //retrieve all inbox forums that need information fetched
-            for(const uid of ACTIVE_USERS) {
+        //retrieve all inbox forums that need information fetched
+        for(const uid of ACTIVE_USERS) {
+            try {
                 const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
                 for(const {forumId, unreadCount} of await Halo.getUserInbox({cookie})) {
-                    // console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
+                    console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
 
                     //goal is to minimize halo API calls placed
                     const old_inbox_posts = get([uid, forumId], null);
@@ -213,11 +216,10 @@ export class HaloWatcher extends EventEmitter {
                         this.emit('inbox_message', {...post, metadata: { uid }});
                     }
                 }
-            }
-        } catch(e) {
-            if(e.code === 401) {
-                console.log('401 received');
-                await Firebase.updateUserCookie(uid, await Halo.refreshToken({cookie: e.cookie}));
+            } catch(e) {
+                if(e.code === 401) {
+                    console.error(`Received 401 while fetching ${uid} inbox notifications`);
+                }
             }
         }
     }

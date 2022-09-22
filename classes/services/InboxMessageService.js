@@ -55,11 +55,22 @@ export class InboxMessageService {
 			bot.logDiscord({
 				embed: new EmbedBase(bot, {
 					title: 'Inbox Message Sent',
-					description: `Sent to ${bot.formatUser(discord_user)})`,
+					fields: [
+						{
+							name: 'Receipient',
+							value: bot.formatUser(discord_user),
+							inline: true,
+						},
+						{
+							name: 'Message ID',
+							value: inbox_message.id,
+							inline: false,
+						},
+					],
 				}),
 			});
 		} catch (e) {
-			bot.logger.warn(`Error pubishing inbox_message: ${e}`);
+			bot.logger.warn(`Error pubishing inbox_message ${inbox_message?.id} for user ${grade?.user?.id}: ${e}`);
 		}
 	}
 

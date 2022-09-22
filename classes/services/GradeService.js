@@ -54,11 +54,22 @@ export class GradeService {
 			bot.logDiscord({
 				embed: new EmbedBase(bot, {
 					title: 'Grade Message Sent',
-					description: `Sent to ${bot.formatUser(discord_user)})`,
+					fields: [
+						{
+							name: 'Receipient',
+							value: bot.formatUser(discord_user),
+							inline: true,
+						},
+						{
+							name: 'Grade ID',
+							value: grade.id,
+							inline: false,
+						},
+					],
 				}),
 			});
 		} catch (e) {
-			bot.logger.warn(`Error pubishing grade: ${e}`);
+			bot.logger.warn(`Error pubishing grade ${grade?.id} for user ${grade?.user?.id}: ${e}`);
 		}
 	}
 

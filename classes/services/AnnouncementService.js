@@ -39,10 +39,10 @@ export class AnnouncementService {
 	 * @returns {Promise<void>}
 	 */
 	static async #publishAnnouncement({ bot, announcement, message }) {
-		try {
-			//get all active users in the class and send the message to them
-			for (const uid of Firebase.getActiveUsersInClass(announcement.courseClassId)) {
-				if(!Firebase.getUserSettingValue({ uid, setting_id: 0 })) continue;
+		//get all active users in the class and send the message to them
+		for (const uid of Firebase.getActiveUsersInClass(announcement.courseClassId)) {
+			try {
+				if (!Firebase.getUserSettingValue({ uid, setting_id: 0 })) continue;
 				const discord_uid = Firebase.getDiscordUid(uid);
 				const discord_user = await bot.users.fetch(discord_uid);
 				discord_user
@@ -54,12 +54,28 @@ export class AnnouncementService {
 				bot.logDiscord({
 					embed: new EmbedBase(bot, {
 						title: 'Announcement Message Sent',
-						description: `Sent to ${bot.formatUser(discord_user)}`,
+						fields: [
+							{
+								name: 'Receipient',
+								value: bot.formatUser(discord_user),
+								inline: true,
+							},
+							{
+								name: 'Announcement Title',
+								value: announcement.title,
+								inline: true,
+							},
+							{
+								name: 'Announcement ID',
+								value: announcement.id,
+								inline: false,
+							},
+						],
 					}),
 				});
+			} catch (e) {
+				bot.logger.warn(`Error pubishing announcement ${announcement?.id} for user ${uid}: ${e}`);
 			}
-		} catch (e) {
-			bot.logger.warn(`Error pubishing announcement: ${e}`);
 		}
 	}
 

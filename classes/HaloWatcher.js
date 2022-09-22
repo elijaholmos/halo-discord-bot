@@ -24,9 +24,9 @@ export class HaloWatcher extends EventEmitter {
         super();
         return (async () => {
 			//create intervals
-			setIntervalAsync(async () => await this.#watchForAnnouncements(), 10000);
-			setIntervalAsync(async () => await this.#watchForGrades(), 10000);
-            setIntervalAsync(async () => await this.#watchForInboxMessages(), 10000);
+			setIntervalAsync(async () => await this.#watchForAnnouncements(), 20000);
+			setIntervalAsync(async () => await this.#watchForGrades(), 20000);
+            setIntervalAsync(async () => await this.#watchForInboxMessages(), 20000);
 
 			return this;
 		})();
@@ -60,7 +60,7 @@ export class HaloWatcher extends EventEmitter {
             try {
                 const active_users = Firebase.getActiveUsersInClass(class_id);
                 if(!active_users?.length) continue;
-                console.log(`Getting announcements for ${course.courseCode}...`);
+                //console.log(`Getting announcements for ${course.courseCode}...`);
                 const old_announcements = get(class_id) || null;
                 const new_announcements = await Halo.getClassAnnouncements({
                     class_id,
@@ -107,7 +107,7 @@ export class HaloWatcher extends EventEmitter {
         for(const [course_id, course] of Object.entries(COURSES)) {
             for(const uid of Firebase.getActiveUsersInClass(course_id)) {
                 try {
-                    console.log(`Getting ${uid} grades for ${course.courseCode}...`);
+                    //console.log(`Getting ${uid} grades for ${course.courseCode}...`);
                     const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
                     const old_grades = get([course_id, uid], null);
                     //console.log(old_grades);
@@ -179,7 +179,7 @@ export class HaloWatcher extends EventEmitter {
             try {
                 const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
                 for(const {forumId, unreadCount} of await Halo.getUserInbox({cookie})) {
-                    console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
+                    //console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
 
                     //goal is to minimize halo API calls placed
                     const old_inbox_posts = get([uid, forumId], null);

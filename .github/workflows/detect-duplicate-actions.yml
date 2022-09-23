@@ -1,0 +1,24 @@
+name: detect-duplicate-actions
+
+on:
+    workflow_call:
+        outputs:
+            should_skip:
+                description: 'Returns "true" if the current run should be skipped'
+                value: ${{ jobs.detect-duplicate-actions.outputs.should_skip }}
+
+jobs:
+    detect-duplicate-actions:
+        name: detect-duplicate-actions
+        runs-on: ubuntu-latest
+        outputs:
+            should_skip: ${{ steps.skip_check.outputs.should_skip }}
+        steps:
+            - name: Detect Duplicate
+              id: skip_check
+              uses: fkirc/skip-duplicate-actions@master
+              with:
+                  paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
+                  do_not_skip: '["workflow_dispatch", "schedule"]'
+                  cancel_others: 'true'
+                  concurrent_skipping: 'same_content'

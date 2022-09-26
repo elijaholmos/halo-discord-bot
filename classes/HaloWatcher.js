@@ -90,7 +90,9 @@ export class HaloWatcher extends EventEmitter {
                 await writeCacheFile({filepath: class_id, data: new_announcements});
                 
                 for(const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
-                    this.emit('announcement', announcement);
+                    // to prevent announcement spam upon bot restart, only emit announcements that were published in past 1 hour
+                    new Date(post.publishDate).getTime() > new Date().getTime() - (1000 * 60 * 60 * 1)
+                        && this.emit('announcement', announcement);
             } catch(e) {
                 console.error(`Error while fetching announcements for ${course.courseCode}: ${e}`);
             }

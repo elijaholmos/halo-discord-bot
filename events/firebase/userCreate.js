@@ -139,9 +139,6 @@ class UserCreate extends FirebaseEvent {
 				uid: halo_id,
 			});
 
-			//remove user acct
-			await admin.auth().deleteUser(uid);
-
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();
 

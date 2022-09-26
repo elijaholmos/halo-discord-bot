@@ -20,7 +20,7 @@ import path from 'node:path';
 import { Firebase, Halo } from '.';
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieWatcher {
-    static REFRESH_INTERVAL = 1000 * 60 * 60 * 4; //4 hours
+    static REFRESH_INTERVAL = 1000 * 60 * 60 * 1.9; //1.9 hours
     static timeouts = new Map();    //to track and clear timeouts
 
     static async init() {
@@ -87,7 +87,7 @@ export class CookieWatcher {
     }
 
     static async refreshUserCookie(uid, cookie) {
-        console.log(`Refreshing ${uid}'s cookie...`);
+        console.log(`${Date.now()} : Refreshing ${uid}'s cookie...`);
         try {
             const res = await Halo.refreshToken({cookie});
             return await Firebase.updateUserCookie(uid, res);

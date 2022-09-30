@@ -86,7 +86,6 @@ export class HaloWatcher extends EventEmitter {
                 
                 //at this point, new announcements were detected
                 console.log(`${course.courseCode}: new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
-                console.log(`${course.courseCode}: ${new Date(announcement.publishDate).getTime()} > ${new Date().getTime() - (1000 * 60 * 60 * 1)}`)
                 //write local cache to file, since changes were detected
                 await writeCacheFile({filepath: class_id, data: new_announcements});
                 

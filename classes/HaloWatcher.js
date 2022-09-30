@@ -85,13 +85,13 @@ export class HaloWatcher extends EventEmitter {
                 if(new_announcements.length === old_announcements.length) continue;
                 
                 //at this point, new announcements were detected
-                console.log(`new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
+                console.log(`${course.courseCode}: new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`);
                 //write local cache to file, since changes were detected
                 await writeCacheFile({filepath: class_id, data: new_announcements});
                 
                 for(const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
                     // to prevent announcement spam upon bot restart, only emit announcements that were published in past 1 hour
-                    new Date(post.publishDate).getTime() > new Date().getTime() - (1000 * 60 * 60 * 1)
+                    new Date(announcement.publishDate).getTime() > new Date().getTime() - (1000 * 60 * 60 * 1)
                         && this.emit('announcement', announcement);
             } catch(e) {
                 console.error(`Error while fetching announcements for ${course.courseCode}: ${e}`);

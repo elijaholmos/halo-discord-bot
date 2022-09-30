@@ -1,6 +1,6 @@
 {
 	"name": "halo-discord-bot",
-	"version": "2.0.3",
+	"version": "2.0.4",
 	"author": "Elijah Olmos",
 	"license": "AGPL-3.0-only",
 	"main": "index.js",

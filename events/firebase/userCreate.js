@@ -15,13 +15,11 @@
  */
 
 import admin from 'firebase-admin';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { relative } from 'node:path';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
 	constructor(bot) {
-		super(bot, {
+		super({
 			name: 'UserCreate',
 			description: 'Perform several operations when a user connects their Discord acct',
 			ref: 'users',
@@ -52,7 +50,7 @@ class UserCreate extends FirebaseEvent {
 		await bot.sendDM({
 			user,
 			send_disabled_msg: false,
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'Accounts Connected Successfully',
 				description: 'You will now receive direct messages when certain things happen in Halo!',
 			}).Success(),
@@ -102,7 +100,7 @@ class UserCreate extends FirebaseEvent {
 
 		//send message to bot channel
 		bot.logConnection({
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'New User Connected',
 				fields: [
 					{
@@ -161,7 +159,7 @@ class UserCreate extends FirebaseEvent {
 
 			//send message to bot channel
 			bot.logConnection({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'User Uninstalled',
 					fields: [
 						{

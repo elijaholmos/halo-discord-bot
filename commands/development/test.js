@@ -17,24 +17,27 @@
 import { Command, EmbedBase, Firebase } from '../../classes';
 
 class test extends Command {
-    constructor(bot) {
-        super(bot, {
-            name: 'test',
-            description: 'Test command',
-            category: 'development',
-        });
-    }
+	constructor(bot) {
+		super({
+			name: 'test',
+			description: 'Test command',
+			category: 'development',
+		});
+	}
 
-    async run({intr}) {
-        const { bot } = this;
+	async run({ intr }) {
+		const { bot } = this;
 
-        const classes = await Firebase.getAllClasses();
-        console.log(classes);
-        
-        await bot.intrReply({intr, embed: new EmbedBase(bot, {
-            description: 'Done',
-        })});
-    }
+		const classes = await Firebase.getAllClasses();
+		console.log(classes);
+
+		await bot.intrReply({
+			intr,
+			embed: new EmbedBase({
+				description: 'Done',
+			}),
+		});
+	}
 }
 
 export default test;

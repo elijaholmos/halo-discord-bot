@@ -25,9 +25,8 @@ export class InboxMessageService {
 	static processInboxMessage(bot) {
 		return (inbox_message) =>
 			this.#publishInboxMessage({
-				bot,
 				inbox_message,
-				message: this.#parseInboxMessageData({ bot, inbox_message }),
+				message: this.#parseInboxMessageData({ inbox_message }),
 			});
 	}
 
@@ -38,7 +37,7 @@ export class InboxMessageService {
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
 	 */
-	static async #publishInboxMessage({ bot, inbox_message, message }) {
+	static async #publishInboxMessage({ inbox_message, message }) {
 		try {
 			const discord_uid =
 				Firebase.getDiscordUid(inbox_message?.metadata?.uid) ??
@@ -53,7 +52,7 @@ export class InboxMessageService {
 				);
 			bot.logger.log(`Inbox Message DM sent to ${discord_user.tag} (${discord_uid})`);
 			bot.logDiscord({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'Inbox Message Sent',
 					fields: [
 						{
@@ -80,12 +79,12 @@ export class InboxMessageService {
 	 * @param {Object} args.inbox_message A raw Halo `Post` object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
-	static #parseInboxMessageData({ bot, inbox_message }) {
+	static #parseInboxMessageData({ inbox_message }) {
 		const { firstName, lastName } = inbox_message.createdBy.user;
 		return {
 			content: `New message received from **${firstName} ${lastName}**:`,
 			embeds: [
-				new EmbedBase(bot, {
+				new EmbedBase({
 					description: inbox_message.content
 						.replaceAll('<br>', '\n')
 						.replaceAll('</p><p>', '\n') //this is kinda hacky ngl

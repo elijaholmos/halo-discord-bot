@@ -14,8 +14,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EmbedBase, Firebase } from '..';
 import { round } from 'lodash-es';
+import { EmbedBase, Firebase } from '..';
 
 export class GradeService {
 	/**
@@ -26,9 +26,8 @@ export class GradeService {
 	static processGrade(bot) {
 		return (grade) =>
 			this.#publishGrade({
-				bot,
 				grade,
-				message: this.#parseGradeData({ bot, grade }),
+				message: this.#parseGradeData({ grade }),
 			});
 	}
 
@@ -39,7 +38,7 @@ export class GradeService {
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
 	 */
-	static async #publishGrade({ bot, grade, message }) {
+	static async #publishGrade({ grade, message }) {
 		try {
 			const discord_uid =
 				Firebase.getDiscordUid(grade?.metadata?.uid) ??
@@ -52,7 +51,7 @@ export class GradeService {
 				);
 			bot.logger.log(`Grade DM sent to ${discord_user.tag} (${discord_uid})`);
 			bot.logDiscord({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'Grade Message Sent',
 					fields: [
 						{
@@ -79,7 +78,7 @@ export class GradeService {
 	 * @param {Object} args.grade A full Halo UserCourseClassAssessmentGrade object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
-	static #parseGradeData({ bot, grade }) {
+	static #parseGradeData({ grade }) {
 		const parsePercent = function () {
 			return grade.assessment.points < 1
 				? ''
@@ -89,7 +88,7 @@ export class GradeService {
 		return {
 			content: `New Grade published for **${grade.metadata.courseCode}**:`,
 			embeds: [
-				new EmbedBase(bot, {
+				new EmbedBase({
 					title: grade.assessment.title,
 					//description: `Worth ${Math.round(grade.assessment.points / )}% of your total grade`,
 					fields: [

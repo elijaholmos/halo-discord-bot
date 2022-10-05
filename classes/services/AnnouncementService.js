@@ -25,9 +25,8 @@ export class AnnouncementService {
 	static processAnnouncement(bot) {
 		return (announcement) =>
 			this.#publishAnnouncement({
-				bot,
 				announcement,
-				message: this.#parseAnnouncementData({ bot, announcement }),
+				message: this.#parseAnnouncementData({ announcement }),
 			});
 	}
 
@@ -38,7 +37,7 @@ export class AnnouncementService {
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
 	 */
-	static async #publishAnnouncement({ bot, announcement, message }) {
+	static async #publishAnnouncement({ announcement, message }) {
 		//get all active users in the class and send the message to them
 		for (const uid of Firebase.getActiveUsersInClass(announcement.courseClassId)) {
 			try {
@@ -52,7 +51,7 @@ export class AnnouncementService {
 					);
 				bot.logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
 				bot.logDiscord({
-					embed: new EmbedBase(bot, {
+					embed: new EmbedBase({
 						title: 'Announcement Message Sent',
 						fields: [
 							{
@@ -85,12 +84,12 @@ export class AnnouncementService {
 	 * @param {Object} args.announcement A raw Halo announcement object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
-	static #parseAnnouncementData({ bot, announcement }) {
+	static #parseAnnouncementData({ announcement }) {
 		//console.log(announcement);
 		return {
 			content: `New Announcement posted for **${announcement.metadata.courseCode}**:`,
 			embeds: [
-				new EmbedBase(bot, {
+				new EmbedBase({
 					title: announcement.title,
 					description: `by ${announcement.createdBy.user.firstName} ${announcement.createdBy.user.lastName}`,
 					fields: [

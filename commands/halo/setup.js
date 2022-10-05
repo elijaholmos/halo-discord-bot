@@ -29,7 +29,7 @@ class setup extends Command {
         const { bot } = this;
         return await bot.intrReply({
             intr,
-            content: '<https://gist.github.com/elijaholmos/a3ba9481f684adfddd8733a96e4cdd24>',
+            content: 'https://elijaho.notion.site/Halo-Notification-Service-Setup-Guide-56fdb766d73149d3bfb5a9a8535f7d8f',
         });
     }
 }

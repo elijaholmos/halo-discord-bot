@@ -137,7 +137,7 @@ class UserCreate extends FirebaseEvent {
 			const { userInfo } = await Halo.getUserOverview({
 				cookie: await Firebase.getUserCookie(uid, false),
 				uid: halo_id,
-			});
+			}).catch(() => {});
 
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();
@@ -170,7 +170,9 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
+							value: !Object.keys(userInfo)
+								? 'Unable to retrieve user info'
+								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
 						},
 					],
 				}).Error(),

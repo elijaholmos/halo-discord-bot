@@ -15,63 +15,64 @@
  */
 
 import { MessageEmbed } from 'discord.js';
+import bot from '../../bot';
 
 //base Embed object, customized for this project
 export class EmbedBase extends MessageEmbed {
-    constructor(bot, {
-        color = 0x2EA2E0,
-        title,
-        url,
-        author = {},
-        description,
-        thumbnail = {},
-        fields = [],
-        image = {},
-        timestamp = new Date(),
-        footer = '',
-        ...other
-    } = {}) {
-        super({
-            color,
-            title,
-            url,
-            author,
-            description,
-            thumbnail,
-            fields,
-            image,
-            timestamp,
-            footer: {
-                text: `${footer &&= footer + '  •  '}Halo Notification Service ${bot.CURRENT_VERSION}`,
-                icon_url: bot.user.avatarURL(),
-            },
-            ...other,
-        });
-    }
-    
-    // --------- Presets ---------
-    Error() {
-        this.color = 0xf5223c;
-        return this;
-    }
+	constructor({
+		color = 0x2ea2e0,
+		title,
+		url,
+		author = {},
+		description,
+		thumbnail = {},
+		fields = [],
+		image = {},
+		timestamp = new Date(),
+		footer = '',
+		...other
+	} = {}) {
+		super({
+			color,
+			title,
+			url,
+			author,
+			description,
+			thumbnail,
+			fields,
+			image,
+			timestamp,
+			footer: {
+				text: `${(footer &&= footer + '  •  ')}Halo Notification Service ${bot.CURRENT_VERSION}`,
+				icon_url: bot.user.avatarURL(),
+			},
+			...other,
+		});
+	}
 
-    ErrorDesc(msg) {
-        this.description = `❌ **${msg}**`;
-        return this.Error();
-    }
+	// --------- Presets ---------
+	Error() {
+		this.color = 0xf5223c;
+		return this;
+	}
 
-    Warn() {
-        this.color = 0xf5a122;  //0xf59a22 for slightly less bright
-        return this;
-    }
+	ErrorDesc(msg) {
+		this.description = `❌ **${msg}**`;
+		return this.Error();
+	}
 
-    Success() {
-        this.color = 0x31d64d;
-        return this;
-    }
+	Warn() {
+		this.color = 0xf5a122; //0xf59a22 for slightly less bright
+		return this;
+	}
 
-    Sentence() {
-        this.color = 0xe3da32;
-        return this;
-    }
+	Success() {
+		this.color = 0x31d64d;
+		return this;
+	}
+
+	Sentence() {
+		this.color = 0xe3da32;
+		return this;
+	}
 }

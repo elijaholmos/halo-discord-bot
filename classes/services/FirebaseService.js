@@ -17,6 +17,7 @@
 import admin from 'firebase-admin';
 import { readFile } from 'node:fs/promises';
 import { relative } from 'node:path';
+import { Logger } from '..';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
@@ -62,10 +63,10 @@ export const getAllUserClasses = async function (uid) {
  */
 export const getUserCookie = async function (uid, check_cache = true) {
 	try {
-		if (!check_cache) throw 'Skipping cache check';
+		if (!check_cache) throw `Skipping cache check for user ${uid}`;
 		const cache = await readFile('./' + relative(process.cwd(), `cache/cookies.json`), 'utf8');
 		if (uid in cache) return cache[uid].cookie;
-		throw 'User not found in cache';
+		throw `User ${uid} not found in cache`;
 	} catch (e) {
 		return (await admin.database().ref('cookies').child(uid).get()).val();
 	}
@@ -127,7 +128,8 @@ export const getUserSettings = function (uid) {
  * @returns {any} The value of the user's setting if set, otherwise the default setting value
  */
 export const getUserSettingValue = function ({ uid, setting_id }) {
-	console.log(`Getting user setting value for ${uid} with setting_id ${setting_id}`);
-	console.log(getUserSettings(uid)?.[setting_id]);
+	Logger.debug(
+		`Getting user setting value for ${uid} with setting_id ${setting_id}: ${getUserSettings(uid)?.[setting_id]}`
+	);
 	return getUserSettings(uid)?.[setting_id];
 };

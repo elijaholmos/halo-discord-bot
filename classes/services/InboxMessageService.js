@@ -14,31 +14,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EmbedBase, Firebase } from '..';
+import { EmbedBase, Firebase, Logger } from '..';
+import bot from '../../bot';
 
 export class InboxMessageService {
 	/**
-	 * Designed for currying
-	 * @param {DiscordHaloBot} bot The bot instance
-	 * @returns {Function} An anonymous function that handles the inbox message publication
+	 * @param {Object} args.inbox_message A raw Halo inbox_message object
 	 */
-	static processInboxMessage(bot) {
-		return (inbox_message) =>
-			this.#publishInboxMessage({
-				bot,
-				inbox_message,
-				message: this.#parseInboxMessageData({ bot, inbox_message }),
-			});
+	static processInboxMessage(inbox_message) {
+		this.#publishInboxMessage({
+			inbox_message,
+			message: this.#parseInboxMessageData({ inbox_message }),
+		});
 	}
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.inbox_message A raw Halo inbox_message object
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
 	 */
-	static async #publishInboxMessage({ bot, inbox_message, message }) {
+	static async #publishInboxMessage({ inbox_message, message }) {
 		try {
 			const discord_uid =
 				Firebase.getDiscordUid(inbox_message?.metadata?.uid) ??
@@ -47,13 +43,13 @@ export class InboxMessageService {
 			discord_user
 				.send(message)
 				.catch((e) =>
-					bot.logger.error(
+					Logger.error(
 						`Error sending inbox_message notification to ${discord_user.tag} (${discord_uid}): ${e}`
 					)
 				);
-			bot.logger.log(`Inbox Message DM sent to ${discord_user.tag} (${discord_uid})`);
+			Logger.log(`Inbox Message DM sent to ${discord_user.tag} (${discord_uid})`);
 			bot.logDiscord({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'Inbox Message Sent',
 					fields: [
 						{
@@ -70,22 +66,21 @@ export class InboxMessageService {
 				}),
 			});
 		} catch (e) {
-			bot.logger.warn(`Error pubishing inbox_message ${inbox_message?.id} for user ${grade?.user?.id}: ${e}`);
+			Logger.warn(`Error pubishing inbox_message ${inbox_message?.id} for user ${grade?.user?.id}: ${e}`);
 		}
 	}
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.inbox_message A raw Halo `Post` object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
-	static #parseInboxMessageData({ bot, inbox_message }) {
+	static #parseInboxMessageData({ inbox_message }) {
 		const { firstName, lastName } = inbox_message.createdBy.user;
 		return {
 			content: `New message received from **${firstName} ${lastName}**:`,
 			embeds: [
-				new EmbedBase(bot, {
+				new EmbedBase({
 					description: inbox_message.content
 						.replaceAll('<br>', '\n')
 						.replaceAll('</p><p>', '\n') //this is kinda hacky ngl

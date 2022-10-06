@@ -14,19 +14,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export * from './Command';
-export * from './DiscordHaloBot';
 export * from './Logger';
 export * from './LocalCache';
-export * from './components/EmbedBase';
+export * from './Command';
 export * from './components/ConfirmInteraction';
+export * from './components/EmbedBase';
+export * from './CookieWatcher';
 export * from './events/DiscordEvent';
 export * from './events/FirebaseEvent';
+export * from './FirebaseStore';
 export * from './HaloWatcher';
 export * from './services/AnnouncementService';
-export * from './services/GradeService';
-export * from './services/InboxMessageService';
-export * from './CookieWatcher';
-export * from './FirebaseStore';
 export * as Firebase from './services/FirebaseService';
+export * from './services/GradeService';
 export * as Halo from './services/HaloService';
+export * from './services/InboxMessageService';

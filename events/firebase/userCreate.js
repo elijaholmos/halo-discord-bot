@@ -15,13 +15,12 @@
  */
 
 import admin from 'firebase-admin';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { relative } from 'node:path';
+import bot from '../../bot';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
-	constructor(bot) {
-		super(bot, {
+	constructor() {
+		super({
 			name: 'UserCreate',
 			description: 'Perform several operations when a user connects their Discord acct',
 			ref: 'users',
@@ -33,7 +32,6 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onAdd(snapshot) {
-		const { bot } = this;
 		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
 		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
@@ -52,7 +50,7 @@ class UserCreate extends FirebaseEvent {
 		await bot.sendDM({
 			user,
 			send_disabled_msg: false,
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'Accounts Connected Successfully',
 				description: 'You will now receive direct messages when certain things happen in Halo!',
 			}).Success(),
@@ -102,7 +100,7 @@ class UserCreate extends FirebaseEvent {
 
 		//send message to bot channel
 		bot.logConnection({
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'New User Connected',
 				fields: [
 					{
@@ -123,10 +121,10 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onModify(snapshot) {
-		console.log(snapshot.val());
+		Logger.debug(`doc ${snapshot.key} modified`);
+		Logger.debug(snapshot.val());
 		//extension uninstall process
 		if (!!snapshot.val()?.uninstalled) {
-			const { bot } = this;
 			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
 			const db = admin.database();
@@ -161,7 +159,7 @@ class UserCreate extends FirebaseEvent {
 
 			//send message to bot channel
 			bot.logConnection({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'User Uninstalled',
 					fields: [
 						{

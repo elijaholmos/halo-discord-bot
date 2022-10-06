@@ -17,7 +17,7 @@
 import { Command } from '../../classes';
 
 class setup extends Command {
-	constructor(bot) {
+	constructor() {
 		super({
 			name: 'setup',
 			description: 'View a setup guide',

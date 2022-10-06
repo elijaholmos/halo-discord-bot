@@ -18,16 +18,13 @@ import { EmbedBase, Firebase } from '..';
 
 export class AnnouncementService {
 	/**
-	 * Designed for currying
-	 * @param {DiscordHaloBot} bot The bot instance
-	 * @returns {Function} An anonymous function that handles the announcement publication
+	 * @param {Object} announcement A raw Halo announcement object
 	 */
-	static processAnnouncement(bot) {
-		return (announcement) =>
-			this.#publishAnnouncement({
-				announcement,
-				message: this.#parseAnnouncementData({ announcement }),
-			});
+	static processAnnouncement(announcement) {
+		this.#publishAnnouncement({
+			announcement,
+			message: this.#parseAnnouncementData({ announcement }),
+		});
 	}
 
 	/**

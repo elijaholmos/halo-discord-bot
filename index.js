@@ -58,7 +58,7 @@ const init = async function () {
 				await import(
 					'./' + path.relative(process.cwd(), `${cmdFile.dir}${path.sep}${cmdFile.name}${cmdFile.ext}`)
 				)
-			).default(bot);
+			).default();
 			process.env.NODE_ENV === 'development'
 				? bot.commands.set(cmdName, cmd)
 				: cmd.category !== 'development' && bot.commands.set(cmdName, cmd);
@@ -80,7 +80,7 @@ const init = async function () {
 				await import(
 					'./' + path.relative(process.cwd(), `${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)
 				)
-			).default(bot);
+			).default();
 			bot.events.set(eventName, event);
 			bot.on(event.event_type, (...args) => event.run(...args));
 
@@ -100,7 +100,7 @@ const init = async function () {
 				await import(
 					'./' + path.relative(process.cwd(), `${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)
 				)
-			).default(bot);
+			).default();
 			if (!firebase_event.create_on_init) continue;
 			const query = admin.database().ref(firebase_event.ref);
 			query
@@ -141,9 +141,9 @@ const init = async function () {
 
 	// Instantiate the HaloWatcher
 	(await new HaloWatcher())
-		.on('announcement', AnnouncementService.processAnnouncement(bot))
-		.on('grade', GradeService.processGrade(bot))
-		.on('inbox_message', InboxMessageService.processInboxMessage(bot));
+		.on('announcement', AnnouncementService.processAnnouncement)
+		.on('grade', GradeService.processGrade)
+		.on('inbox_message', InboxMessageService.processInboxMessage);
 	bot.logger.log('HaloWatcher initialized');
 
 	// Instantiate the CookieWatcher

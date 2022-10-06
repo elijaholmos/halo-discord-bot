@@ -17,7 +17,7 @@
 import { Command, EmbedBase } from '../../classes';
 
 class ping extends Command {
-	constructor(bot) {
+	constructor() {
 		super({
 			name: 'ping',
 			description: 'Get the latentcy of the bot and its connected APIs',

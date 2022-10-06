@@ -18,7 +18,7 @@ import admin from 'firebase-admin';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
-	constructor(bot) {
+	constructor() {
 		super({
 			name: 'UserCreate',
 			description: 'Perform several operations when a user connects their Discord acct',

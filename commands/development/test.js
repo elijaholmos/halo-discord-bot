@@ -17,7 +17,7 @@
 import { Command, EmbedBase, Firebase } from '../../classes';
 
 class test extends Command {
-	constructor(bot) {
+	constructor() {
 		super({
 			name: 'test',
 			description: 'Test command',

@@ -19,16 +19,13 @@ import { EmbedBase, Firebase } from '..';
 
 export class GradeService {
 	/**
-	 * Designed for currying
-	 * @param {DiscordHaloBot} bot The bot instance
-	 * @returns {Function} An anonymous function that handles the grade notification
+	 * @param {Object} grade A full Halo UserCourseClassAssessmentGrade object
 	 */
-	static processGrade(bot) {
-		return (grade) =>
-			this.#publishGrade({
-				grade,
-				message: this.#parseGradeData({ grade }),
-			});
+	static processGrade(grade) {
+		this.#publishGrade({
+			grade,
+			message: this.#parseGradeData({ grade }),
+		});
 	}
 
 	/**

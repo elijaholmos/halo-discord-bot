@@ -18,16 +18,13 @@ import { EmbedBase, Firebase } from '..';
 
 export class InboxMessageService {
 	/**
-	 * Designed for currying
-	 * @param {DiscordHaloBot} bot The bot instance
-	 * @returns {Function} An anonymous function that handles the inbox message publication
+	 * @param {Object} args.inbox_message A raw Halo inbox_message object
 	 */
-	static processInboxMessage(bot) {
-		return (inbox_message) =>
-			this.#publishInboxMessage({
-				inbox_message,
-				message: this.#parseInboxMessageData({ inbox_message }),
-			});
+	static processInboxMessage(inbox_message) {
+		this.#publishInboxMessage({
+			inbox_message,
+			message: this.#parseInboxMessageData({ inbox_message }),
+		});
 	}
 
 	/**

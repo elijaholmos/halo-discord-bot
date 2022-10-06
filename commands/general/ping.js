@@ -26,7 +26,6 @@ class ping extends Command {
 	}
 
 	async run({ intr }) {
-		const { bot } = this;
 		const response = await bot.intrReply({
 			intr,
 			embed: new EmbedBase({

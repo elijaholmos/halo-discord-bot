@@ -16,7 +16,6 @@
 
 export class FirebaseEvent {
 	constructor({ name = null, description = 'No description provided', ref = null, create_on_init = true }) {
-		this.bot = bot;
 		this.name = name;
 		this.description = description;
 		this.ref = ref;

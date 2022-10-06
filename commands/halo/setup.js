@@ -26,7 +26,6 @@ class setup extends Command {
 	}
 
 	async run({ intr }) {
-		const { bot } = this;
 		return await bot.intrReply({
 			intr,
 			content:

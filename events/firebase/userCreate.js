@@ -31,7 +31,6 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onAdd(snapshot) {
-		const { bot } = this;
 		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
 		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
@@ -124,7 +123,6 @@ class UserCreate extends FirebaseEvent {
 		console.log(snapshot.val());
 		//extension uninstall process
 		if (!!snapshot.val()?.uninstalled) {
-			const { bot } = this;
 			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
 			const db = admin.database();

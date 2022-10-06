@@ -24,7 +24,6 @@ export class Command {
 		type = 'CHAT_INPUT',
 		...other
 	}) {
-		this.bot = bot;
 		this.name = name;
 		this.description = description;
 		this.options = options;

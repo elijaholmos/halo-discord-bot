@@ -26,8 +26,6 @@ class test extends Command {
 	}
 
 	async run({ intr }) {
-		const { bot } = this;
-
 		const classes = await Firebase.getAllClasses();
 		console.log(classes);
 

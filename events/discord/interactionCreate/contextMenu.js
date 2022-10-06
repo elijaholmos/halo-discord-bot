@@ -26,8 +26,6 @@ export default class extends DiscordEvent {
 	}
 
 	async run(intr) {
-		const { bot } = this;
-
 		if (!intr.isContextMenu()) return;
 		// Ignore commands sent by other bots or sent in DM
 		if (intr.user.bot || !intr.inGuild()) return;

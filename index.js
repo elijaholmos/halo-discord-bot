@@ -140,7 +140,7 @@ const init = async function () {
 	bot.logger.log(`Loaded ${imported_caches.length} local caches`);
 
 	// Instantiate the HaloWatcher
-	(await new HaloWatcher())
+	new HaloWatcher()
 		.on('announcement', AnnouncementService.processAnnouncement)
 		.on('grade', GradeService.processGrade)
 		.on('inbox_message', InboxMessageService.processInboxMessage);

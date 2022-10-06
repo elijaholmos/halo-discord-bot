@@ -31,7 +31,6 @@ export class GradeService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.grade A full Halo UserCourseClassAssessmentGrade object
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
@@ -72,7 +71,6 @@ export class GradeService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.grade A full Halo UserCourseClassAssessmentGrade object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */

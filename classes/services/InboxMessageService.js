@@ -30,7 +30,6 @@ export class InboxMessageService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.inbox_message A raw Halo inbox_message object
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
@@ -73,7 +72,6 @@ export class InboxMessageService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.inbox_message A raw Halo `Post` object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */

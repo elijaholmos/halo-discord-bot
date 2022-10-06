@@ -30,7 +30,6 @@ export class AnnouncementService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.announcement A raw Halo announcement object
 	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
@@ -78,7 +77,6 @@ export class AnnouncementService {
 
 	/**
 	 * @param {Object} args Desctructured arguments
-	 * @param {DiscordHaloBot} args.bot The bot instance
 	 * @param {Object} args.announcement A raw Halo announcement object
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */

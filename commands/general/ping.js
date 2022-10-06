@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import bot from '../../bot';
 import { Command, EmbedBase } from '../../classes';
 
 class ping extends Command {

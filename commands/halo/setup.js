@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import bot from '../../bot';
 import { Command } from '../../classes';
 
 class setup extends Command {

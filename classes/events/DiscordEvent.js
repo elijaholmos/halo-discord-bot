@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+import bot from '../../bot';
 
 /**
  * Custom class for implementing Discord events. The `run()` method will be called whenever the event `name` is fired

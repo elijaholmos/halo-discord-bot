@@ -15,6 +15,7 @@
  */
 
 import { MessageEmbed } from 'discord.js';
+import bot from '../../bot';
 
 //base Embed object, customized for this project
 export class EmbedBase extends MessageEmbed {

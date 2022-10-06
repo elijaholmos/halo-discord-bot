@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import bot from '../../../bot';
 import { DiscordEvent, EmbedBase } from '../../../classes';
 
 export default class extends DiscordEvent {

@@ -15,6 +15,7 @@
  */
 
 import admin from 'firebase-admin';
+import bot from '../../bot';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {

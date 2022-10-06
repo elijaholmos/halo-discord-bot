@@ -16,6 +16,7 @@
 
 import { round } from 'lodash-es';
 import { EmbedBase, Firebase } from '..';
+import bot from '../../bot';
 
 export class GradeService {
 	/**

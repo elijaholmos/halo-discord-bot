@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Client, Collection, Emoji } from 'discord.js';
+import { Client, Collection, Emoji, Intents } from 'discord.js';
 import { ConfirmInteraction, EmbedBase, Logger } from './classes';
 import config from './config.js';
 

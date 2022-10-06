@@ -15,7 +15,7 @@
  */
 
 import { round } from 'lodash-es';
-import { EmbedBase, Firebase } from '..';
+import { EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
 
 export class GradeService {
@@ -44,9 +44,9 @@ export class GradeService {
 			discord_user
 				.send(message)
 				.catch((e) =>
-					bot.logger.error(`Error sending grade notification to ${discord_user.tag} (${discord_uid}): ${e}`)
+					Logger.error(`Error sending grade notification to ${discord_user.tag} (${discord_uid}): ${e}`)
 				);
-			bot.logger.log(`Grade DM sent to ${discord_user.tag} (${discord_uid})`);
+			Logger.log(`Grade DM sent to ${discord_user.tag} (${discord_uid})`);
 			bot.logDiscord({
 				embed: new EmbedBase({
 					title: 'Grade Message Sent',
@@ -65,7 +65,7 @@ export class GradeService {
 				}),
 			});
 		} catch (e) {
-			bot.logger.warn(`Error pubishing grade ${grade?.id} for user ${grade?.user?.id}: ${e}`);
+			Logger.warn(`Error pubishing grade ${grade?.id} for user ${grade?.user?.id}: ${e}`);
 		}
 	}
 

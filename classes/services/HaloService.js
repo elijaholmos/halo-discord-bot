@@ -15,6 +15,7 @@
  */
 
 import request from 'superagent';
+import { Logger } from '..';
 
 const url = {
 	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
@@ -113,7 +114,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return res.body.data.gradeOverview[0].grades.map((grade) => ({ ...grade, metadata }));
 };
 
@@ -145,7 +146,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return { ...res.body.data.assessmentFeedback, metadata };
 };
 
@@ -170,7 +171,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return res.body.data.getInboxLeftPanelNotification.reduce(
 		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
 		[]
@@ -203,7 +204,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
 
@@ -228,7 +229,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return res.body.data;
 };
 
@@ -254,6 +255,6 @@ export const getUserId = async function ({ cookie }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return console.error(res.error);
+	if (res.error) return Logger.error(res.error);
 	return res.body.payload.userid;
 };

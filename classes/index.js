@@ -14,6 +14,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+export * from './Logger';
+export * from './LocalCache';
 export * from './Command';
 export * from './components/ConfirmInteraction';
 export * from './components/EmbedBase';
@@ -22,8 +24,6 @@ export * from './events/DiscordEvent';
 export * from './events/FirebaseEvent';
 export * from './FirebaseStore';
 export * from './HaloWatcher';
-export * from './LocalCache';
-export * from './Logger';
 export * from './services/AnnouncementService';
 export * as Firebase from './services/FirebaseService';
 export * from './services/GradeService';

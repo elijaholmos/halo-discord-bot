@@ -121,7 +121,8 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onModify(snapshot) {
-		console.log(snapshot.val());
+		Logger.debug(`doc ${snapshot.key} modified`);
+		Logger.debug(snapshot.val());
 		//extension uninstall process
 		if (!!snapshot.val()?.uninstalled) {
 			const { discord_uid, halo_id } = snapshot.val();

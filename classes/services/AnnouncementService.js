@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EmbedBase, Firebase } from '..';
+import { EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
 
 export class AnnouncementService {
@@ -44,9 +44,9 @@ export class AnnouncementService {
 				discord_user
 					.send(message)
 					.catch((e) =>
-						bot.logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid}): ${e}`)
+						Logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid}): ${e}`)
 					);
-				bot.logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
+				Logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
 				bot.logDiscord({
 					embed: new EmbedBase({
 						title: 'Announcement Message Sent',
@@ -70,7 +70,7 @@ export class AnnouncementService {
 					}),
 				});
 			} catch (e) {
-				bot.logger.warn(`Error pubishing announcement ${announcement?.id} for user ${uid}: ${e}`);
+				Logger.warn(`Error pubishing announcement ${announcement?.id} for user ${uid}: ${e}`);
 			}
 		}
 	}
@@ -81,7 +81,7 @@ export class AnnouncementService {
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
 	static #parseAnnouncementData({ announcement }) {
-		//console.log(announcement);
+		//Logger.debug(announcement);
 		return {
 			content: `New Announcement posted for **${announcement.metadata.courseCode}**:`,
 			embeds: [

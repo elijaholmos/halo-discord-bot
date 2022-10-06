@@ -15,7 +15,7 @@
  */
 
 import bot from '../../bot';
-import { Command, EmbedBase, Firebase } from '../../classes';
+import { Command, EmbedBase, Firebase, Logger } from '../../classes';
 
 class test extends Command {
 	constructor() {
@@ -28,7 +28,7 @@ class test extends Command {
 
 	async run({ intr }) {
 		const classes = await Firebase.getAllClasses();
-		console.log(classes);
+		Logger.debug(classes);
 
 		await bot.intrReply({
 			intr,

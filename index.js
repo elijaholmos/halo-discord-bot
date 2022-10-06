@@ -21,8 +21,6 @@ import { config as dotenv_config } from 'dotenv';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
 import path from 'node:path';
-import bot from './bot';
-import * as caches from './caches';
 import {
 	AnnouncementService,
 	CookieWatcher,
@@ -30,7 +28,10 @@ import {
 	GradeService,
 	HaloWatcher,
 	InboxMessageService,
+	Logger,
 } from './classes';
+import bot from './bot';
+import * as caches from './caches';
 import * as stores from './stores';
 dotenv_config();
 
@@ -43,10 +44,10 @@ const init = async function () {
 				? 'https://discord-halo-default-rtdb.firebaseio.com'
 				: 'https://halo-discord-dev-default-rtdb.firebaseio.com',
 	});
-	if (admin.apps.length === 0) bot.logger.error('Error initializing firebase app');
-	else bot.logger.log('Firebase succesfully initialized');
+	if (admin.apps.length === 0) Logger.error('Error initializing firebase app');
+	else Logger.log('Firebase succesfully initialized');
 	//await CloudConfig.init();   //import cloud configuration settings
-	//bot.logger.log('CloudConfig initialized');
+	//Logger.log('CloudConfig initialized');
 
 	//import commands
 	for await (const item of klaw('./commands')) {
@@ -65,10 +66,10 @@ const init = async function () {
 
 			//delete require.cache[require.resolve(`${cmdFile.dir}${path.sep}${cmdFile.name}${cmdFile.ext}`)];
 		} catch (error) {
-			bot.logger.error(`Error loading command file ${cmdFile.name}: ${error}`);
+			Logger.error(`Error loading command file ${cmdFile.name}: ${error}`);
 		}
 	}
-	bot.logger.log(`Loaded ${bot.commands.size} command files`);
+	Logger.log(`Loaded ${bot.commands.size} command files`);
 
 	//import discord events
 	for await (const item of klaw('./events/discord')) {
@@ -86,10 +87,10 @@ const init = async function () {
 
 			//delete require.cache[require.resolve(`${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)];
 		} catch (error) {
-			bot.logger.error(`Error loading Discord event ${eventFile.name}: ${error}`);
+			Logger.error(`Error loading Discord event ${eventFile.name}: ${error}`);
 		}
 	}
-	bot.logger.log(`Loaded ${bot.events.size} Discord events`);
+	Logger.log(`Loaded ${bot.events.size} Discord events`);
 
 	//import firebase events
 	for await (const item of klaw('./events/firebase')) {
@@ -107,7 +108,6 @@ const init = async function () {
 				.orderByChild('created_on')
 				.startAfter(Date.now())
 				.on('child_added', (snapshot) => {
-					console.log('snapshot received');
 					if (!bot.readyAt) return; //ensure bot is initialized before event is fired
 					if (snapshot.empty) return;
 					firebase_event.onAdd(snapshot);
@@ -126,32 +126,32 @@ const init = async function () {
 
 			//delete require.cache[require.resolve(`${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)];
 		} catch (error) {
-			bot.logger.error(`Error loading Firebase event ${eventFile.name}: ${error}`);
+			Logger.error(`Error loading Firebase event ${eventFile.name}: ${error}`);
 		}
 	}
-	bot.logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
+	Logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
 
 	//import stores
 	const imported_stores = await Promise.all(Object.values(stores).map((store) => store.awaitReady()));
-	bot.logger.log(`Loaded ${imported_stores.length} stores`);
+	Logger.log(`Loaded ${imported_stores.length} stores`);
 
 	//import caches
 	const imported_caches = await Promise.all(Object.values(caches).map((cache) => cache.loadCacheFiles()));
-	bot.logger.log(`Loaded ${imported_caches.length} local caches`);
+	Logger.log(`Loaded ${imported_caches.length} local caches`);
 
 	// Instantiate the HaloWatcher
 	new HaloWatcher()
 		.on('announcement', AnnouncementService.processAnnouncement)
 		.on('grade', GradeService.processGrade)
 		.on('inbox_message', InboxMessageService.processInboxMessage);
-	bot.logger.log('HaloWatcher initialized');
+	Logger.log('HaloWatcher initialized');
 
 	// Instantiate the CookieWatcher
-	bot.logger.log(`CookieWatcher initialized with ${await CookieWatcher.init()} intervals`);
+	Logger.log(`CookieWatcher initialized with ${await CookieWatcher.init()} intervals`);
 
-	bot.logger.log('Connecting to Discord...');
+	Logger.log('Connecting to Discord...');
 	bot.login(process.env.BOT_TOKEN).then(() => {
-		bot.logger.log(
+		Logger.log(
 			`Bot succesfully initialized. Environment: ${process.env.NODE_ENV}. Version: ${bot.CURRENT_VERSION}`
 		);
 		process.env.NODE_ENV !== 'development' && //send message in log channel when staging/prod bot is online
@@ -160,7 +160,7 @@ const init = async function () {
 					description: `\`${process.env.NODE_ENV}\` environment online, running version ${bot.CURRENT_VERSION}`,
 				}).Success(),
 			});
-		bot.logger.log('Beginning post-initializtion sequence...');
+		Logger.log('Beginning post-initializtion sequence...');
 		postInit();
 	});
 };
@@ -172,7 +172,7 @@ const postInit = async function () {
 		//register cmds in main guild
 		const cmds = await bot.main_guild.commands
 			.set(bot.commands.map(({ run, ...data }) => data))
-			.catch((err) => bot.logger.error(`registerCommands err: ${err}`));
+			.catch((err) => Logger.error(`registerCommands err: ${err}`));
 
 		//turn each Command into an ApplicationCommand
 		cmds.forEach((cmd) => bot.commands.get(cmd.name.replaceAll(' ', '')).setApplicationCommand(cmd));
@@ -190,7 +190,7 @@ const postInit = async function () {
 						],
 					})),
 			})
-			.catch((err) => bot.logger.error(`registerCommands err: ${err}`));
+			.catch((err) => Logger.error(`registerCommands err: ${err}`));
 
 		//register cmds in all guilds
 		const global_cmds = await bot.application.commands
@@ -200,19 +200,19 @@ const postInit = async function () {
 					.filter(({ category }) => !bot.config.command_perms.categories.hasOwnProperty(category))
 					.map(({ run, ...data }) => data)
 			)
-			.catch((err) => bot.logger.error(`registerCommands global err: ${err}`));
-		bot.logger.log(
+			.catch((err) => Logger.error(`registerCommands global err: ${err}`));
+		Logger.log(
 			`Registered ${cmds.size} out of ${bot.commands.size} commands to Discord (${global_cmds.size} global)`
 		);
 	})();
 
-	bot.logger.log('Post-initialization complete');
+	Logger.log('Post-initialization complete');
 };
 
 init();
 
 // Prevent the bot from crashing on unhandled rejections
 process.on('unhandledRejection', function (err, promise) {
-	bot.logger.error(JSON.stringify(err));
+	Logger.error(JSON.stringify(err));
 	console.error(err);
 });

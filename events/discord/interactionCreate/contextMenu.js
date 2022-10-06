@@ -15,7 +15,7 @@
  */
 
 import bot from '../../../bot';
-import { DiscordEvent, EmbedBase } from '../../../classes';
+import { DiscordEvent, EmbedBase, Logger } from '../../../classes';
 
 export default class extends DiscordEvent {
 	constructor() {
@@ -37,10 +37,10 @@ export default class extends DiscordEvent {
 		command.deferResponse && (await intr.deferReply({ fetchReply: true }));
 
 		try {
-			bot.logger.cmd(`${intr.user.tag} (${intr.user.id}) ran context menu option ${intr.commandName}`);
+			Logger.cmd(`${intr.user.tag} (${intr.user.id}) ran context menu option ${intr.commandName}`);
 			await command.run({ intr, user: intr.options.getMember('user'), msg: intr.options.getMessage('message') });
 		} catch (err) {
-			bot.logger.error(`Error with ctx menu cmd ${intr.commandName}: ${err}`);
+			Logger.error(`Error with ctx menu cmd ${intr.commandName}: ${err}`);
 			bot.intrReply({
 				intr,
 				embed: new EmbedBase({

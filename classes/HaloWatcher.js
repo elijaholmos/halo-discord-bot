@@ -16,7 +16,7 @@
 
 import { EventEmitter } from 'node:events';
 import { setIntervalAsync } from 'set-interval-async/fixed';
-import { Firebase, Halo } from '.';
+import { Firebase, Halo, Logger } from '.';
 import { CLASS_ANNOUNCEMENTS, USER_GRADES, USER_INBOX } from '../caches';
 
 export class HaloWatcher extends EventEmitter {
@@ -58,10 +58,10 @@ export class HaloWatcher extends EventEmitter {
 		const COURSES = await Firebase.getActiveClasses();
 		//fetch new announcements
 		for (const [class_id, course] of Object.entries(COURSES)) {
+			const active_users = Firebase.getActiveUsersInClass(class_id); //expose variable to catch block
+			if (!active_users?.length) continue;
 			try {
-				const active_users = Firebase.getActiveUsersInClass(class_id);
-				if (!active_users?.length) continue;
-				//console.log(`Getting announcements for ${course.courseCode}...`);
+				//Logger.debug(`Getting announcements for ${course.courseCode}...`);
 				const old_announcements = get(class_id) || null;
 				const new_announcements = await Halo.getClassAnnouncements({
 					class_id,
@@ -72,8 +72,8 @@ export class HaloWatcher extends EventEmitter {
 						courseCode: course.courseCode,
 					},
 				});
-				// console.log(old_announcements?.length);
-				// console.log(new_announcements.length);
+				// Logger.debug(old_announcements?.length);
+				// Logger.debug(new_announcements.length);
 				set(class_id, new_announcements);
 
 				//if no old announcements, user just installed
@@ -86,7 +86,7 @@ export class HaloWatcher extends EventEmitter {
 				if (new_announcements.length === old_announcements.length) continue;
 
 				//at this point, new announcements were detected
-				console.log(
+				Logger.debug(
 					`${course.courseCode}: new_announcements: ${new_announcements.length}, old_announcements: ${old_announcements.length}`
 				);
 				//write local cache to file, since changes were detected
@@ -97,7 +97,11 @@ export class HaloWatcher extends EventEmitter {
 					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 1 &&
 						this.emit('announcement', announcement);
 			} catch (e) {
-				console.error(`Error while fetching announcements for ${course.courseCode}: ${e}`);
+				if (e.code === 401)
+					Logger.unauth(
+						`Received 401 while fetching announcements for course ${course.courseCode} using ${active_users[0]} cookie`
+					);
+				else Logger.error(`Error while fetching announcements for ${course.courseCode}: ${JSON.stringify(e)}`);
 			}
 		}
 	}
@@ -112,10 +116,10 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					//console.log(`Getting ${uid} grades for ${course.courseCode}...`);
+					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					const old_grades = get([course_id, uid], null);
-					//console.log(old_grades);
+					//Logger.debug(old_grades);
 					const new_grades = (
 						await Halo.getAllGrades({
 							class_slug_id: course.slugId,
@@ -127,8 +131,8 @@ export class HaloWatcher extends EventEmitter {
 							},
 						})
 					).filter((grade) => grade.status === 'PUBLISHED');
-					// console.log(old_grades?.length);
-					// console.log(new_grades.length);
+					// Logger.debug(old_grades?.length);
+					// Logger.debug(new_grades.length);
 					set([course_id, uid], new_grades); //update local cache
 
 					//if no old grades, user just installed
@@ -141,7 +145,7 @@ export class HaloWatcher extends EventEmitter {
 					if (new_grades.length === old_grades.length) continue;
 
 					//at this point, new grades were detected
-					// console.log(`new_grades: ${new_grades.length}, old_grades: ${old_grades.length}`);
+					// Logger.debug(`new_grades: ${new_grades.length}, old_grades: ${old_grades.length}`);
 					//write local cache to file, since changes were detected
 					await writeCacheFile({ filepath: `${course_id}/${uid}.json`, data: new_grades });
 
@@ -166,9 +170,12 @@ export class HaloWatcher extends EventEmitter {
 						);
 					}
 				} catch (e) {
-					if (e.code === 401) {
-						console.error(`Received 401 while fetching ${uid} grades for course ${course.courseCode}`);
-					}
+					if (e.code === 401)
+						Logger.unauth(`Received 401 while fetching ${uid} grades for course ${course.courseCode}`);
+					else
+						Logger.error(
+							`Error while fetching ${uid} grades for course ${course.courseCode}: ${JSON.stringify(e)}`
+						);
 				}
 			}
 		}
@@ -189,7 +196,7 @@ export class HaloWatcher extends EventEmitter {
 			try {
 				const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
 				for (const { forumId, unreadCount } of await Halo.getUserInbox({ cookie })) {
-					//console.log(`Getting ${uid} inbox posts for forum ${forumId}...`);
+					//Logger.debug(`Getting ${uid} inbox posts for forum ${forumId}...`);
 
 					//goal is to minimize halo API calls placed
 					const old_inbox_posts = get([uid, forumId], null);
@@ -202,8 +209,8 @@ export class HaloWatcher extends EventEmitter {
 						continue;
 
 					const new_inbox_posts = await Halo.getPostsForInboxForum({ cookie, forumId });
-					// console.log(old_inbox_posts?.length);
-					// console.log(new_inbox_posts.length);
+					// Logger.debug(old_inbox_posts?.length);
+					// Logger.debug(new_inbox_posts.length);
 					set([uid, forumId], new_inbox_posts); //update local cache
 
 					//if no old posts, user just installed
@@ -216,7 +223,7 @@ export class HaloWatcher extends EventEmitter {
 					if (new_inbox_posts.length === old_inbox_posts.length) continue;
 
 					//at this point, new inbox posts were detected
-					console.log(
+					Logger.debug(
 						`new_inbox_posts: ${new_inbox_posts.length}, old_inbox_posts: ${old_inbox_posts.length}`
 					);
 					//write local cache to file, since changes were detected
@@ -230,9 +237,8 @@ export class HaloWatcher extends EventEmitter {
 					}
 				}
 			} catch (e) {
-				if (e.code === 401) {
-					console.error(`Received 401 while fetching ${uid} inbox notifications`);
-				}
+				if (e.code === 401) Logger.unauth(`Received 401 while fetching ${uid} inbox notifications`);
+				else Logger.error(`Error while fetching ${uid} inbox notifications: ${JSON.stringify(e)}`);
 			}
 		}
 	}

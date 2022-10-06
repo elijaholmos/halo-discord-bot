@@ -15,7 +15,7 @@
  */
 
 import bot from '../../../bot';
-import { DiscordEvent, EmbedBase } from '../../../classes';
+import { DiscordEvent, EmbedBase, Logger } from '../../../classes';
 
 export default class extends DiscordEvent {
 	constructor() {
@@ -37,12 +37,12 @@ export default class extends DiscordEvent {
 		command.deferResponse && (await intr.deferReply({ fetchReply: true }));
 
 		try {
-			bot.logger.cmd(
+			Logger.cmd(
 				`${intr.user.tag} (${intr.user.id}) ran command ${intr.commandName} with ${intr.options.data.length} opts`
 			);
 			await command.run({ intr, opts: intr.options });
 		} catch (err) {
-			bot.logger.error(`Error with cmd ${intr.commandName}: ${err}`);
+			Logger.error(`Error with cmd ${intr.commandName}: ${err}`);
 			bot.intrReply({
 				intr,
 				embed: new EmbedBase({

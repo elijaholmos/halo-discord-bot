@@ -15,86 +15,84 @@
  */
 
 import admin from 'firebase-admin';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { Firebase, Halo } from '.';
+import { readFile, writeFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { Firebase, Halo, Logger } from '.';
+
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieWatcher {
-    static REFRESH_INTERVAL = 1000 * 60 * 60 * 1.9; //1.9 hours
-    static timeouts = new Map();    //to track and clear timeouts
+	static REFRESH_INTERVAL = 1000 * 60 * 60 * 1.9; //1.9 hours
+	static timeouts = new Map(); //to track and clear timeouts
 
-    static async init() {
-        const { timeouts, REFRESH_INTERVAL } = this;
-        //import local cache
-        this.cache = JSON.parse(
-            await fs.readFile('./' + path.relative(
-                process.cwd(), 
-                `cache/cookies.json`
-            ), 'utf8'
-        ).catch(() => '{}'));
+	static async init() {
+		const { timeouts, REFRESH_INTERVAL } = this;
+		//import local cache
+		this.cache = JSON.parse(
+			await readFile('./' + relative(process.cwd(), `cache/cookies.json`), 'utf8').catch(() => '{}')
+		);
 
-        //create intervals
-        let i = 0;  //counter to track & return total number of intervals created
-        for (const [uid, data] of Object.entries(this.cache)) {
+		//create intervals
+		let i = 0; //counter to track & return total number of intervals created
+		for (const [uid, { cookie, next_update }] of Object.entries(this.cache)) {
 			timeouts.set(
 				uid,
-				setTimeout(
-					() => this.refreshUserCookie(uid, data.cookie),
-					Math.max(data.next_update - Date.now(), 0)
-				)
+				setTimeout(() => this.refreshUserCookie(uid, cookie), Math.max(next_update - Date.now(), 0))
 			);
 			i++;
 		}
 
-        //watch db for changes
-        const ref = admin.database().ref('cookies');
-        ref.on('child_changed', async (snapshot) => {
-                const uid = snapshot.key;
-                const cookie = snapshot.val();
-                const next_update = Date.now() + REFRESH_INTERVAL;
-                console.log(`${uid}'s cookie has been changed`);
-                clearTimeout(timeouts.get(uid));    //clear timeout if it already exists for this user
-                timeouts.set(
-                    uid, 
-                    setTimeout(() => this.refreshUserCookie(uid, cookie), REFRESH_INTERVAL)
-                );
-                
-                this.cache[uid] = {
-                    cookie,
-                    next_update,
-                };
-                
-                //update local cache
-                await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
-            });
-        //cookie was deleted, check to see it if was an uninstall
-        ref.on('child_removed', async (snapshot) => {
-            const uid = snapshot.key;
-            if(!(await Firebase.getFirebaseUserSnapshot(uid))?.uninstalled) return;
-            
-            console.log(`${uid}'s cookie has been removed`);
-            clearTimeout(timeouts.get(uid));    //clear timeout if it already exists for this user
-            this.deleteUserCookie(uid);         //remove their cookie from cache
-        });
-        return i;
-    }
+		const updateHandler = async (snapshot) => {
+			const uid = snapshot.key;
+			const cookie = snapshot.val();
+			const next_update = Date.now() + REFRESH_INTERVAL;
+			Logger.cookie(`${uid}'s cookie has been changed`);
+			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
+			timeouts.set(
+				uid,
+				setTimeout(() => this.refreshUserCookie(uid, cookie), REFRESH_INTERVAL)
+			);
 
-    static async deleteUserCookie(uid) {
-        delete this.cache[uid];
-        //update local cache
-        await fs.writeFile('./' + path.relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
-        return;
-    }
+			this.cache[uid] = {
+				cookie,
+				next_update,
+			};
 
-    static async refreshUserCookie(uid, cookie) {
-        console.log(`${Date.now()} : Refreshing ${uid}'s cookie...`);
-        try {
-            const res = await Halo.refreshToken({cookie});
-            return await Firebase.updateUserCookie(uid, res);
-        } catch (e) {
-            console.error(`Error refreshing ${uid}'s cookie`);
-            console.error(e);
-            await this.deleteUserCookie(uid);
-        }
-    }
-};
+			//update local cache
+			await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
+		};
+
+		//watch db for changes
+		const ref = admin.database().ref('cookies');
+		ref.on('child_added', updateHandler);
+		ref.on('child_changed', updateHandler);
+		//cookie was deleted, check to see it if was an uninstall
+		ref.on('child_removed', async (snapshot) => {
+			const uid = snapshot.key;
+			if (!(await Firebase.getFirebaseUserSnapshot(uid))?.uninstalled) return;
+
+			Logger.cookie(`${uid}'s cookie has been removed`);
+			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
+			this.deleteUserCookie(uid); //remove their cookie from cache
+		});
+		return i;
+	}
+
+	static async deleteUserCookie(uid) {
+		delete this.cache[uid];
+		//update local cache
+		await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
+		return;
+	}
+
+	static async refreshUserCookie(uid, cookie) {
+		Logger.cookie(`Refreshing ${uid}'s cookie...`);
+		try {
+			const res = await Halo.refreshToken({ cookie });
+			return await Firebase.updateUserCookie(uid, res);
+		} catch (e) {
+			Logger.cookie(`Error refreshing ${uid}'s cookie`);
+			Logger.cookie(e);
+			await this.deleteUserCookie(uid);
+		}
+	}
+}

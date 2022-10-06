@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EmbedBase, Firebase } from '..';
+import { EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
 
 export class InboxMessageService {
@@ -43,11 +43,11 @@ export class InboxMessageService {
 			discord_user
 				.send(message)
 				.catch((e) =>
-					bot.logger.error(
+					Logger.error(
 						`Error sending inbox_message notification to ${discord_user.tag} (${discord_uid}): ${e}`
 					)
 				);
-			bot.logger.log(`Inbox Message DM sent to ${discord_user.tag} (${discord_uid})`);
+			Logger.log(`Inbox Message DM sent to ${discord_user.tag} (${discord_uid})`);
 			bot.logDiscord({
 				embed: new EmbedBase({
 					title: 'Inbox Message Sent',
@@ -66,7 +66,7 @@ export class InboxMessageService {
 				}),
 			});
 		} catch (e) {
-			bot.logger.warn(`Error pubishing inbox_message ${inbox_message?.id} for user ${grade?.user?.id}: ${e}`);
+			Logger.warn(`Error pubishing inbox_message ${inbox_message?.id} for user ${grade?.user?.id}: ${e}`);
 		}
 	}
 

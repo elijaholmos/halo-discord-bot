@@ -53,20 +53,43 @@ export class HaloWatcher extends EventEmitter {
 
 	async #watchForAnnouncements() {
 		const { get, set, writeCacheFile } = CLASS_ANNOUNCEMENTS;
+		const getAnnouncements = async function getClassAnnouncementsSafe({ class_id, active_users, metadata }) {
+			for (const uid of active_users)
+				try {
+					const announcements = await Halo.getClassAnnouncements({
+						class_id,
+						//use the cookie of a user from the course
+						cookie: await Firebase.getUserCookie(uid),
+						//inject the readable course code into the response objects
+						metadata,
+					});
+					if (!!announcements) return announcements;
+				} catch (e) {
+					if (e.code === 401)
+						Logger.unauth(
+							`[getClassAnnouncementsSafe] Received 401 while fetching announcements for course ${metadata?.courseCode} using ${uid} cookie`
+						);
+					else
+						Logger.error(
+							`[getClassAnnouncementsSafe] Non-401 error while fetching announcements for ${
+								metadata?.courseCode
+							} with ${uid} cookie: ${JSON.stringify(e)}`
+						);
+				}
+		};
 
 		//retrieve all courses that need information fetched
 		const COURSES = await Firebase.getActiveClasses();
 		//fetch new announcements
 		for (const [class_id, course] of Object.entries(COURSES)) {
-			const active_users = Firebase.getActiveUsersInClass(class_id); //expose variable to catch block
-			if (!active_users?.length) continue;
 			try {
+				const active_users = Firebase.getActiveUsersInClass(class_id);
+				if (!active_users?.length) continue;
 				//Logger.debug(`Getting announcements for ${course.courseCode}...`);
 				const old_announcements = get(class_id) || null;
-				const new_announcements = await Halo.getClassAnnouncements({
+				const new_announcements = await getAnnouncements({
 					class_id,
-					//use the cookie of a user from the course
-					cookie: await Firebase.getUserCookie(active_users[0]),
+					active_users,
 					//inject the readable course code into the response objects
 					metadata: {
 						courseCode: course.courseCode,
@@ -98,9 +121,7 @@ export class HaloWatcher extends EventEmitter {
 						this.emit('announcement', announcement);
 			} catch (e) {
 				if (e.code === 401)
-					Logger.unauth(
-						`Received 401 while fetching announcements for course ${course.courseCode} using ${active_users[0]} cookie`
-					);
+					Logger.unauth(`Received 401 while fetching announcements for course ${course.courseCode}`);
 				else Logger.error(`Error while fetching announcements for ${course.courseCode}: ${JSON.stringify(e)}`);
 			}
 		}

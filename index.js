@@ -23,7 +23,7 @@ import klaw from 'klaw';
 import path from 'node:path';
 import {
 	AnnouncementService,
-	CookieWatcher,
+	CookieManager,
 	EmbedBase,
 	GradeService,
 	HaloWatcher,
@@ -147,7 +147,7 @@ const init = async function () {
 	Logger.log('HaloWatcher initialized');
 
 	// Instantiate the CookieWatcher
-	Logger.log(`CookieWatcher initialized with ${await CookieWatcher.init()} intervals`);
+	Logger.log(`CookieWatcher initialized with ${await CookieManager.init()} intervals`);
 
 	Logger.log('Connecting to Discord...');
 	bot.login(process.env.BOT_TOKEN).then(() => {

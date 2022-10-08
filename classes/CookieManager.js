@@ -20,7 +20,7 @@ import { relative } from 'node:path';
 import { Firebase, Halo, Logger } from '.';
 
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
-export class CookieWatcher {
+export class CookieManager {
 	static REFRESH_INTERVAL = 1000 * 60 * 60 * 1.9; //1.9 hours
 	static timeouts = new Map(); //to track and clear timeouts
 
@@ -41,7 +41,9 @@ export class CookieWatcher {
 			i++;
 		}
 
-		const updateHandler = async (snapshot) => {
+		//watch db for changes
+		const ref = admin.database().ref('cookies');
+		ref.on('child_changed', async (snapshot) => {
 			const uid = snapshot.key;
 			const cookie = snapshot.val();
 			const next_update = Date.now() + REFRESH_INTERVAL;
@@ -59,12 +61,7 @@ export class CookieWatcher {
 
 			//update local cache
 			await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
-		};
-
-		//watch db for changes
-		const ref = admin.database().ref('cookies');
-		ref.on('child_added', updateHandler);
-		ref.on('child_changed', updateHandler);
+		});
 		//cookie was deleted, check to see it if was an uninstall
 		ref.on('child_removed', async (snapshot) => {
 			const uid = snapshot.key;
@@ -74,6 +71,7 @@ export class CookieWatcher {
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
 			this.deleteUserCookie(uid); //remove their cookie from cache
 		});
+
 		return i;
 	}
 

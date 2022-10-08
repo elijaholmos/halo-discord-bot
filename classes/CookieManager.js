@@ -41,11 +41,12 @@ export class CookieManager {
 			i++;
 		}
 
-		const updateHandler = (type) => async (snapshot) => {
+		//watch db for changes
+		const ref = admin.database().ref('cookies');
+		ref.on('child_changed', async (snapshot) => {
 			const uid = snapshot.key;
 			const cookie = snapshot.val();
 			const next_update = Date.now() + REFRESH_INTERVAL;
-			console.log(`in updateHandler - ${type}`);
 			Logger.cookie(`${uid}'s cookie has been changed`);
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
 			timeouts.set(
@@ -60,11 +61,7 @@ export class CookieManager {
 
 			//update local cache
 			await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
-		};
-
-		//watch db for changes
-		const ref = admin.database().ref('cookies');
-		ref.on('child_changed', updateHandler('child_changed'));
+		});
 		//cookie was deleted, check to see it if was an uninstall
 		ref.on('child_removed', async (snapshot) => {
 			const uid = snapshot.key;
@@ -89,7 +86,7 @@ export class CookieManager {
 		Logger.cookie(`Refreshing ${uid}'s cookie...`);
 		try {
 			const res = await Halo.refreshToken({ cookie });
-			return await Firebase.updateUserCookie(uid, { ...res, test: Date.now().toLocaleString() });
+			return await Firebase.updateUserCookie(uid, res);
 		} catch (e) {
 			Logger.cookie(`Error refreshing ${uid}'s cookie`);
 			Logger.cookie(e);

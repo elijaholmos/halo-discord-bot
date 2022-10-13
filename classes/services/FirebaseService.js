@@ -29,6 +29,10 @@ export const getActiveClasses = async function () {
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
 
+export const getAllClasses = async function () {
+	return (await admin.database().ref('classes').get()).val();
+};
+
 /**
  * @returns {string[]} array of discord uids
  */
@@ -105,10 +109,18 @@ export const getFirebaseUserSnapshot = async function (uid) {
  * Get all users currently using the service
  * @returns {Promise<string[]>} array of halo-discord uids
  */
-export const getAllActiveUsers = async function () {
+export const getAllActiveUsers = async function getAllActiveUsersUids() {
 	return Object.keys(
 		(await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {}
 	);
+};
+
+/**
+ * Get all users currently using the service (with expanded information)
+ * @returns {Promise<object>}
+ */
+export const getAllActiveUsersFull = async function () {
+	return (await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
 };
 
 /**

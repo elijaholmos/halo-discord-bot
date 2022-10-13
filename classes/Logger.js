@@ -88,8 +88,17 @@ export class Logger {
 				);
 				return console.log(`${timestamp} [${chalk.grey(type.toUpperCase())}]: ${content}`);
 			}
+			case 'cron': {
+				//create file first, if it does not exist
+				// await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				// fs.appendFile(
+				// 	'./' + path.relative(process.cwd(), 'log/cron.log'),
+				// 	`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
+				// );
+				return console.log(`${timestamp} [${chalk.bgYellow(type.toUpperCase())}]: ${content}`);
+			}
 			default:
-				throw new TypeError('Logger type must be either warn, debug, log, ready, cmd or error.');
+				throw new TypeError('Unknown log type');
 		}
 	}
 
@@ -123,5 +132,9 @@ export class Logger {
 
 	static cookie(content) {
 		return this.log(content, 'cookie');
+	}
+
+	static cron(content) {
+		return this.log(content, 'cron');
 	}
 }

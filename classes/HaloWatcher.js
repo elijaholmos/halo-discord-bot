@@ -195,7 +195,9 @@ export class HaloWatcher extends EventEmitter {
 						Logger.unauth(`Received 401 while fetching ${uid} grades for course ${course.courseCode}`);
 					else
 						Logger.error(
-							`Error while fetching ${uid} grades for course ${course.courseCode}: ${JSON.stringify(e)}`
+							`Error while fetching ${uid} grades for course ${course.courseCode}: ${e} ${JSON.stringify(
+								e
+							)}`
 						);
 				}
 			}

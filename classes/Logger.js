@@ -90,11 +90,11 @@ export class Logger {
 			}
 			case 'cron': {
 				//create file first, if it does not exist
-				// await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
-				// fs.appendFile(
-				// 	'./' + path.relative(process.cwd(), 'log/cron.log'),
-				// 	`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
-				// );
+				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				fs.appendFile(
+					'./' + path.relative(process.cwd(), 'log/cron.log'),
+					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
+				);
 				return console.log(`${timestamp} [${chalk.bgYellow(type.toUpperCase())}]: ${content}`);
 			}
 			default:

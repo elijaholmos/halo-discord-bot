@@ -56,8 +56,12 @@ export const getActiveUsersInClass = function (class_id) {
 	return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
 };
 
+/**
+ * @param {string} uid halo-discord UID
+ * @returns {Promise<string[]>} array of class IDs
+ */
 export const getAllUserClasses = async function (uid) {
-	return Object.keys((await admin.database().ref(`user_classes_map`).child(uid).get()).toJSON());
+	return Object.keys((await admin.database().ref('user_classes_map').child(uid).get()).toJSON());
 };
 
 /**

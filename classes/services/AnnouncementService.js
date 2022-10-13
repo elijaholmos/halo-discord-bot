@@ -89,13 +89,13 @@ export class AnnouncementService {
 					title: announcement.title,
 					description: `by ${announcement.createdBy.user.firstName} ${announcement.createdBy.user.lastName}`,
 					fields: [
-						{
+						EmbedBase.splitField({
 							name: 'Message',
 							value: announcement.content
 								.replaceAll('<br>', '\n')
 								.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
 								.replace(/<\/?[^>]+(>|$)/g, ''),
-						},
+						}),
 						//TODO: cleanup dry code
 						...(!!announcement.resources.filter(({ kind }) => kind !== 'URL').length
 							? [

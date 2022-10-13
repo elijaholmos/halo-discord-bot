@@ -78,17 +78,23 @@ class DiscordHaloBot extends Client {
 	 * Send a direct message to the target user, catches error if user has closed DMs
 	 * @param {Object} args
 	 * @param {User} args.user Discord.js `User` object; recipient of msg
-	 * @param {EmbedBase} args.embed Singular embed object to be sent as response
+	 * @param {EmbedBase | EmbedBase[]} [args.embed] Singular embed object to be included in reply. If unspecified, existing embeds are removed
 	 * @param {boolean} [args.send_disabled_msg] Whether or not to send a public message prompting the user to enable messages from server members
 	 * @returns {Promise<Message>}
 	 */
-	sendDM({ user, embed, send_disabled_msg = true, ...options } = {}) {
-		return user
-			.send({
-				embeds: [embed],
-				...options,
-			})
-			.catch(() => send_disabled_msg && this.sendDisabledDmMessage(user));
+	sendDM({ user, embed = [], send_disabled_msg = true, ...options } = {}) {
+		const payload = {
+			embeds: [embed],
+			...options,
+		};
+		if (!Array.isArray(embed))
+			return user.send(payload).catch(() => send_disabled_msg && this.sendDisabledDmMessage(user));
+		let msg;
+		for (const e of embed) {
+			payload.embeds = [e];
+			msg = user.send(payload).catch(() => send_disabled_msg && this.sendDisabledDmMessage(user));
+		}
+		return msg;
 	}
 
 	/**
@@ -144,6 +150,7 @@ class DiscordHaloBot extends Client {
 	}
 
 	sendDisabledDmMessage(user) {
+		return; //noop for now
 		this.msgBotChannel({
 			content: user.toString(),
 			embed: new EmbedBase(this, {

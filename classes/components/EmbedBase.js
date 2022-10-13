@@ -18,6 +18,67 @@ import { MessageEmbed } from 'discord.js';
 import { truncate } from 'lodash-es';
 import bot from '../../bot';
 
+/**
+ * A function for splitting a string into fixed-length parts. Designed as a
+ * workaround to an issue in the discord.js Util.splitMessage function
+ * https://github.com/discordjs/discord.js/issues/7674
+ * @author dshepsis
+ * @see {@link https://github.com/discordjs/discord.js/issues/7674#issuecomment-1073273262 Github issue}
+ * @param {string} text The string to split into multiple messages, each of
+ * which will be no longer than maxLength
+ * @param {object} [options]
+ * @param {number} [options.maxLength] The maximum number of characters in each
+ * string in the returned array
+ * @param {RegExp} [options.regex] A global regex which matches the delimeters on
+ * which to split text when needed to keep each part within maxLength
+ * @param {string} [options.prepend] A string to add before each part iff
+ * text is split into multiple parts
+ * @param {string} [options.append] A string to add after each part iff text
+ * is split into multiple parts
+ * @returns {string[]} An array of strings which are substrings of text, split
+ * using options.regex, combined such that each part is as long as possible
+ * while not exceeding options.maxLength.
+ */
+function splitMessageRegex(text, { maxLength = 2_000, regex = /\n/g, prepend = '', append = '' } = {}) {
+	if (text.length <= maxLength) return [text];
+	const parts = [];
+	let curPart = prepend;
+	let chunkStartIndex = 0;
+
+	let prevDelim = '';
+
+	function addChunk(chunkEndIndex, nextDelim) {
+		const nextChunk = text.substring(chunkStartIndex, chunkEndIndex);
+		const nextChunkLen = nextChunk.length;
+
+		// If a single part would exceed the length limit by itself, throw an error:
+		if (prepend.length + nextChunkLen + append.length > maxLength) {
+			throw new RangeError('SPLIT_MAX_LEN');
+		}
+
+		// The length of the current part if the next chunk were added to it:
+		const lengthWithChunk = curPart.length + prevDelim.length + nextChunkLen + append.length;
+
+		// If adding the next chunk to the current part would cause it to exceed
+		// the maximum length, push the current part and reset it for next time:
+		if (lengthWithChunk > maxLength) {
+			parts.push(curPart + append);
+			curPart = prepend + nextChunk;
+		} else {
+			curPart += prevDelim + nextChunk;
+		}
+		prevDelim = nextDelim;
+		chunkStartIndex = chunkEndIndex + prevDelim.length;
+	}
+
+	for (const match of text.matchAll(regex)) {
+		addChunk(match.index, match[0]);
+	}
+	addChunk(text.length - 1, '');
+	parts.push(curPart + append);
+	return parts;
+}
+
 //base Embed object, customized for this project
 export class EmbedBase extends MessageEmbed {
 	constructor({
@@ -51,7 +112,7 @@ export class EmbedBase extends MessageEmbed {
 			},
 			...other,
 		});
-		return this.cleanup(bot);
+		return this.cleanup();
 	}
 
 	get char_count() {
@@ -81,7 +142,7 @@ export class EmbedBase extends MessageEmbed {
 		this.footer.text &&= truncate(this.footer.text.trim(), { length: 2047, omission: '\u2026' });
 		this.author.name &&= truncate(this.author.name.trim(), { length: 255, omission: '\u2026' });
 
-		if (this.char_count > 6000) return this.splitEmbed({ bot, ...this });
+		if (this.char_count > 6000) return this.splitEmbed(this);
 
 		return this;
 	}
@@ -90,16 +151,16 @@ export class EmbedBase extends MessageEmbed {
 	 * Recursively splits an embed into multiple embeds if it exceeds the Discord embed limits.
 	 * @returns {EmbedBase[]} An array of split embeds
 	 */
-	splitEmbed({ bot, fields = this.fields, embeds = [], ...other } = {}) {
+	splitEmbed({ fields = this.fields, embeds = [], ...other } = {}) {
 		if (!fields.length) return embeds;
-		const embed = new EmbedBase(bot, other);
+		const embed = new EmbedBase(other);
 		embeds.push(embed);
 		while (embed.char_count < 6000 && !!fields.length) {
 			embed.fields.push(fields.shift());
 		}
 		//remove the last field of this embed because we ended up going over 6000 when exiting the loop
 		if (embed.char_count > 6000) fields.unshift(embed.fields.pop());
-		return this.splitEmbed({ bot, fields, embeds });
+		return this.splitEmbed({ fields, embeds });
 	}
 
 	/**
@@ -109,12 +170,12 @@ export class EmbedBase extends MessageEmbed {
 	 * @param {Object} args Destructured arguments
 	 * @param {string} args.name Name of the embed field
 	 * @param {string} args.value Value of the embed field
-	 * @param {string} [args.separator] Separator to use when determining character count
+	 * @param {string} [args.regex] Regex separator to use when determining character count
 	 * @param {boolean} [args.inline] Whether the embed fields should all be inline
 	 * @returns {Array<Object>} An array of split embed fields
 	 */
-	static splitField({ name, value, separator = '\n', inline = false } = {}) {
-		return Util.splitMessage(value, { maxLength: 1024, char: separator })
+	static splitField({ name, value, regex = '\n', inline = false } = {}) {
+		return splitMessageRegex(value, { regex, maxLength: 1024 })
 			.reduce(
 				(acc, val) => {
 					const charcount = acc[acc.length - 1].join().length;
@@ -125,7 +186,7 @@ export class EmbedBase extends MessageEmbed {
 			)
 			.map((v, i, a) => ({
 				name: `${name} ${a.length > 1 ? `(${i + 1} of ${a.length})` : ''}`,
-				value: v.join(separator),
+				value: v.join(regex),
 				inline,
 			}));
 	}

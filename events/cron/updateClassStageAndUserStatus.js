@@ -26,14 +26,15 @@ export default class extends CronEvent {
 		super({
 			name: 'updateClassStageAndUserStatus',
 			schedule: '0 0 * * 0',
-			//schedule: '* * * * *',
 		});
 	}
 
 	async #constructCaches() {
 		if (CRON_CLASS_STAGES.size === 0) {
 			const classes = await Firebase.getAllClasses();
-			for (const class_id in classes) CRON_CLASS_STAGES.set(class_id, classes[class_id]);
+			for (const class_id in classes)
+				CRON_CLASS_STAGES.set(class_id, classes[class_id]) &&
+					(await CRON_CLASS_STAGES.writeCacheFile({ filepath: class_id, data: classes[class_id] }));
 			Logger.cron(
 				`[${this.name}] was empty; fetched ${Object.keys(classes).length} CRON_CLASS_STAGES, cached ${
 					CRON_CLASS_STAGES.size
@@ -42,7 +43,9 @@ export default class extends CronEvent {
 		}
 
 		if (CRON_USER_CLASS_STATUSES.size === 0) {
-			for (const [uid, classes] of USER_CLASSES_MAP.entires()) CRON_USER_CLASS_STATUSES.set(uid, classes);
+			for (const [uid, classes] of USER_CLASSES_MAP.entires())
+				CRON_USER_CLASS_STATUSES.set(uid, classes) &&
+					(await CRON_USER_CLASS_STATUSES.writeCacheFile({ filepath: uid, data: classes }));
 			Logger.cron(`[${this.name}] was empty; cached ${CRON_USER_CLASS_STATUSES.size} CRON_CLASS_USER_STATUSES`);
 		}
 
@@ -66,6 +69,7 @@ export default class extends CronEvent {
 
 				//user is not in cache, use FirestoreStore to get their classes from db
 				if (!CRON_USER_CLASS_STATUSES.get(uid)) {
+					Logger.cron(`[${this.name}] ${uid} was not in CRON_USER_CLASS_STATUSES, fetching from db`);
 					changelog.push({ type: 'new_user', uid });
 					const data = USER_CLASSES_MAP.get(uid);
 					CRON_USER_CLASS_STATUSES.set(uid, data);
@@ -89,20 +93,29 @@ export default class extends CronEvent {
 					//TODO: implement try-catch?
 					const init_changelog_length = changelog.length; //to check if changes were made this iteration
 
-					// new class was added
+					// new class was added (to halo)
 					if (!CRON_CLASS_STAGES.get(class_id)) {
+						Logger.cron(`[${this.name}] ${class_id} was not in CRON_CLASS_STAGES, fetching from db`);
 						changelog.push({
 							type: 'new_class',
 							class_id,
 							classCode,
 						});
 						const data = { name, slugId, classCode, courseCode, stage };
+						//update db
+						await db.ref('classes').child(class_id).update(data);
+						//update local cache
 						CRON_CLASS_STAGES.set(class_id, data);
 						await CRON_CLASS_STAGES.writeCacheFile({ filepath: class_id, data });
-					} //if this is true, next statement is redundant
+					} //if this is true, next statement is guaranteed to (redundantly) trigger
 
 					//realistically, stage is the only thing that will change at a course level
 					else if (CRON_CLASS_STAGES.get(class_id)?.stage !== stage) {
+						Logger.cron(
+							`[${this.name}] ${class_id} stage changed from ${
+								CRON_CLASS_STAGES.get(class_id)?.stage
+							} to ${stage}`
+						);
 						changelog.push({
 							type: 'class_stage',
 							class_id,
@@ -110,15 +123,21 @@ export default class extends CronEvent {
 							old: CRON_CLASS_STAGES.get(class_id)?.stage,
 							new: stage,
 						});
-						await db.ref('classes').child(class_id).CRON_CLASS_STAGES.update({ stage });
+						//update db
+						await db.ref('classes').child(class_id).update({ stage });
+						//update local cache
 						CRON_CLASS_STAGES.update(class_id, { stage });
+						await CRON_CLASS_STAGES.writeCacheFile({
+							filepath: class_id,
+							data: CRON_CLASS_STAGES.get(class_id),
+						});
 					}
 
 					const old_user_classes = CRON_USER_CLASS_STATUSES.get(uid);
-					const new_user_status = students.find(({ userId }) => userId === halo_id)?.status || null;
+					const new_user_status = students.find(({ userId }) => userId === halo_id)?.status ?? 'UNKNOWN';
 
 					// user enrolled in a new class
-					if (!(class_id in old_user_classes)) {
+					if (!old_user_classes.hasOwnProperty(class_id)) {
 						Logger.cron(`[${this.name}] ${uid} new class detected: ${class_id}`);
 						changelog.push({
 							type: 'user_new_class',
@@ -132,10 +151,13 @@ export default class extends CronEvent {
 						const data = { ...old_user_classes, [class_id]: { status: new_user_status } };
 						CRON_USER_CLASS_STATUSES.set(uid, data);
 						await CRON_USER_CLASS_STATUSES.writeCacheFile({ filepath: uid, data });
-					} //if this is true, next statement is guaranteed to trigger
+					} //if this is true, next statement is guaranteed to (redundantly) trigger
 
 					//user's status for this specific class has changed
 					else if (old_user_classes[class_id]?.status !== new_user_status) {
+						Logger.cron(
+							`[${this.name}] ${uid} status for ${class_id} changed from ${old_user_classes[class_id]?.status} to ${new_user_status}`
+						);
 						changelog.push({
 							type: 'user_class_status',
 							uid,
@@ -151,6 +173,7 @@ export default class extends CronEvent {
 						await CRON_USER_CLASS_STATUSES.writeCacheFile({ filepath: uid, data });
 					}
 
+					//I think the individual writeCacheFile's above may be redundant
 					if (init_changelog_length !== changelog.length) {
 						Logger.cron(`[${this.name}] ${uid} changes detected in class ${class_id}, writingCacheFiles`);
 						await CRON_CLASS_STAGES.writeCacheFile({

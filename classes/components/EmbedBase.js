@@ -134,11 +134,16 @@ export class EmbedBase extends MessageEmbed {
 	cleanup() {
 		this.title &&= truncate(this.title.trim(), { length: 255, omission: '\u2026' });
 		this.description &&= truncate(this.description.trim(), { length: 4095, omission: '\u2026' });
-		this.fields = this.fields.slice(0, 25).map((f) => ({
-			...f,
-			name: truncate(f.name.trim(), { length: 255, omission: '\u2026' }),
-			value: truncate(f.value.trim(), { length: 1023, omission: '\u2026' }),
-		}));
+		// I'd like to split the embeds before slicing fields, if possible
+		this.fields = this.fields
+			.map((f) => this.splitField(f))
+			.flat()
+			.slice(0, 25)
+			.map((f) => ({
+				...f,
+				name: truncate(f.name.trim(), { length: 255, omission: '\u2026' }),
+				value: truncate(f.value.trim(), { length: 1023, omission: '\u2026' }),
+			}));
 		this.footer.text &&= truncate(this.footer.text.trim(), { length: 2047, omission: '\u2026' });
 		this.author.name &&= truncate(this.author.name.trim(), { length: 255, omission: '\u2026' });
 
@@ -170,11 +175,11 @@ export class EmbedBase extends MessageEmbed {
 	 * @param {Object} args Destructured arguments
 	 * @param {string} args.name Name of the embed field
 	 * @param {string} args.value Value of the embed field
-	 * @param {string} [args.regex] Regex separator to use when determining character count
+	 * @param {RegExp} [args.regex] Regex separator to use when determining character count
 	 * @param {boolean} [args.inline] Whether the embed fields should all be inline
 	 * @returns {Array<Object>} An array of split embed fields
 	 */
-	static splitField({ name, value, regex = '\n', inline = false } = {}) {
+	splitField({ name, value, regex = /\n/g, inline = false } = {}) {
 		return splitMessageRegex(value, { regex, maxLength: 1024 })
 			.reduce(
 				(acc, val) => {

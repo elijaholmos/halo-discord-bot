@@ -22,12 +22,12 @@ export class GradeService {
 	/**
 	 * @param {Object} grade A full Halo UserCourseClassAssessmentGrade object
 	 */
-	static processGrade(grade) {
+	static processGrade = (grade) => {
 		this.#publishGrade({
 			grade,
 			message: this.#parseGradeData({ grade }),
 		});
-	}
+	};
 
 	/**
 	 * @param {Object} args Desctructured arguments

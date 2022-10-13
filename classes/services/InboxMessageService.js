@@ -21,12 +21,12 @@ export class InboxMessageService {
 	/**
 	 * @param {Object} args.inbox_message A raw Halo inbox_message object
 	 */
-	static processInboxMessage(inbox_message) {
+	static processInboxMessage = (inbox_message) => {
 		this.#publishInboxMessage({
 			inbox_message,
 			message: this.#parseInboxMessageData({ inbox_message }),
 		});
-	}
+	};
 
 	/**
 	 * @param {Object} args Desctructured arguments

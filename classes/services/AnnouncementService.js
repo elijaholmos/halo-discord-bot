@@ -21,12 +21,12 @@ export class AnnouncementService {
 	/**
 	 * @param {Object} announcement A raw Halo announcement object
 	 */
-	static processAnnouncement(announcement) {
+	static processAnnouncement = (announcement) => {
 		this.#publishAnnouncement({
 			announcement,
 			message: this.#parseAnnouncementData({ announcement }),
 		});
-	}
+	};
 
 	/**
 	 * @param {Object} args Desctructured arguments

@@ -20,6 +20,7 @@ export * from './Command';
 export * from './components/ConfirmInteraction';
 export * from './components/EmbedBase';
 export * from './CookieManager';
+export * from './events/CronEvent';
 export * from './events/DiscordEvent';
 export * from './events/FirebaseEvent';
 export * from './FirebaseStore';

@@ -16,6 +16,7 @@
 
 import admin from 'firebase-admin';
 import bot from '../../bot';
+import { CRON_USER_CLASS_STATUSES } from '../../caches';
 import { CookieManager, EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
@@ -76,7 +77,7 @@ class UserCreate extends FirebaseEvent {
 				.child(uid)
 				.child(id)
 				.update({
-					status: students.find(({ userId }) => userId === halo_id)?.status,
+					status: students.find(({ userId }) => userId === halo_id)?.status ?? 'UNKNOWN',
 				});
 			await db.ref('class_users_map').child(id).child(uid).set(true);
 
@@ -157,6 +158,9 @@ class UserCreate extends FirebaseEvent {
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
 			await admin.auth().deleteUser(uid);
+
+			//remove user from cron job
+			CRON_USER_CLASS_STATUSES.delete(uid);
 
 			//send message to bot channel
 			bot.logConnection({

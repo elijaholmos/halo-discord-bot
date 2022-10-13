@@ -20,7 +20,10 @@ if (process.version.slice(1).split('.')[0] < 16) throw new Error('Node 16.6.0 or
 import { config as dotenv_config } from 'dotenv';
 import admin from 'firebase-admin';
 import klaw from 'klaw';
+import { scheduleJob } from 'node-schedule';
 import path from 'node:path';
+import bot from './bot';
+import * as caches from './caches';
 import {
 	AnnouncementService,
 	CookieManager,
@@ -30,8 +33,6 @@ import {
 	InboxMessageService,
 	Logger,
 } from './classes';
-import bot from './bot';
-import * as caches from './caches';
 import * as stores from './stores';
 dotenv_config();
 
@@ -130,6 +131,27 @@ const init = async function () {
 		}
 	}
 	Logger.log(`Loaded ${bot.firebase_events.size} Firebase events`);
+
+	//import cron events
+	let cron_total = 0;
+	for await (const item of klaw('./events/cron')) {
+		const eventFile = path.parse(item.path);
+		if (!eventFile.ext || eventFile.ext !== '.js') continue;
+		try {
+			const event = new (
+				await import(
+					'./' + path.relative(process.cwd(), `${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)
+				)
+			).default();
+			scheduleJob(event.schedule, () => event.run());
+			cron_total++;
+
+			//delete require.cache[require.resolve(`${eventFile.dir}${path.sep}${eventFile.name}${eventFile.ext}`)];
+		} catch (error) {
+			Logger.error(`Error loading cron event ${eventFile.name}: ${error}`);
+		}
+	}
+	Logger.log(`Loaded ${cron_total} cron events`);
 
 	//import stores
 	const imported_stores = await Promise.all(Object.values(stores).map((store) => store.awaitReady()));

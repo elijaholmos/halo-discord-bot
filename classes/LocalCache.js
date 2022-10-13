@@ -15,7 +15,7 @@
  */
 
 import klaw from 'klaw';
-import { get, set } from 'lodash-es';
+import { get, set, unset } from 'lodash-es';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { parse, relative, sep } from 'node:path';
 
@@ -43,9 +43,31 @@ export class LocalCache {
 		return type === 'map' ? _cache.set.bind(_cache) : (path, value) => set(_cache, path, value);
 	}
 
-    get writeCacheFile() {
-        return this.#writeCacheFile.bind(this);
-    }
+	get update() {
+		const isLiteralObject = (o) => !!o && o.constructor === Object; //https://stackoverflow.com/a/16608074/8396479
+
+		return (path, value) => {
+			const old = this.get(path);
+			if (isLiteralObject(old) && isLiteralObject(value)) value = { ...old, ...value };
+			else if (Array.isArray(old) && Array.isArray(value)) value = [...old, ...value];
+
+			return this.set(path, value);
+		};
+	}
+
+	get delete() {
+		const { _cache, type } = this;
+		return type === 'map' ? _cache.delete.bind(_cache) : (path) => unset(_cache, path);
+	}
+
+	get size() {
+		const { _cache, type } = this;
+		return type === 'map' ? _cache.size : Object.keys(_cache).length;
+	}
+
+	get writeCacheFile() {
+		return this.#writeCacheFile.bind(this);
+	}
 
 	/**
 	 * import local cache files and reconstruct the LocalCache
@@ -85,7 +107,7 @@ export class LocalCache {
 	 * @param {any} args.data JSON-stringify-able data to be written to the file
 	 */
 	async #writeCacheFile({ filepath, data }) {
-        const { path } = this;
+		const { path } = this;
 		if (!filepath.endsWith('.json')) filepath += '.json';
 		//create dir if it does not exist
 		await mkdir('./' + relative(process.cwd(), parse(`${path}/${filepath}`).dir), { recursive: true });

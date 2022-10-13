@@ -16,6 +16,23 @@
 
 import { LocalCache } from './classes';
 
+// map should be used for single-depth cache structures
 export const CLASS_ANNOUNCEMENTS = new LocalCache({ path: 'class_announcements' });
 export const USER_GRADES = new LocalCache({ path: 'user_grades', type: 'object' });
 export const USER_INBOX = new LocalCache({ path: 'user_inbox', type: 'object' });
+/*
+    { 
+        classId: {
+            classCode: string
+            courseCode: string
+            name: string
+            slugId: string
+            stage: string
+        }
+    }
+ */
+export const CRON_CLASS_STAGES = new LocalCache({ path: 'cron/class_stages' });
+/*
+    { uid: { classId: { status: 'STATUS' } }, classId2: { status: 'STATUS2' } }
+*/
+export const CRON_USER_CLASS_STATUSES = new LocalCache({ path: 'cron/class_user_statuses' });

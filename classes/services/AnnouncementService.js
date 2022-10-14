@@ -21,12 +21,12 @@ export class AnnouncementService {
 	/**
 	 * @param {Object} announcement A raw Halo announcement object
 	 */
-	static processAnnouncement(announcement) {
+	static processAnnouncement = (announcement) => {
 		this.#publishAnnouncement({
 			announcement,
 			message: this.#parseAnnouncementData({ announcement }),
 		});
-	}
+	};
 
 	/**
 	 * @param {Object} args Desctructured arguments
@@ -83,7 +83,7 @@ export class AnnouncementService {
 	static #parseAnnouncementData({ announcement }) {
 		//Logger.debug(announcement);
 		return {
-			content: `New Announcement posted for **${announcement.metadata.courseCode}**:`,
+			content: `New announcement posted for **${announcement.metadata.courseCode}**:`,
 			embeds: [
 				new EmbedBase({
 					title: announcement.title,

@@ -122,7 +122,10 @@ export class HaloWatcher extends EventEmitter {
 			} catch (e) {
 				if (e.code === 401)
 					Logger.unauth(`Received 401 while fetching announcements for course ${course.courseCode}`);
-				else Logger.error(`Error while fetching announcements for ${course.courseCode}: ${JSON.stringify(e)}`);
+				else
+					Logger.error(
+						`Error while fetching announcements for ${course.courseCode}: ${e} ${JSON.stringify(e)}`
+					);
 			}
 		}
 	}

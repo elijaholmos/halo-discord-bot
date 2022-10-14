@@ -82,7 +82,7 @@ export class GradeService {
 		};
 
 		return {
-			content: `New Grade published for **${grade.metadata.courseCode}**:`,
+			content: `New grade published for **${grade.metadata.courseCode}**:`,
 			embeds: [
 				new EmbedBase({
 					title: grade.assessment.title,

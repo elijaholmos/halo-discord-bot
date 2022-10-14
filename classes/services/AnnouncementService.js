@@ -83,7 +83,7 @@ export class AnnouncementService {
 	static #parseAnnouncementData({ announcement }) {
 		//Logger.debug(announcement);
 		return {
-			content: `New Announcement posted for **${announcement.metadata.courseCode}**:`,
+			content: `New announcement posted for **${announcement.metadata.courseCode}**:`,
 			embeds: [
 				new EmbedBase({
 					title: announcement.title,

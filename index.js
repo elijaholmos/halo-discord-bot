@@ -191,40 +191,45 @@ const init = async function () {
 const postInit = async function () {
 	//register commands with Discord
 	await (async function registerCommands() {
-		//register cmds in main guild
-		const cmds = await bot.main_guild.commands
-			.set(bot.commands.map(({ run, ...data }) => data))
-			.catch((err) => Logger.error(`registerCommands err: ${err}`));
+		const [all_cmds, local_cmds] = bot.commands.partition(({ category }) => category !== 'development');
 
-		//turn each Command into an ApplicationCommand
-		cmds.forEach((cmd) => bot.commands.get(cmd.name.replaceAll(' ', '')).setApplicationCommand(cmd));
+		//register dev_cmds in main guild
+		const dev_cmds = await bot.main_guild.commands
+			.set(local_cmds)
+			.catch((err) => Logger.error(`registerCommands dev_cmds err: ${err}`));
 
 		//Register command permissions
-		await bot.main_guild.commands.permissions
-			.set({
-				fullPermissions: bot.commands
-					.filter((c) => Object.keys(bot.config.command_perms.categories).includes(c.category))
-					.map(({ id, name, category }) => ({
-						id,
-						permissions: [
-							//...bot.config.command_perms.categories[category],
-							//...bot.config.command_perms?.names?.[name] || [],
-						],
-					})),
-			})
-			.catch((err) => Logger.error(`registerCommands err: ${err}`));
+		// await bot.main_guild.commands.permissions
+		// 	.set({
+		// 		fullPermissions: bot.commands
+		// 			.filter((c) => Object.keys(bot.config.command_perms.categories).includes(c.category))
+		// 			.map(({ id, name, category }) => ({
+		// 				id,
+		// 				permissions: [
+		// 					//...bot.config.command_perms.categories[category],
+		// 					//...bot.config.command_perms?.names?.[name] || [],
+		// 				],
+		// 			})),
+		// 	})
+		// 	.catch((err) => Logger.error(`registerCommands err: ${err}`));
 
 		//register cmds in all guilds
 		const global_cmds = await bot.application.commands
 			.set(
-				bot.commands
-					//remove commands with categorical permissions
-					.filter(({ category }) => !bot.config.command_perms.categories.hasOwnProperty(category))
-					.map(({ run, ...data }) => data)
+				all_cmds
+				//remove commands with categorical permissions
+				//.filter(({ category }) => !bot.config.command_perms.categories.hasOwnProperty(category))
+				//.map(({ run, ...data }) => data)
 			)
-			.catch((err) => Logger.error(`registerCommands global err: ${err}`));
+			.catch((err) => Logger.error(`registerCommands global_cmds err: ${err}`));
+
+		//turn each Command into an ApplicationCommand
+		dev_cmds
+			.concat(global_cmds)
+			.forEach((cmd) => bot.commands.get(cmd.name.replaceAll(' ', '')).setApplicationCommand(cmd));
+
 		Logger.log(
-			`Registered ${cmds.size} out of ${bot.commands.size} commands to Discord (${global_cmds.size} global)`
+			`Registered ${dev_cmds.size} dev, ${global_cmds.size} global out of ${bot.commands.size} total commands to Discord`
 		);
 	})();
 

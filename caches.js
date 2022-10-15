@@ -36,3 +36,4 @@ export const CRON_CLASS_STAGES = new LocalCache({ path: 'cron/class_stages' });
     { uid: { classId: { status: 'STATUS' } }, classId2: { status: 'STATUS2' } }
 */
 export const CRON_USER_CLASS_STATUSES = new LocalCache({ path: 'cron/class_user_statuses' });
+export const COOKIES = new LocalCache({ path: 'cookies' });

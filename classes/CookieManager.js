@@ -15,9 +15,8 @@
  */
 
 import admin from 'firebase-admin';
-import { readFile, writeFile } from 'node:fs/promises';
-import { relative } from 'node:path';
 import { Firebase, Halo, Logger } from '.';
+import { COOKIES } from '../caches';
 
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieManager {
@@ -26,14 +25,10 @@ export class CookieManager {
 
 	static async init() {
 		const { timeouts, REFRESH_INTERVAL } = this;
-		//import local cache
-		this.cache = JSON.parse(
-			await readFile('./' + relative(process.cwd(), `cache/cookies.json`), 'utf8').catch(() => '{}')
-		);
 
 		//create intervals
 		let i = 0; //counter to track & return total number of intervals created
-		for (const [uid, { cookie, next_update }] of Object.entries(this.cache)) {
+		for (const [uid, { cookie, next_update }] of COOKIES.entires) {
 			timeouts.set(
 				uid,
 				setTimeout(() => this.refreshUserCookie(uid, cookie), Math.max(next_update - Date.now(), 0))
@@ -43,6 +38,7 @@ export class CookieManager {
 
 		//watch db for changes
 		const ref = admin.database().ref('cookies');
+		//does NOT trigger on cookie add - userCreate currently handles that (2022-10-15)
 		ref.on('child_changed', async (snapshot) => {
 			const uid = snapshot.key;
 			const cookie = snapshot.val();
@@ -54,13 +50,9 @@ export class CookieManager {
 				setTimeout(() => this.refreshUserCookie(uid, cookie), REFRESH_INTERVAL)
 			);
 
-			this.cache[uid] = {
-				cookie,
-				next_update,
-			};
-
 			//update local cache
-			await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
+			COOKIES.set(uid, { cookie, next_update });
+			COOKIES.writeCacheFile({ filepath: uid, data: { cookie, next_update } });
 		});
 		//cookie was deleted, check to see it if was an uninstall
 		ref.on('child_removed', async (snapshot) => {
@@ -76,9 +68,9 @@ export class CookieManager {
 	}
 
 	static async deleteUserCookie(uid) {
-		delete this.cache[uid];
 		//update local cache
-		await writeFile('./' + relative(process.cwd(), `cache/cookies.json`), JSON.stringify(this.cache));
+		COOKIES.delete(uid);
+		COOKIES.deleteCacheFile({ filepath: uid });
 		return;
 	}
 

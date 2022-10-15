@@ -16,7 +16,7 @@
 
 import klaw from 'klaw';
 import { get, set, unset } from 'lodash-es';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { parse, relative, sep } from 'node:path';
 
 export class LocalCache {
@@ -65,8 +65,17 @@ export class LocalCache {
 		return type === 'map' ? _cache.size : Object.keys(_cache).length;
 	}
 
+	get entires() {
+		const { _cache, type } = this;
+		return type === 'map' ? [..._cache.entries()] : Object.entries(_cache);
+	}
+
 	get writeCacheFile() {
 		return this.#writeCacheFile.bind(this);
+	}
+
+	get deleteCacheFile() {
+		return this.#deleteCacheFile.bind(this);
 	}
 
 	/**
@@ -101,7 +110,6 @@ export class LocalCache {
 	}
 
 	/**
-	 *
 	 * @param {Object} args Desctructured arguments
 	 * @param {String} args.filepath filepath to be written to (can be nested)
 	 * @param {any} args.data JSON-stringify-able data to be written to the file
@@ -112,5 +120,17 @@ export class LocalCache {
 		//create dir if it does not exist
 		await mkdir('./' + relative(process.cwd(), parse(`${path}/${filepath}`).dir), { recursive: true });
 		return writeFile('./' + relative(process.cwd(), `${path}/${filepath}`), JSON.stringify(data));
+	}
+
+	/**
+	 * @param {Object} args Desctructured arguments
+	 * @param {String} args.filepath filepath to be deleted to (can be nested)
+	 */
+	async #deleteCacheFile({ filepath }) {
+		const { path } = this;
+		if (!filepath.endsWith('.json')) filepath += '.json';
+		//create dir if it does not exist
+		await mkdir('./' + relative(process.cwd(), parse(`${path}/${filepath}`).dir), { recursive: true });
+		return rm('./' + relative(process.cwd(), `${path}/${filepath}`), { force: true });
 	}
 }

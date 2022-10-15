@@ -28,7 +28,7 @@
 		"@firebase/database-compat": "0.2.6",
 		"bidirectional-map": "^1.1.1",
 		"chalk": "^5.0.1",
-		"discord.js": "^13.8.1",
+		"discord.js": "13.9.2",
 		"dotenv": "^16.0.1",
 		"firebase-admin": "^11.0.0",
 		"klaw": "^4.0.1",

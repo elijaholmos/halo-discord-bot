@@ -28,7 +28,7 @@ export class Command {
 		this.description = description;
 		this.options = options;
 		this.category = category;
-		this.defaultPermission = this.category !== 'admin' && this.category !== 'moderator'; //lock admin cmds
+		this.defaultMemberPermissions = ['admin', 'development'].includes(this.category) ? ['ADMINISTRATOR'] : null; //lock admin cmds
 		this.deferResponse = deferResponse;
 		this.type = type;
 		Object.assign(this, other);

@@ -175,9 +175,9 @@ class DiscordHaloBot extends Client {
 	 * @param {EmbedBase | EmbedBase[]} [args.embed] Singular embed object to be included in reply. If unspecified, existing embeds are removed
 	 * @returns {Promise<Message>} The reply that was sent (or the last one, if multiple were sent)
 	 */
-	async intrReply({ intr, embed = [], ...options }) {
+	async intrReply({ intr, embed = null, ...options }) {
 		const payload = {
-			embeds: [embed],
+			embeds: !!embed ? [embed] : [],
 			fetchReply: true,
 			...options,
 		};

@@ -141,7 +141,7 @@ export class HaloWatcher extends EventEmitter {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
 					if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
-					Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
+					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					const old_grades = get([course_id, uid], null);
 					//Logger.debug(old_grades);

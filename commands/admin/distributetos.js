@@ -85,8 +85,8 @@ export default class extends Command {
 				console.log(`claim from ${uid}`);
 
 				const data = { agreed: true, timestamp: Date.now() };
-				TOS_AGREEMENTS.set(uid, data);
-				TOS_AGREEMENTS.writeCacheFile({ filepath: uid, data });
+				TOS_AGREEMENTS.set(Firebase.getHNSUid(uid), data);
+				TOS_AGREEMENTS.writeCacheFile({ filepath: Firebase.getHNSUid(uid), data });
 
 				message.resolveComponent('tos-agree-btn').setDisabled();
 				message.edit({ components: message.components });

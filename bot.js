@@ -82,9 +82,9 @@ class DiscordHaloBot extends Client {
 	 * @param {boolean} [args.send_disabled_msg] Whether or not to send a public message prompting the user to enable messages from server members
 	 * @returns {Promise<Message>}
 	 */
-	sendDM({ user, embed = [], send_disabled_msg = true, ...options } = {}) {
+	sendDM({ user, embed = null, send_disabled_msg = true, ...options } = {}) {
 		const payload = {
-			embeds: [embed],
+			embeds: !!embed ? [embed] : [],
 			...options,
 		};
 		if (!Array.isArray(embed))

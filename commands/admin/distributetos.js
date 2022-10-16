@@ -28,76 +28,115 @@ export default class extends Command {
 	}
 
 	async run({ intr }) {
-		const users = (await Firebase.getAllActiveUsers()).map(Firebase.getDiscordUid);
+		const users = await Promise.all(
+			(await Firebase.getAllActiveUsers()).map(Firebase.getDiscordUid).map((uid) => bot.users.fetch(uid))
+		);
+		const messages = [];
 
-		console.log(users);
-
-		const msg = await bot.intrReply({
-			intr,
-			content: '⚠ **Action Required** ⚠',
-			embed: new EmbedBase({
-				title: 'Terms of Service Update',
-				description: `
-                    The new [Terms of Service](https://elijaho.notion.site/Terms-of-Service-e341190b0998499ea7f31cee2d49f786 'https://elijaho.notion.site/Terms-of-Service-e341190b0998499ea7f31cee2d49f786') are now in effect. In order to continue using Halo Notification Service, you must confirm the following:
-                    \t\u2022 You have read and agree to the new Terms of Service.
-                    \t\u2022 You authorize Halo Notification Service to view your education records.
-
-                    For more information, please see [this announcement](https://discord.com/channels/270408632863031298/928033236398014504/1029404493219115028).
-                `,
-			}).Warn(),
-			components: [
-				{
+		for (const user of users) {
+			messages.push(
+				bot.sendDM({
+					user,
+					content: '⚠ **Action Required** ⚠',
+					embed: new EmbedBase({
+						title: 'Terms of Service Update',
+						description: `
+                        The new [Terms of Service](https://elijaho.notion.site/Terms-of-Service-e341190b0998499ea7f31cee2d49f786 'https://elijaho.notion.site/Terms-of-Service-e341190b0998499ea7f31cee2d49f786') are now in effect. In order to continue using Halo Notification Service, you must confirm the following:
+                        \t\u2022 You have read and agree to the new Terms of Service.
+                        \t\u2022 You authorize Halo Notification Service to view your education records.
+    
+                        For more information, please see [this announcement](https://discord.com/channels/270408632863031298/928033236398014504/1029404493219115028).
+                    `,
+					}).Warn(),
 					components: [
 						{
-							type: 2,
-							style: 3,
-							custom_id: 'tos-agree-btn',
-							disabled: false,
-							label: 'Agree',
-							emoji: {
-								name: '✅',
-							},
-						},
-						{
-							type: 2,
-							style: 5,
-							label: 'Questions',
-							url: 'https://discord.com/channels/270408632863031298/928032710218383411',
-							emoji: {
-								name: '❔',
-							},
+							components: [
+								{
+									type: 2,
+									style: 3,
+									custom_id: 'tos-agree-btn',
+									disabled: false,
+									label: 'Agree',
+									emoji: {
+										name: '✅',
+									},
+								},
+								{
+									type: 2,
+									style: 5,
+									label: 'Questions',
+									url: 'https://discord.com/channels/270408632863031298/928032710218383411',
+									emoji: {
+										name: '❔',
+									},
+								},
+							],
+							type: 1,
 						},
 					],
-					type: 1,
-				},
-			],
+				})
+			);
+		}
+
+		for await (const msg of messages)
+			try {
+				msg.createMessageComponentCollector({
+					filter: (i) => i.customId === 'tos-agree-btn',
+				})
+					.on('collect', async (intr) => {
+						try {
+							const {
+								user: { id: uid },
+								message,
+							} = intr;
+							//await intr.deferReply({ ephemeral: true });
+							console.log(`agreement from ${uid}`);
+
+							const data = { agreed: true, timestamp: Date.now() };
+							TOS_AGREEMENTS.set(Firebase.getHNSUid(uid), data);
+							TOS_AGREEMENTS.writeCacheFile({ filepath: Firebase.getHNSUid(uid), data });
+
+							message.resolveComponent('tos-agree-btn').setDisabled();
+							message.edit({ components: message.components });
+
+							bot.logDiscord({
+								embed: new EmbedBase({
+									title: 'User Agreed to TOS',
+									fields: [
+										{
+											name: 'User',
+											value: bot.formatUser(intr.user),
+										},
+									],
+								}).Success(),
+							});
+
+							return bot.intrReply({
+								intr,
+								embed: new EmbedBase({
+									description: `✅ **Your response has been recorded**`,
+								}).Success(),
+							});
+						} catch (e) {
+							Logger.error(e);
+						}
+					})
+					.once('end', () => console.log('collector ended'));
+			} catch (e) {
+				Logger.error(e);
+			}
+
+		return bot.intrReply({
+			intr,
+			embed: new EmbedBase({
+				description: `✅ **${messages.length} messages sent**`,
+				fields: [
+					{
+						name: 'Users',
+						value: users.map((user) => bot.formatUser(user)).join('\n'),
+					},
+				],
+			}).Success(),
 		});
-
-		msg.createMessageComponentCollector({
-			filter: (i) => i.customId === 'tos-agree-btn',
-		})
-			.on('collect', async (intr) => {
-				const {
-					user: { id: uid },
-					message,
-				} = intr;
-				//await intr.deferReply({ ephemeral: true });
-				console.log(`claim from ${uid}`);
-
-				const data = { agreed: true, timestamp: Date.now() };
-				TOS_AGREEMENTS.set(Firebase.getHNSUid(uid), data);
-				TOS_AGREEMENTS.writeCacheFile({ filepath: Firebase.getHNSUid(uid), data });
-
-				message.resolveComponent('tos-agree-btn').setDisabled();
-				message.edit({ components: message.components });
-
-				return bot.intrReply({
-					intr,
-					embed: new EmbedBase({
-						description: `✅ **Your response has been recorded**`,
-					}).Success(),
-				});
-			})
-			.once('end', () => console.log('collector ended'));
 	}
 }

@@ -43,21 +43,21 @@ export const getActiveDiscordUsersInClass = function (class_id) {
 };
 
 /**
- * @returns {Promise<string[]>} array of halo-discord IDs
+ * @returns {Promise<string[]>} array of HNS IDs
  */
 export const getActiveUsersInClassAsync = async function (class_id) {
 	return Object.keys((await admin.database().ref('class_users_map').child(class_id).get()) ?? {});
 };
 
 /**
- * @returns {string[]} array of halo-discord IDs
+ * @returns {string[]} array of HNS IDs
  */
 export const getActiveUsersInClass = function (class_id) {
 	return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
 };
 
 /**
- * @param {string} uid halo-discord UID
+ * @param {string} uid HNS UID
  * @returns {Promise<string[]>} array of class IDs
  */
 export const getAllUserClasses = async function (uid) {
@@ -66,7 +66,7 @@ export const getAllUserClasses = async function (uid) {
 
 /**
  * Get the Halo cookie object for a user
- * @param {string} uid halo-discord UID
+ * @param {string} uid HNS UID
  * @param {boolean} check_cache Whether the local cache should be checked first
  */
 export const getUserCookie = async function (uid, check_cache = true) {
@@ -97,12 +97,21 @@ export const getDiscordUidFromHaloUid = async function (uid) {
 };
 
 /**
- * Convert a halo-discord UID to a Discord UID
+ * Convert a HNS UID to a Discord UID
  * @param {string} uid
  * @returns {string | null} discord uid, if exists in map
  */
 export const getDiscordUid = function (uid) {
 	return process.env.NODE_ENV === 'production' ? DISCORD_USER_MAP.get(uid) : '139120967208271872';
+};
+
+/**
+ * Convert a Discord UID to a HNS UID
+ * @param {string} discord_uid
+ * @returns {string | null} HNS uid, if exists in map
+ */
+export const getHNSUid = function (discord_uid) {
+	return DISCORD_USER_MAP.get(discord_uid);
 };
 
 export const getFirebaseUserSnapshot = async function (uid) {
@@ -111,7 +120,7 @@ export const getFirebaseUserSnapshot = async function (uid) {
 
 /**
  * Get all users currently using the service
- * @returns {Promise<string[]>} array of halo-discord uids
+ * @returns {Promise<string[]>} array of HNS uids
  */
 export const getAllActiveUsers = async function getAllActiveUsersUids() {
 	return Object.keys(

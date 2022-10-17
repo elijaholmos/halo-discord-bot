@@ -15,9 +15,7 @@
  */
 
 import admin from 'firebase-admin';
-import { readFile } from 'node:fs/promises';
-import { relative } from 'node:path';
-import { Logger } from '..';
+import { isValidCookieObject, Logger } from '..';
 import { COOKIES } from '../../caches';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
@@ -77,12 +75,17 @@ export const getUserCookie = async function (uid, check_cache = true) {
 		if (isValidCookieObject(cookie)) return cookie;
 		throw `Valid cookie for user ${uid} not found in cache`;
 	} catch (e) {
-		return (await admin.database().ref('cookies').child(uid).get()).val();
+		const cookie = (await admin.database().ref('cookies').child(uid).get()).val();
+		return isValidCookieObject(cookie) ? cookie : null;
 	}
 };
 
 export const updateUserCookie = async function (uid, cookie) {
 	return await admin.database().ref('cookies').child(uid).update(cookie);
+};
+
+export const removeUserCookie = async function (uid) {
+	return await admin.database().ref('cookies').child(uid).remove();
 };
 
 /**

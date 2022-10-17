@@ -17,6 +17,14 @@
 import admin from 'firebase-admin';
 import { Firebase, Halo, Logger } from '.';
 import { COOKIES } from '../caches';
+import { AUTHORIZATION_KEY, CONTEXT_KEY } from './services/HaloService';
+
+/**
+ * @returns {boolean}
+ */
+export const isValidCookieObject = function (obj) {
+	return obj?.hasOwnProperty(AUTHORIZATION_KEY) && obj?.hasOwnProperty(CONTEXT_KEY);
+};
 
 // Watch for Cookie updates in Firebase and manually refresh Halo tokens when necessary
 export class CookieManager {
@@ -44,6 +52,9 @@ export class CookieManager {
 			const cookie = snapshot.val();
 			const next_update = Date.now() + REFRESH_INTERVAL;
 			Logger.cookie(`${uid}'s cookie has been changed`);
+			if (!isValidCookieObject(cookie))
+				return Logger.cookie(`Invalid cookie object detected for ${uid}: ${JSON.stringify(cookie)}`);
+
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
 			timeouts.set(
 				uid,
@@ -53,6 +64,7 @@ export class CookieManager {
 			//update local cache
 			COOKIES.set(uid, { cookie, next_update });
 			COOKIES.writeCacheFile({ filepath: uid, data: { cookie, next_update } });
+			remove401(uid);
 		});
 		//cookie was deleted, check to see it if was an uninstall
 		ref.on('child_removed', async (snapshot) => {

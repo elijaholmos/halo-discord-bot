@@ -153,7 +153,7 @@ class UserCreate extends FirebaseEvent {
 			}
 
 			//remove their cookies
-			await db.ref(`cookies/${uid}`).remove();
+			await Firebase.removeUserCookie(uid);
 			//handle further cookie removal in CookieWatcher
 
 			//delete their user acct in case they reinstall, to retrigger the auth process

@@ -30,3 +30,4 @@ export * as Firebase from './services/FirebaseService';
 export * from './services/GradeService';
 export * as Halo from './services/HaloService';
 export * from './services/InboxMessageService';
+export * from './services/401Service';

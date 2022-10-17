@@ -68,9 +68,10 @@ export class HaloWatcher extends EventEmitter {
 					if (!!announcements) return announcements;
 				} catch (e) {
 					if (e.code === 401)
-						Logger.unauth(
-							`[getClassAnnouncementsSafe] Received 401 while fetching announcements for course ${metadata?.courseCode} using ${uid} cookie`
-						);
+						handle401({
+							uid,
+							msg: `[getClassAnnouncementsSafe] Received 401 while fetching announcements for course ${metadata?.courseCode} using ${uid} cookie`,
+						});
 					else
 						Logger.error(
 							`[getClassAnnouncementsSafe] Non-401 error while fetching announcements for ${

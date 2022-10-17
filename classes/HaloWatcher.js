@@ -144,8 +144,8 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
-					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
+					if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
+					Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					if (!cookie) continue;
 					const old_grades = get([course_id, uid], null);
@@ -229,7 +229,7 @@ export class HaloWatcher extends EventEmitter {
 		//retrieve all inbox forums that need information fetched
 		for (const uid of ACTIVE_USERS) {
 			try {
-				if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
+				if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 				const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
 				if (!cookie) continue;
 				for (const { forumId, unreadCount } of await Halo.getUserInbox({ cookie })) {

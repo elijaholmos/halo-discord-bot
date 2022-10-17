@@ -39,7 +39,7 @@ export class AnnouncementService {
 		//get all active users in the class and send the message to them
 		for (const uid of Firebase.getActiveUsersInClass(announcement.courseClassId)) {
 			try {
-				if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
+				if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 				if (!Firebase.getUserSettingValue({ uid, setting_id: 0 })) continue;
 				const discord_uid = Firebase.getDiscordUid(uid);
 				const discord_user = await bot.users.fetch(discord_uid);

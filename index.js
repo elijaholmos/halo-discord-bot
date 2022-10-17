@@ -15,7 +15,7 @@
  */
 
 'use strict';
-if (process.version.slice(1).split('.')[0] < 16) throw new Error('Node 16.6.0 or higher is required.');
+if (process.version.slice(1).split('.')[0] < 16) throw new Error('Node 16.9.0 or higher is required.');
 
 import { config as dotenv_config } from 'dotenv';
 import admin from 'firebase-admin';

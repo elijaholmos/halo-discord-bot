@@ -14,27 +14,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Command, EmbedBase, Firebase } from '../../classes';
+import bot from '../../bot';
+import { Command, EmbedBase, Firebase, Logger } from '../../classes';
 
 class test extends Command {
-    constructor(bot) {
-        super(bot, {
-            name: 'test',
-            description: 'Test command',
-            category: 'development',
-        });
-    }
+	constructor() {
+		super({
+			name: 'test',
+			description: 'Test command',
+			category: 'development',
+		});
+	}
 
-    async run({intr}) {
-        const { bot } = this;
+	async run({ intr }) {
+		const classes = await Firebase.getAllClasses();
+		Logger.debug(classes);
 
-        const classes = await Firebase.getAllClasses();
-        console.log(classes);
-        
-        await bot.intrReply({intr, embed: new EmbedBase(bot, {
-            description: 'Done',
-        })});
-    }
+		await bot.intrReply({
+			intr,
+			embed: new EmbedBase({
+				description: 'Done',
+			}),
+		});
+	}
 }
 
 export default test;

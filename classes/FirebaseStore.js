@@ -23,7 +23,7 @@ export class FirebaseStore {
 	ready = false; //true when initialization is complete
 	constructor({
 		path = null, //firebase path to watch
-		bimap = true, //whether to use a bimap or a map
+		bimap = false, //whether to use a bimap or a map
 	} = {}) {
 		this.bimap = bimap;
 		// Synchronously load data from Firestore and
@@ -76,7 +76,7 @@ export class FirebaseStore {
 	}
 
 	toObject() {
-		return Object.fromEntries(this._cache.entries()) ;
+		return Object.fromEntries(this._cache.entries());
 	}
 
 	// Implement setter that updates local & cloud?

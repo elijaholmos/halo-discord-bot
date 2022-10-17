@@ -14,24 +14,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import bot from '../../bot';
 import { Command } from '../../classes';
 
 class setup extends Command {
-    constructor(bot) {
-        super(bot, {
-            name: 'setup',
-            description: 'View a setup guide',
-            category: 'halo',
-        });
-    }
+	constructor() {
+		super({
+			name: 'setup',
+			description: 'View a setup guide',
+			category: 'halo',
+		});
+	}
 
-    async run({intr}) {
-        const { bot } = this;
-        return await bot.intrReply({
-            intr,
-            content: '<https://gist.github.com/elijaholmos/a3ba9481f684adfddd8733a96e4cdd24>',
-        });
-    }
+	async run({ intr }) {
+		return await bot.intrReply({
+			intr,
+			content:
+				'https://elijaho.notion.site/Halo-Notification-Service-Setup-Guide-56fdb766d73149d3bfb5a9a8535f7d8f',
+		});
+	}
 }
 
 export default setup;

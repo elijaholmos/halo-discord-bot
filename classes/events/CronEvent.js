@@ -14,22 +14,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export class FirebaseEvent {
-	constructor({ name = null, description = 'No description provided', ref = null, create_on_init = true }) {
+import bot from '../../bot';
+/**
+ * Custom class for implementing scheduled cron events that will perform a particular task.
+ * `run()` will be called every time the event is triggered.
+ */
+export class CronEvent {
+	/**
+	 *
+	 * @param {Object} args Destructured arguments
+	 * @param {string} args.name Name of the event (for logging purposes)
+	 * @param {string} args.schedule Cron schedule expression
+	 */
+	constructor({ name = null, schedule = null }) {
 		this.name = name;
-		this.description = description;
-		this.ref = ref;
-		this.create_on_init = create_on_init;
+		this.schedule = schedule;
+		//import event config from bot config
+		Object.assign(this, bot.config.events[this.name]);
 	}
 
-	//These should be implemented for each individual class
-	onAdd(snapshot) {
-		return;
-	}
-	onModify(snapshot) {
-		return;
-	}
-	onRemove(snapshot) {
-		return;
+	run() {
+		throw new Error(`CronEvent ${this.name} doesn't provide a run method.`);
 	}
 }

@@ -15,8 +15,8 @@
  */
 
 import admin from 'firebase-admin';
-import { readFile } from 'node:fs/promises';
-import { relative } from 'node:path';
+import { isValidCookieObject, Logger } from '..';
+import { COOKIES } from '../../caches';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
@@ -26,6 +26,10 @@ export const getActiveClasses = async function () {
 			ACTIVE_STAGES.map((STAGE) => admin.database().ref('classes').orderByChild('stage').equalTo(STAGE).get())
 		)
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
+};
+
+export const getAllClasses = async function () {
+	return (await admin.database().ref('classes').get()).val();
 };
 
 /**
@@ -38,41 +42,54 @@ export const getActiveDiscordUsersInClass = function (class_id) {
 };
 
 /**
- * @returns {Promise<string[]>} array of halo-discord IDs
+ * @returns {Promise<string[]>} array of HNS IDs
  */
 export const getActiveUsersInClassAsync = async function (class_id) {
 	return Object.keys((await admin.database().ref('class_users_map').child(class_id).get()) ?? {});
 };
 
 /**
- * @returns {string[]} array of halo-discord IDs
+ * @returns {string[]} array of HNS IDs
  */
 export const getActiveUsersInClass = function (class_id) {
 	return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
 };
 
+/**
+ * @param {string} uid HNS UID
+ * @returns {Promise<string[]>} array of class IDs
+ */
 export const getAllUserClasses = async function (uid) {
-	return Object.keys((await admin.database().ref(`user_classes_map`).child(uid).get()).toJSON());
+	return Object.keys((await admin.database().ref('user_classes_map').child(uid).get()).toJSON());
 };
 
 /**
  * Get the Halo cookie object for a user
- * @param {string} uid halo-discord UID
+ * @param {string} uid HNS UID
  * @param {boolean} check_cache Whether the local cache should be checked first
  */
 export const getUserCookie = async function (uid, check_cache = true) {
 	try {
-		if (!check_cache) throw 'Skipping cache check';
-		const cache = await readFile('./' + relative(process.cwd(), `cache/cookies.json`), 'utf8');
-		if (uid in cache) return cache[uid].cookie;
-		throw 'User not found in cache';
+		if (!check_cache) throw `Skipping cache check for user ${uid}`;
+		const cookie = COOKIES.get(uid);
+		if (isValidCookieObject(cookie)) return cookie;
+		throw `Valid cookie for user ${uid} not found in cache`;
 	} catch (e) {
-		return (await admin.database().ref('cookies').child(uid).get()).val();
+		const cookie = (await admin.database().ref('cookies').child(uid).get()).val();
+		return isValidCookieObject(cookie) ? cookie : null;
 	}
 };
 
 export const updateUserCookie = async function (uid, cookie) {
-	return await admin.database().ref('cookies').child(uid).update(cookie);
+	return await admin
+		.database()
+		.ref('cookies')
+		.child(uid)
+		.update({ ...cookie, timestamp: admin.database.ServerValue.TIMESTAMP });
+};
+
+export const removeUserCookie = async function (uid) {
+	return await admin.database().ref('cookies').child(uid).remove();
 };
 
 /**
@@ -88,12 +105,21 @@ export const getDiscordUidFromHaloUid = async function (uid) {
 };
 
 /**
- * Convert a halo-discord UID to a Discord UID
+ * Convert a HNS UID to a Discord UID
  * @param {string} uid
  * @returns {string | null} discord uid, if exists in map
  */
 export const getDiscordUid = function (uid) {
 	return process.env.NODE_ENV === 'production' ? DISCORD_USER_MAP.get(uid) : '139120967208271872';
+};
+
+/**
+ * Convert a Discord UID to a HNS UID
+ * @param {string} discord_uid
+ * @returns {string | null} HNS uid, if exists in map
+ */
+export const getHNSUid = function (discord_uid) {
+	return DISCORD_USER_MAP.get(discord_uid);
 };
 
 export const getFirebaseUserSnapshot = async function (uid) {
@@ -102,12 +128,20 @@ export const getFirebaseUserSnapshot = async function (uid) {
 
 /**
  * Get all users currently using the service
- * @returns {Promise<string[]>} array of halo-discord uids
+ * @returns {Promise<string[]>} array of HNS uids
  */
-export const getAllActiveUsers = async function () {
+export const getAllActiveUsers = async function getAllActiveUsersUids() {
 	return Object.keys(
 		(await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {}
 	);
+};
+
+/**
+ * Get all users currently using the service (with expanded information)
+ * @returns {Promise<object>}
+ */
+export const getAllActiveUsersFull = async function () {
+	return (await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
 };
 
 /**
@@ -127,7 +161,8 @@ export const getUserSettings = function (uid) {
  * @returns {any} The value of the user's setting if set, otherwise the default setting value
  */
 export const getUserSettingValue = function ({ uid, setting_id }) {
-	console.log(`Getting user setting value for ${uid} with setting_id ${setting_id}`);
-	console.log(getUserSettings(uid)?.[setting_id]);
+	Logger.debug(
+		`Getting user setting value for ${uid} with setting_id ${setting_id}: ${getUserSettings(uid)?.[setting_id]}`
+	);
 	return getUserSettings(uid)?.[setting_id];
 };

@@ -15,13 +15,13 @@
  */
 
 import admin from 'firebase-admin';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { relative } from 'node:path';
+import bot from '../../bot';
+import { CRON_USER_CLASS_STATUSES } from '../../caches';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
-	constructor(bot) {
-		super(bot, {
+	constructor() {
+		super({
 			name: 'UserCreate',
 			description: 'Perform several operations when a user connects their Discord acct',
 			ref: 'users',
@@ -33,7 +33,6 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onAdd(snapshot) {
-		const { bot } = this;
 		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
 		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
@@ -44,6 +43,7 @@ class UserCreate extends FirebaseEvent {
 		await db.ref('discord_user_map').child(discord_uid).set(uid);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = await Firebase.getUserCookie(uid, false);
+		//await CookieManager.refreshUserCookie(uid, cookie); //immediately refresh cookie to trigger cache intervals
 		const halo_id = await Halo.getUserId({ cookie });
 		await db.ref(`users/${uid}`).child('halo_id').set(halo_id);
 
@@ -52,7 +52,7 @@ class UserCreate extends FirebaseEvent {
 		await bot.sendDM({
 			user,
 			send_disabled_msg: false,
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'Accounts Connected Successfully',
 				description: 'You will now receive direct messages when certain things happen in Halo!',
 			}).Success(),
@@ -77,7 +77,7 @@ class UserCreate extends FirebaseEvent {
 				.child(uid)
 				.child(id)
 				.update({
-					status: students.find(({ userId }) => userId === halo_id)?.status,
+					status: students.find(({ userId }) => userId === halo_id)?.status ?? 'UNKNOWN',
 				});
 			await db.ref('class_users_map').child(id).child(uid).set(true);
 
@@ -102,7 +102,7 @@ class UserCreate extends FirebaseEvent {
 
 		//send message to bot channel
 		bot.logConnection({
-			embed: new EmbedBase(bot, {
+			embed: new EmbedBase({
 				title: 'New User Connected',
 				fields: [
 					{
@@ -123,10 +123,10 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onModify(snapshot) {
-		console.log(snapshot.val());
+		Logger.debug(`doc ${snapshot.key} modified`);
+		Logger.debug(snapshot.val());
 		//extension uninstall process
 		if (!!snapshot.val()?.uninstalled) {
-			const { bot } = this;
 			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
 			const db = admin.database();
@@ -137,7 +137,7 @@ class UserCreate extends FirebaseEvent {
 			const { userInfo } = await Halo.getUserOverview({
 				cookie: await Firebase.getUserCookie(uid, false),
 				uid: halo_id,
-			});
+			}).catch(() => {});
 
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();
@@ -153,15 +153,18 @@ class UserCreate extends FirebaseEvent {
 			}
 
 			//remove their cookies
-			await db.ref(`cookies/${uid}`).remove();
+			await Firebase.removeUserCookie(uid);
 			//handle further cookie removal in CookieWatcher
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
 			await admin.auth().deleteUser(uid);
 
+			//remove user from cron job
+			CRON_USER_CLASS_STATUSES.delete(uid);
+
 			//send message to bot channel
 			bot.logConnection({
-				embed: new EmbedBase(bot, {
+				embed: new EmbedBase({
 					title: 'User Uninstalled',
 					fields: [
 						{
@@ -170,7 +173,9 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
+							value: !Object.keys(userInfo)
+								? 'Unable to retrieve user info'
+								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
 						},
 					],
 				}).Error(),

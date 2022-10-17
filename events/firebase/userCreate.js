@@ -17,7 +17,7 @@
 import admin from 'firebase-admin';
 import bot from '../../bot';
 import { CRON_USER_CLASS_STATUSES } from '../../caches';
-import { CookieManager, EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
+import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
 
 class UserCreate extends FirebaseEvent {
 	constructor() {
@@ -43,7 +43,7 @@ class UserCreate extends FirebaseEvent {
 		await db.ref('discord_user_map').child(discord_uid).set(uid);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = await Firebase.getUserCookie(uid, false);
-		await CookieManager.refreshUserCookie(uid, cookie); //immediately refresh cookie to trigger cache intervals
+		//await CookieManager.refreshUserCookie(uid, cookie); //immediately refresh cookie to trigger cache intervals
 		const halo_id = await Halo.getUserId({ cookie });
 		await db.ref(`users/${uid}`).child('halo_id').set(halo_id);
 

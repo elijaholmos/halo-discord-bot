@@ -81,7 +81,11 @@ export const getUserCookie = async function (uid, check_cache = true) {
 };
 
 export const updateUserCookie = async function (uid, cookie) {
-	return await admin.database().ref('cookies').child(uid).update(cookie);
+	return await admin
+		.database()
+		.ref('cookies')
+		.child(uid)
+		.update({ ...cookie, timestamp: admin.database.ServerValue.TIMESTAMP });
 };
 
 export const removeUserCookie = async function (uid) {

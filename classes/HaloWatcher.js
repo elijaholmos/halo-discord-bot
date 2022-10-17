@@ -16,7 +16,7 @@
 
 import { EventEmitter } from 'node:events';
 import { setIntervalAsync } from 'set-interval-async/fixed';
-import { Firebase, Halo, Logger } from '.';
+import { Firebase, Halo, handle401, Logger } from '.';
 import { CLASS_ANNOUNCEMENTS, TOS_AGREEMENTS, USER_GRADES, USER_INBOX } from '../caches';
 
 export class HaloWatcher extends EventEmitter {
@@ -56,26 +56,30 @@ export class HaloWatcher extends EventEmitter {
 		const getAnnouncements = async function getClassAnnouncementsSafe({ class_id, active_users, metadata }) {
 			for (const uid of active_users)
 				try {
+					const cookie = await Firebase.getUserCookie(uid);
+					if (!cookie) continue;
 					const announcements = await Halo.getClassAnnouncements({
 						class_id,
 						//use the cookie of a user from the course
-						cookie: await Firebase.getUserCookie(uid),
+						cookie,
 						//inject the readable course code into the response objects
 						metadata,
 					});
 					if (!!announcements) return announcements;
 				} catch (e) {
 					if (e.code === 401)
-						Logger.unauth(
-							`[getClassAnnouncementsSafe] Received 401 while fetching announcements for course ${metadata?.courseCode} using ${uid} cookie`
-						);
+						handle401({
+							uid,
+							msg: `[getClassAnnouncementsSafe] Received 401 while fetching announcements for course ${metadata?.courseCode} using ${uid} cookie`,
+						});
 					else
 						Logger.error(
 							`[getClassAnnouncementsSafe] Non-401 error while fetching announcements for ${
 								metadata?.courseCode
-							} with ${uid} cookie: ${JSON.stringify(e)}`
+							} with ${uid} cookie: ${e} ${JSON.stringify(e)}`
 						);
 				}
+			return null;
 		};
 
 		//retrieve all courses that need information fetched
@@ -87,14 +91,15 @@ export class HaloWatcher extends EventEmitter {
 				if (!active_users?.length) continue;
 				//Logger.debug(`Getting announcements for ${course.courseCode}...`);
 				const old_announcements = get(class_id) || null;
-				const new_announcements = await getAnnouncements({
-					class_id,
-					active_users,
-					//inject the readable course code into the response objects
-					metadata: {
-						courseCode: course.courseCode,
-					},
-				});
+				const new_announcements =
+					(await getAnnouncements({
+						class_id,
+						active_users,
+						//inject the readable course code into the response objects
+						metadata: {
+							courseCode: course.courseCode,
+						},
+					})) ?? old_announcements;
 				// Logger.debug(old_announcements?.length);
 				// Logger.debug(new_announcements.length);
 				set(class_id, new_announcements);
@@ -140,9 +145,10 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
+					if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
+					if (!cookie) continue;
 					const old_grades = get([course_id, uid], null);
 					//Logger.debug(old_grades);
 					const new_grades = (
@@ -196,7 +202,10 @@ export class HaloWatcher extends EventEmitter {
 					}
 				} catch (e) {
 					if (e.code === 401)
-						Logger.unauth(`Received 401 while fetching ${uid} grades for course ${course.courseCode}`);
+						handle401({
+							uid,
+							msg: `Received 401 while fetching ${uid} grades for course ${course.courseCode}`,
+						});
 					else
 						Logger.error(
 							`Error while fetching ${uid} grades for course ${course.courseCode}: ${e} ${JSON.stringify(
@@ -221,8 +230,9 @@ export class HaloWatcher extends EventEmitter {
 		//retrieve all inbox forums that need information fetched
 		for (const uid of ACTIVE_USERS) {
 			try {
-				if (!TOS_AGREEMENTS.get(uid)?.agreed) continue;
+				if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 				const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
+				if (!cookie) continue;
 				for (const { forumId, unreadCount } of await Halo.getUserInbox({ cookie })) {
 					//Logger.debug(`Getting ${uid} inbox posts for forum ${forumId}...`);
 
@@ -265,7 +275,11 @@ export class HaloWatcher extends EventEmitter {
 					}
 				}
 			} catch (e) {
-				if (e.code === 401) Logger.unauth(`Received 401 while fetching ${uid} inbox notifications`);
+				if (e.code === 401)
+					handle401({
+						uid,
+						msg: `Received 401 while fetching ${uid} inbox notifications`,
+					});
 				else Logger.error(`Error while fetching ${uid} inbox notifications: ${JSON.stringify(e)}`);
 			}
 		}

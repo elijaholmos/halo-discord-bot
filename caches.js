@@ -38,3 +38,4 @@ export const CRON_CLASS_STAGES = new LocalCache({ path: 'cron/class_stages' });
 export const CRON_USER_CLASS_STATUSES = new LocalCache({ path: 'cron/class_user_statuses' });
 export const COOKIES = new LocalCache({ path: 'cookies' });
 export const TOS_AGREEMENTS = new LocalCache({ path: 'tos_agreements' });
+export const USER_401s = new LocalCache({ path: 'user_401s' });

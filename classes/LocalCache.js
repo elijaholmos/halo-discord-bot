@@ -15,7 +15,7 @@
  */
 
 import klaw from 'klaw';
-import { get, set, unset } from 'lodash-es';
+import { get, has, set, unset } from 'lodash-es';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { parse, relative, sep } from 'node:path';
 
@@ -41,6 +41,11 @@ export class LocalCache {
 	get set() {
 		const { _cache, type } = this;
 		return type === 'map' ? _cache.set.bind(_cache) : (path, value) => set(_cache, path, value);
+	}
+
+	get has() {
+		const { _cache, type } = this;
+		return type === 'map' ? _cache.has.bind(_cache) : (path) => has(_cache, path);
 	}
 
 	get update() {

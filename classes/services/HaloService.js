@@ -28,8 +28,8 @@ const url = {
 			? 'https://halo.gcu.edu/api/token-validate/'
 			: 'http://localhost:3000/token-validate/',
 };
-const AUTHORIZATION_KEY = 'TE1TX0FVVEg';
-const CONTEXT_KEY = 'TE1TX0NPTlRFWFQ';
+export const AUTHORIZATION_KEY = 'TE1TX0FVVEg';
+export const CONTEXT_KEY = 'TE1TX0NPTlRFWFQ';
 
 export const refreshToken = async function ({ cookie }) {
 	const res = await request.post(url.token).set({

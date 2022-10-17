@@ -34,6 +34,7 @@ export const handle401 = async function ({ uid, msg }) {
 };
 
 export const remove401 = async function (uid) {
+	if (!USER_401s.has(uid)) return;
 	Logger.debug(`[remove401] Removing ${uid} from USER_401s cache...`);
 	USER_401s.delete(uid);
 	await USER_401s.deleteCacheFile({ filepath: uid });

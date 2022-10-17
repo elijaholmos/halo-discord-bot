@@ -25,7 +25,7 @@ export default class extends CronEvent {
 	constructor() {
 		super({
 			name: 'updateClassStageAndUserStatus',
-			schedule: '0 0 * * 0',
+			schedule: '0 0 * * *', //every day at midnight
 		});
 	}
 
@@ -76,8 +76,11 @@ export default class extends CronEvent {
 					await CRON_USER_CLASS_STATUSES.writeCacheFile({ filepath: uid, data });
 				}
 
+				const cookie = await Firebase.getUserCookie(uid);
+				if (!cookie) throw 'Firebase.getUserCookie returned null';
+
 				const { classes } = await Halo.getUserOverview({
-					cookie: await Firebase.getUserCookie(uid),
+					cookie,
 					uid: halo_id,
 				});
 

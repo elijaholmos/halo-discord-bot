@@ -25,7 +25,7 @@ export default class extends CronEvent {
 	constructor() {
 		super({
 			name: 'updateClassStageAndUserStatus',
-			schedule: '0 0 * * *', //every day at midnight
+			schedule: '45 22 * * *', //every day at 22:45
 		});
 	}
 

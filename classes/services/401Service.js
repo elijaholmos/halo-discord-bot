@@ -14,26 +14,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Firebase, Logger, CookieManager } from '..';
+import { CookieManager, Logger } from '..';
 import { COOKIES, USER_401s } from '../../caches';
 
-export const handle401 = async ({ uid, msg }) => {
+export const handle401 = async function ({ uid, msg }) {
 	Logger.unauth(msg);
 
 	//update cache file for tracking 401s
 	const data = { timestamp: Date.now() };
 	USER_401s.set(uid, data);
-	USER_401s.writeCacheFile({ filepath: uid, data });
+	await USER_401s.writeCacheFile({ filepath: uid, data });
 
 	if (COOKIES.has(uid)) {
-		Logger.debug(`Cookie object for ${uid} detected in cache; deleting...`);
+		Logger.debug(`[handle401] Cookie object for ${uid} detected in COOKIES cache; deleting...`);
 		CookieManager.deleteUserCookie(uid);
 	}
 
-	Firebase.removeUserCookie(uid);
+	//Firebase.removeUserCookie(uid);
 };
 
-export const remove401 = async (uid) => {
+export const remove401 = async function (uid) {
+	Logger.debug(`[remove401] Removing ${uid} from USER_401s cache...`);
 	USER_401s.delete(uid);
-	USER_401s.deleteCacheFile({ filepath: uid });
+	await USER_401s.deleteCacheFile({ filepath: uid });
 };

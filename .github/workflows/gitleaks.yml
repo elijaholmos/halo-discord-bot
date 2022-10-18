@@ -17,6 +17,7 @@ jobs:
             - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
+            - run: wget -O .gitleaks.toml https://raw.githubusercontent.com/elijaholmos/.github/main/workflows/config/.gitleaks.toml
             - uses: gitleaks/gitleaks-action@v2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

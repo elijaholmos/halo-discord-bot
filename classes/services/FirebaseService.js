@@ -14,22 +14,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import admin from 'firebase-admin';
+import { ServerValue } from 'firebase-admin/database';
 import { isValidCookieObject, Logger } from '..';
 import { COOKIES } from '../../caches';
+import { db } from '../../firebase';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
 
 export const getActiveClasses = async function () {
 	return (
-		await Promise.all(
-			ACTIVE_STAGES.map((STAGE) => admin.database().ref('classes').orderByChild('stage').equalTo(STAGE).get())
-		)
+		await Promise.all(ACTIVE_STAGES.map((STAGE) => db.ref('classes').orderByChild('stage').equalTo(STAGE).get()))
 	).reduce((acc, cur) => Object.assign(acc, cur.val()), {});
 };
 
 export const getAllClasses = async function () {
-	return (await admin.database().ref('classes').get()).val();
+	return (await db.ref('classes').get()).val();
 };
 
 /**
@@ -45,7 +44,7 @@ export const getActiveDiscordUsersInClass = function (class_id) {
  * @returns {Promise<string[]>} array of HNS IDs
  */
 export const getActiveUsersInClassAsync = async function (class_id) {
-	return Object.keys((await admin.database().ref('class_users_map').child(class_id).get()) ?? {});
+	return Object.keys((await db.ref('class_users_map').child(class_id).get()) ?? {});
 };
 
 /**
@@ -60,7 +59,7 @@ export const getActiveUsersInClass = function (class_id) {
  * @returns {Promise<string[]>} array of class IDs
  */
 export const getAllUserClasses = async function (uid) {
-	return Object.keys((await admin.database().ref('user_classes_map').child(uid).get()).toJSON());
+	return Object.keys((await db.ref('user_classes_map').child(uid).get()).toJSON());
 };
 
 /**
@@ -75,21 +74,20 @@ export const getUserCookie = async function (uid, check_cache = true) {
 		if (isValidCookieObject(cookie)) return cookie;
 		throw `Valid cookie for user ${uid} not found in cache`;
 	} catch (e) {
-		const cookie = (await admin.database().ref('cookies').child(uid).get()).val();
+		const cookie = (await db.ref('cookies').child(uid).get()).val();
 		return isValidCookieObject(cookie) ? cookie : null;
 	}
 };
 
 export const updateUserCookie = async function (uid, cookie) {
-	return await admin
-		.database()
+	return await db
 		.ref('cookies')
 		.child(uid)
-		.update({ ...cookie, timestamp: admin.database.ServerValue.TIMESTAMP });
+		.update({ ...cookie, timestamp: ServerValue.TIMESTAMP });
 };
 
 export const removeUserCookie = async function (uid) {
-	return await admin.database().ref('cookies').child(uid).remove();
+	return await db.ref('cookies').child(uid).remove();
 };
 
 /**
@@ -99,8 +97,7 @@ export const removeUserCookie = async function (uid) {
  */
 export const getDiscordUidFromHaloUid = async function (uid) {
 	return process.env.NODE_ENV === 'production'
-		? Object.values((await admin.database().ref(`users`).orderByChild('halo_id').equalTo(uid).get()).val())?.[0]
-				?.discord_uid
+		? Object.values((await db.ref(`users`).orderByChild('halo_id').equalTo(uid).get()).val())?.[0]?.discord_uid
 		: '139120967208271872';
 };
 
@@ -123,7 +120,7 @@ export const getHNSUid = function (discord_uid) {
 };
 
 export const getFirebaseUserSnapshot = async function (uid) {
-	return (await admin.database().ref('users').child(uid).once('value')).val();
+	return (await db.ref('users').child(uid).once('value')).val();
 };
 
 /**
@@ -131,9 +128,7 @@ export const getFirebaseUserSnapshot = async function (uid) {
  * @returns {Promise<string[]>} array of HNS uids
  */
 export const getAllActiveUsers = async function getAllActiveUsersUids() {
-	return Object.keys(
-		(await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {}
-	);
+	return Object.keys((await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {});
 };
 
 /**
@@ -141,7 +136,7 @@ export const getAllActiveUsers = async function getAllActiveUsersUids() {
  * @returns {Promise<object>}
  */
 export const getAllActiveUsersFull = async function () {
-	return (await admin.database().ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
+	return (await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
 };
 
 /**

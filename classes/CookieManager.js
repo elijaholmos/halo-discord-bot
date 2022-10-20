@@ -14,9 +14,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import admin from 'firebase-admin';
 import { Firebase, Halo, Logger, remove401 } from '.';
 import { COOKIES } from '../caches';
+import { db } from '../firebase';
 import { AUTHORIZATION_KEY, CONTEXT_KEY } from './services/HaloService';
 
 /**
@@ -65,7 +65,7 @@ export class CookieManager {
 		};
 
 		//watch db for changes
-		const ref = admin.database().ref('cookies');
+		const ref = db.ref('cookies');
 		ref.orderByChild('timestamp').startAt(Date.now()).on('child_added', updateHandler);
 		ref.on('child_changed', updateHandler);
 		//cookie was deleted, check to see it if was an uninstall

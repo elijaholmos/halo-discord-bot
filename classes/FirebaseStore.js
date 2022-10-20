@@ -16,7 +16,7 @@
 
 //A local cache that stays in sync with Firestore but can be queried synchronously
 import BiMap from 'bidirectional-map';
-import admin from 'firebase-admin';
+import { apps, db } from '../firebase';
 
 export class FirebaseStore {
 	_cache = new BiMap(); //immutablity implies that local changes do not sync w database
@@ -29,19 +29,16 @@ export class FirebaseStore {
 		// Synchronously load data from Firestore and
 		// set up watcher to keep local cache up to date
 		(function createCache() {
-			if (admin.apps.length === 0) return setTimeout(createCache.bind(this), 500); //wait until app is initialized
-			admin
-				.database()
-				.ref(path)
-				.on('value', (snapshot) => {
-					this._cache = snapshot.exists()
-						? this.bimap
-							? new BiMap(snapshot.val())
-							: new Map(Object.entries(snapshot.val()))
-						: new (this.bimap ? BiMap : Map)();
+			if (apps.length === 0) return setTimeout(createCache.bind(this), 500); //wait until app is initialized
+			db.ref(path).on('value', (snapshot) => {
+				this._cache = snapshot.exists()
+					? this.bimap
+						? new BiMap(snapshot.val())
+						: new Map(Object.entries(snapshot.val()))
+					: new (this.bimap ? BiMap : Map)();
 
-					this.ready ||= true;
-				});
+				this.ready ||= true;
+			});
 		}.bind(this)());
 	}
 

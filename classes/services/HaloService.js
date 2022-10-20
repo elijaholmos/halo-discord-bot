@@ -92,7 +92,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
  * @param {Object} args.cookie The cookie object retrieved from Firebase
  * @param {string} args.class_slug_id unique class slug ID of format COURSE_CODE-SECTION-ID
  * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
- * @returns {Promise<Array>} Array of all grades for the user whose `cookie` was provided
+ * @returns {Promise<{grades: Array; finalGrade: Object}>} Array of all grades for the user whose `cookie` was provided
  */
 export const getAllGrades = async function ({ cookie, class_slug_id, metadata = {} } = {}) {
 	const res = await request
@@ -114,8 +114,9 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
-	return res.body.data.gradeOverview[0].grades.map((grade) => ({ ...grade, metadata }));
+	if (res.error) throw error;
+	const { grades, finalGrade } = res.body.data.gradeOverview[0];
+	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
 };
 
 /**

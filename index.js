@@ -17,8 +17,6 @@
 'use strict';
 if (process.version.slice(1).split('.')[0] < 16) throw new Error('Node 16.9.0 or higher is required.');
 
-import { config as dotenv_config } from 'dotenv';
-import admin from 'firebase-admin';
 import klaw from 'klaw';
 import { scheduleJob } from 'node-schedule';
 import path from 'node:path';
@@ -33,20 +31,11 @@ import {
 	InboxMessageService,
 	Logger,
 } from './classes';
+import { db } from './firebase';
 import * as stores from './stores';
-dotenv_config();
 
 // Initialization process
 const init = async function () {
-	//initialize firebase
-	admin.initializeApp({
-		databaseURL:
-			process.env.NODE_ENV === 'production'
-				? 'https://discord-halo-default-rtdb.firebaseio.com'
-				: 'https://halo-discord-dev-default-rtdb.firebaseio.com',
-	});
-	if (admin.apps.length === 0) Logger.error('Error initializing firebase app');
-	else Logger.log('Firebase succesfully initialized');
 	//await CloudConfig.init();   //import cloud configuration settings
 	//Logger.log('CloudConfig initialized');
 
@@ -104,7 +93,7 @@ const init = async function () {
 				)
 			).default();
 			if (!firebase_event.create_on_init) continue;
-			const query = admin.database().ref(firebase_event.ref);
+			const query = db.ref(firebase_event.ref);
 			query
 				.orderByChild('created_on')
 				.startAfter(Date.now())

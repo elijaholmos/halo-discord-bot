@@ -14,10 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import admin from 'firebase-admin';
 import bot from '../../bot';
 import { CRON_USER_CLASS_STATUSES } from '../../caches';
 import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
+import { auth, db } from '../../firebase';
 
 class UserCreate extends FirebaseEvent {
 	constructor() {
@@ -36,9 +36,8 @@ class UserCreate extends FirebaseEvent {
 		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
 		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
-		const db = admin.database();
 		//set custom claim
-		await admin.auth().setCustomUserClaims(uid, { discordUID: discord_uid });
+		await auth.setCustomUserClaims(uid, { discordUID: discord_uid });
 		//update mapping table
 		await db.ref('discord_user_map').child(discord_uid).set(uid);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
@@ -129,7 +128,6 @@ class UserCreate extends FirebaseEvent {
 		if (!!snapshot.val()?.uninstalled) {
 			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
-			const db = admin.database();
 
 			Logger.uninstall(uid);
 
@@ -157,7 +155,7 @@ class UserCreate extends FirebaseEvent {
 			//handle further cookie removal in CookieWatcher
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
-			await admin.auth().deleteUser(uid);
+			await auth.deleteUser(uid);
 
 			//remove user from cron job
 			CRON_USER_CLASS_STATUSES.delete(uid);

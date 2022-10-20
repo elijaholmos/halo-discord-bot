@@ -14,10 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import admin from 'firebase-admin';
 import bot from '../../bot';
 import { CRON_CLASS_STAGES, CRON_USER_CLASS_STATUSES } from '../../caches';
 import { CronEvent, EmbedBase, Firebase, Halo, Logger } from '../../classes';
+import { db } from '../../firebase';
 import { USER_CLASSES_MAP } from '../../stores';
 
 // although this is two operations in one, it's more efficient to iterate over the users and their classes in a single run than to break it up
@@ -55,7 +55,6 @@ export default class extends CronEvent {
 	async run() {
 		Logger.cron(`[${this.name}] cron job execution started`);
 		const changelog = []; //for post-job reporting
-		const db = admin.database();
 
 		//we can cache the previous job's results in local file to improve performance & save db costs
 		await this.#constructCaches();

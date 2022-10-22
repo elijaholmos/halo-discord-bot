@@ -76,7 +76,7 @@ export class GradeService {
 	 */
 	static #parseGradeData({ grade }) {
 		const parsePercent = function (dividend, divisor) {
-			return divisor < 1 ? '' : `(${round((dividend / divisor) * 100, 2)}%)`;
+			return divisor < 1 ? '' : `${round((dividend / divisor) * 100, 2)}%`;
 		};
 
 		const {
@@ -85,7 +85,7 @@ export class GradeService {
 			assessment: { points, title },
 			metadata: {
 				courseCode,
-				finalGrade: { finalPoints: totalFinalPoints, maxPoints },
+				finalGrade: { finalPoints: totalFinalPoints, maxPoints, gradeValue },
 			},
 		} = grade;
 		return {
@@ -96,16 +96,16 @@ export class GradeService {
 					//description: `Worth ${Math.round(grade.assessment.points / )}% of your total grade`,
 					fields: [
 						{
-							name: 'Score:',
-							value: `**${finalPoints} / ${points}** ${parsePercent(finalPoints, points)}`,
+							name: 'Assignment Score:',
+							value: `**${finalPoints} / ${points}** (${parsePercent(finalPoints, points)})`,
 							inline: true,
 						},
 						{
 							name: 'Overall Grade:',
-							value: `**${totalFinalPoints} / ${maxPoints}** ${parsePercent(
+							value: `**${totalFinalPoints} / ${maxPoints}** (${parsePercent(
 								totalFinalPoints,
 								maxPoints
-							)}`,
+							)} \u200b ${gradeValue}) `,
 							inline: true,
 						},
 						{

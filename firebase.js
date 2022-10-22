@@ -14,11 +14,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { config as dotenv_config } from 'dotenv';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
 import { Logger } from './classes/Logger';
-import { config as dotenv_config } from 'dotenv';
 dotenv_config();
 
 const app = initializeApp({

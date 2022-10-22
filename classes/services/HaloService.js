@@ -114,7 +114,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) throw error;
+	if (res.error) throw res.error;
 	const { grades, finalGrade } = res.body.data.gradeOverview[0];
 	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
 };

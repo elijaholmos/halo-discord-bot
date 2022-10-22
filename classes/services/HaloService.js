@@ -76,7 +76,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (!!res.error) throw new Error(res.error);
+	if (!!res.error) throw res.error;
 	//Filter posts that were published in last 10 seconds
 	//Inject the class ID so we can use it to get the name later
 	return (
@@ -114,7 +114,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) throw res.error;
+	if (!!res.error) throw res.error;
 	const { grades, finalGrade } = res.body.data.gradeOverview[0];
 	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
 };
@@ -147,7 +147,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return { ...res.body.data.assessmentFeedback, metadata };
 };
 
@@ -172,7 +172,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data.getInboxLeftPanelNotification.reduce(
 		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
 		[]
@@ -205,7 +205,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
 
@@ -230,7 +230,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data;
 };
 
@@ -256,6 +256,6 @@ export const getUserId = async function ({ cookie }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.payload.userid;
 };

@@ -17,6 +17,9 @@
 import { constants, createCipheriv, createDecipheriv, privateDecrypt, publicEncrypt, randomBytes } from 'node:crypto';
 const AES_ALGORITHM = 'aes-192-gcm';
 
+/**
+ * @param {string} input Base64 encoded string to be AES encrypted
+ */
 export const aesEncrypt = function (input) {
 	const aes_key = randomBytes(24);
 	const nonce = randomBytes(12);
@@ -74,12 +77,12 @@ export const rsaDecrypt = function (input) {
 };
 
 /**
- * Apply a hybrid AES/RSA encryption algorithm to a string
- * @param {string} input data payload to be encrypted
+ * Apply a hybrid AES/RSA encryption algorithm to a utf-8 string
+ * @param {string} input utf-8 encoded data payload to be encrypted
  * @returns {string} Encrypted utf-8 string of the structure `{aes_key}:{auth_tag}:{nonce}:{value}`. Each component is base64 encoded.
  */
 export const encrypt = function (input) {
-	const { aes_key, auth_tag, nonce, value } = aesEncrypt(input);
+	const { aes_key, auth_tag, nonce, value } = aesEncrypt(Buffer.from(input).toString('base64'));
 	const ekey = rsaEncrypt(aes_key);
 	return [ekey, nonce, auth_tag, value].join(':');
 };

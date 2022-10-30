@@ -19,6 +19,8 @@ import { COOKIES } from '../caches';
 import { db } from '../firebase';
 import { AUTHORIZATION_KEY, CONTEXT_KEY } from './services/HaloService';
 
+export const isValueCookie = (val) => val.startsWith('eyJlbmMiOiJBMTI4R0NNIiwiYWxnIjoiZGlyIn0..');
+
 /**
  * @returns {boolean}
  */
@@ -26,15 +28,22 @@ export const isValidCookieObject = function (obj) {
 	return obj?.hasOwnProperty(AUTHORIZATION_KEY) && obj?.hasOwnProperty(CONTEXT_KEY);
 };
 
-export const decryptCookie = function (cookie) {
+export const decryptCookieObject = function (cookie) {
 	try {
 		const { [AUTHORIZATION_KEY]: auth, [CONTEXT_KEY]: context } = cookie;
-		if (!auth || !context) throw new Error('[encryptCookie] Unable to destruct cookie object');
+		if (!auth || !context)
+			throw new Error(`[decryptCookie] Unable to destructure cookie object, ${JSON.stringify(cookie)}`);
 
-		const decrypted_auth = Encrypt.decrypt(auth);
-		const decrypted_context = Encrypt.decrypt(context);
+		const decrypted_auth = isValueCookie(auth) ? auth : Encrypt.decrypt(auth);
+		const decrypted_context = isValueCookie(context) ? context : Encrypt.decrypt(context);
 
-		if (!decrypted_auth || !decrypted_context) throw new Error('[encryptCookie] Unable to decrypt cookie object');
+		if (
+			!decrypted_auth ||
+			!decrypted_context ||
+			!isValueCookie(decrypted_auth) ||
+			!isValueCookie(decrypted_context)
+		)
+			throw new Error(`[decryptCookie] Unable to decrypt cookie object, ${JSON.stringify(cookie)}`);
 
 		return { ...cookie, [AUTHORIZATION_KEY]: decrypted_auth, [CONTEXT_KEY]: decrypted_context };
 	} catch (e) {
@@ -43,15 +52,22 @@ export const decryptCookie = function (cookie) {
 	}
 };
 
-export const encryptCookie = function (cookie) {
+export const encryptCookieObject = function (cookie) {
 	try {
 		const { [AUTHORIZATION_KEY]: auth, [CONTEXT_KEY]: context } = cookie;
-		if (!auth || !context) throw new Error('[encryptCookie] Unable to destructure cookie object');
+		if (!auth || !context)
+			throw new Error(`[encryptCookie] Unable to destructure cookie object, ${JSON.stringify(cookie)}`);
 
 		const encrypted_auth = Encrypt.encrypt(auth);
 		const encrypted_context = Encrypt.encrypt(context);
 
-		if (!encrypted_auth || !encrypted_context) throw new Error('[encryptCookie] Unable to encrypt cookie object');
+		if (
+			!encrypted_auth ||
+			!encrypted_context ||
+			!isValueCookie(encrypted_auth) ||
+			!isValueCookie(encrypted_context)
+		)
+			throw new Error(`[encryptCookie] Unable to encrypt cookie object, ${JSON.stringify(cookie)}`);
 
 		return { ...cookie, [AUTHORIZATION_KEY]: encrypted_auth, [CONTEXT_KEY]: encrypted_context };
 	} catch (e) {
@@ -86,7 +102,7 @@ export class CookieManager {
 			if (!isValidCookieObject(encrypted_cookie))
 				return Logger.cookie(`Invalid cookie object detected for ${uid}: ${JSON.stringify(cookie)}`);
 
-			const cookie = decryptCookie(encrypted_cookie);
+			const cookie = decryptCookieObject(encrypted_cookie);
 			if (!isValidCookieObject(cookie)) return Logger.cookie(`Unable to decrypt cookie for ${uid}`);
 
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user

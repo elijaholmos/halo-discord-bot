@@ -31,3 +31,4 @@ export * from './services/GradeService';
 export * as Halo from './services/HaloService';
 export * from './services/InboxMessageService';
 export * from './services/401Service';
+export * as Encrypt from './services/EncryptionService';

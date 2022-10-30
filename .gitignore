@@ -112,3 +112,6 @@ cache/
 # local files (sample API responses)
 responses/
 api/data/
+
+# Misc
+tmp/

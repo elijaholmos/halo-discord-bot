@@ -15,7 +15,7 @@
  */
 
 import { ServerValue } from 'firebase-admin/database';
-import { isValidCookieObject, Logger } from '..';
+import { decryptCookieObject, encryptCookieObject, isValidCookieObject, Logger } from '..';
 import { COOKIES } from '../../caches';
 import { db } from '../../firebase';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
@@ -75,15 +75,18 @@ export const getUserCookie = async function (uid, check_cache = true) {
 		throw `Valid cookie for user ${uid} not found in cache`;
 	} catch (e) {
 		const cookie = (await db.ref('cookies').child(uid).get()).val();
-		return isValidCookieObject(cookie) ? cookie : null;
+		if (!isValidCookieObject(cookie)) return null;
+		return decryptCookieObject(cookie);
 	}
 };
 
 export const updateUserCookie = async function (uid, cookie) {
+	const encrypted_cookie = encryptCookieObject(cookie);
+	if (!isValidCookieObject(encrypted_cookie)) throw new Error('Invalid cookie object');
 	return await db
 		.ref('cookies')
 		.child(uid)
-		.update({ ...cookie, timestamp: ServerValue.TIMESTAMP });
+		.update({ ...encrypted_cookie, timestamp: ServerValue.TIMESTAMP });
 };
 
 export const removeUserCookie = async function (uid) {

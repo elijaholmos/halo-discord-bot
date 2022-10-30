@@ -15,13 +15,13 @@
  */
 
 import { constants, createCipheriv, createDecipheriv, privateDecrypt, publicEncrypt, randomBytes } from 'node:crypto';
-const AES_ALGORITHM = 'aes-192-gcm';
+const AES_ALGORITHM = 'aes-256-gcm';
 
 /**
  * @param {string} input Base64 encoded string to be AES encrypted
  */
 export const aesEncrypt = function (input) {
-	const aes_key = randomBytes(24);
+	const aes_key = randomBytes(32);
 	const nonce = randomBytes(12);
 	const cipher = createCipheriv(AES_ALGORITHM, aes_key, nonce);
 	const encrypted = Buffer.concat([cipher.update(input, 'base64'), cipher.final()]);
@@ -55,7 +55,7 @@ export const rsaEncrypt = function (input) {
 			oaepHash: 'sha256',
 			padding: constants.RSA_PKCS1_OAEP_PADDING,
 		},
-		Buffer.from(input)
+		Buffer.from(input, 'base64')
 	);
 
 	return encrypted.toString('base64');
@@ -73,7 +73,7 @@ export const rsaDecrypt = function (input) {
 			padding: constants.RSA_PKCS1_OAEP_PADDING,
 		},
 		Buffer.from(input, 'base64')
-	).toString();
+	).toString('base64');
 };
 
 /**

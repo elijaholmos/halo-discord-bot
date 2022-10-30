@@ -61,12 +61,7 @@ export const encryptCookieObject = function (cookie) {
 		const encrypted_auth = Encrypt.encrypt(auth);
 		const encrypted_context = Encrypt.encrypt(context);
 
-		if (
-			!encrypted_auth ||
-			!encrypted_context ||
-			!isValueCookie(encrypted_auth) ||
-			!isValueCookie(encrypted_context)
-		)
+		if (!encrypted_auth || !encrypted_context)
 			throw new Error(`[encryptCookie] Unable to encrypt cookie object, ${JSON.stringify(cookie)}`);
 
 		return { ...cookie, [AUTHORIZATION_KEY]: encrypted_auth, [CONTEXT_KEY]: encrypted_context };

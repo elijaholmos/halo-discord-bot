@@ -14,10 +14,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CookieManager, EmbedBase, Logger } from '..';
+import { CookieManager, EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
 import { COOKIES, USER_401s } from '../../caches';
-import { getDiscordUid } from './FirebaseService';
 
 export const handle401 = async function ({ uid, msg }) {
 	Logger.unauth(msg);
@@ -32,7 +31,7 @@ export const handle401 = async function ({ uid, msg }) {
 		CookieManager.deleteUserCookie(uid);
 
 		// send notification to user
-		const user = await bot.users.fetch(getDiscordUid(uid));
+		const user = await bot.users.fetch(Firebase.getDiscordUid(uid));
 		bot.sendDM({
 			user,
 			embed: new EmbedBase({

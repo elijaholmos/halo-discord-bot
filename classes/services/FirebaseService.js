@@ -159,8 +159,7 @@ export const getUserSettings = function (uid) {
  * @returns {any} The value of the user's setting if set, otherwise the default setting value
  */
 export const getUserSettingValue = function ({ uid, setting_id }) {
-	Logger.debug(
-		`Getting user setting value for ${uid} with setting_id ${setting_id}: ${getUserSettings(uid)?.[setting_id]}`
-	);
-	return getUserSettings(uid)?.[setting_id];
+	const setting = getUserSettings(uid)?.[setting_id];
+	Logger.debug(`Getting user setting value for ${uid} with setting_id ${setting_id}: ${JSON.stringify(setting)}`);
+	return setting;
 };

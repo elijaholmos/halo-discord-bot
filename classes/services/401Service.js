@@ -30,6 +30,8 @@ export const handle401 = async function ({ uid, msg }) {
 		Logger.debug(`[handle401] Cookie object for ${uid} detected in COOKIES cache; deleting...`);
 		CookieManager.deleteUserCookie(uid);
 
+		//check if setting enabled
+		if (!Firebase.getUserSettingValue({ uid, setting_id: 3 })) return;
 		// send notification to user
 		const user = await bot.users.fetch(Firebase.getDiscordUid(uid));
 		bot.sendDM({

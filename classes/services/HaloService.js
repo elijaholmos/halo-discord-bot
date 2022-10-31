@@ -15,7 +15,6 @@
  */
 
 import request from 'superagent';
-import { Logger } from '..';
 
 const url = {
 	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',

@@ -17,7 +17,7 @@
 import { Encrypt, Firebase, Halo, Logger, remove401 } from '.';
 import { COOKIES } from '../caches';
 import { db } from '../firebase';
-import { AUTHORIZATION_KEY, CONTEXT_KEY } from './services/HaloService';
+const { AUTHORIZATION_KEY, CONTEXT_KEY } = Halo;
 
 export const isValueCookie = (val) => val.startsWith('eyJlbmMiOiJBMTI4R0NNIiwiYWxnIjoiZGlyIn0..');
 
@@ -98,7 +98,10 @@ export class CookieManager {
 				return Logger.cookie(`Invalid cookie object detected for ${uid}: ${JSON.stringify(cookie)}`);
 
 			const cookie = decryptCookieObject(encrypted_cookie);
-			if (!isValidCookieObject(cookie)) return Logger.cookie(`Unable to decrypt cookie for ${uid}`);
+			if (!isValidCookieObject(cookie))
+				return Logger.cookie(`Unable to decrypt cookie for ${uid}, ${JSON.stringify(encrypted_cookie)}`);
+			if (!(await this.validateCookie({ cookie })))
+				return Logger.cookie(`Cookie for ${uid} failed to pass validation, ${JSON.stringify(cookie)}`);
 
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
 			timeouts.set(
@@ -145,6 +148,20 @@ export class CookieManager {
 			Logger.cookie(`Error refreshing ${uid}'s cookie`);
 			Logger.cookie(e);
 			await this.deleteUserCookie(uid);
+		}
+	}
+
+	/**
+	 * Ensure cookie object contains required keys and is not expired
+	 * @returns {Promise<boolean>}
+	 */
+	static async validateCookie({ cookie }) {
+		try {
+			const uid = await Halo.getUserId({ cookie });
+			const overview = await Halo.getUserOverview({ cookie, uid });
+			return !!uid && !!overview;
+		} catch (error) {
+			return false;
 		}
 	}
 }

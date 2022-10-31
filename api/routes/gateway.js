@@ -15,12 +15,34 @@
  */
 
 import express from 'express';
-import { GatewayController } from '../controllers/GatewayController';
+import { GatewayController } from '../controllers';
 
 const router = express.Router();
+const unauth = {
+	errors: [
+		{
+			message: '401: Unauthorized',
+			extensions: {
+				code: 'UNAUTHENTICATED',
+				response: {
+					status: 401,
+					statusText: 'Unauthorized',
+					body: {
+						timestamp: Date.now(),
+						status: 401,
+						error: 'Unauthorized',
+						message: '',
+						path: '/graphql',
+					},
+				},
+			},
+		},
+	],
+};
 
 router.post('/', async (req, res) => {
-	const { operationName, variables={} } = req.body;
+	//return res.status(200).send(unauth);
+	const { operationName, variables = {} } = req.body;
 	res.send(await GatewayController[operationName](variables));
 });
 

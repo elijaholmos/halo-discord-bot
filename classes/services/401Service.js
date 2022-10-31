@@ -39,7 +39,7 @@ export const handle401 = async function ({ uid, msg }) {
 			embed: new EmbedBase({
 				title: 'Service Disconnected',
 				description: `Halo Notification Service has temporarily lost connection to your Halo account. The connection will automatically be restored after some time; no action is required from you.
-					Periodically navigating to [halo.gcu.edu](https://halo.gcu.edu) and reloading the webpage helps to prevent disconnections.`,
+					Periodically navigating to [halo.gcu.edu](https://halo.gcu.edu) and reloading the webpage can help prevent disconnections.`,
 			}).Error(),
 		});
 		bot.log401({

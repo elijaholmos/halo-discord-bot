@@ -19,7 +19,7 @@ import BiMap from 'bidirectional-map';
 import { apps, db } from '../firebase';
 
 export class FirebaseStore {
-	_cache = new BiMap(); //immutablity implies that local changes do not sync w database
+	_cache = new Map(); //immutablity implies that local changes do not sync w database
 	ready = false; //true when initialization is complete
 	constructor({
 		path = null, //firebase path to watch

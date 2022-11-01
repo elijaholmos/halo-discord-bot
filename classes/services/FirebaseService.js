@@ -148,7 +148,7 @@ export const getAllActiveUsersFull = async function () {
  * @returns {object} user settings
  */
 export const getUserSettings = function (uid) {
-	return USER_SETTINGS_STORE.get(uid) ?? DEFAULT_SETTINGS_STORE.values().map(({ id, value }) => ({ [id]: value }));
+	return USER_SETTINGS_STORE.get(uid) ?? {};
 };
 
 /**
@@ -159,7 +159,11 @@ export const getUserSettings = function (uid) {
  * @returns {any} The value of the user's setting if set, otherwise the default setting value
  */
 export const getUserSettingValue = function ({ uid, setting_id }) {
-	const setting = getUserSettings(uid)?.[setting_id];
+	//type coercion needs to be explicit, I guess
+	const setting =
+		getUserSettings(uid)?.[setting_id] ??
+		DEFAULT_SETTINGS_STORE.get(setting_id.toString())?.value ??
+		DEFAULT_SETTINGS_STORE.get(+setting_id)?.value;
 	Logger.debug(`Getting user setting value for ${uid} with setting_id ${setting_id}: ${JSON.stringify(setting)}`);
 	return setting;
 };

@@ -137,6 +137,19 @@ class DiscordHaloBot extends Client {
 	}
 
 	/**
+	 * Sends a discord message on the bot's behalf to the 401 log channel
+	 * @param {Object} args
+	 * @param {EmbedBase} args.embed Singular embed object to be sent in message
+	 * @returns {Promise<Message>} Promise which resolves to the sent message
+	 */
+	async log401({ embed, ...options }) {
+		return (await this.channels.fetch(this.config.channels.log_401)).send({
+			embeds: [embed],
+			...options,
+		});
+	}
+
+	/**
 	 * Sends a discord message on the bot's behalf to a public log channel
 	 * @param {Object} args
 	 * @param {EmbedBase} args.embed Singular embed object to be sent in message

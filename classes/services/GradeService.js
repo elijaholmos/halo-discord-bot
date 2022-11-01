@@ -75,27 +75,43 @@ export class GradeService {
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
 	static #parseGradeData({ grade }) {
-		const parsePercent = function () {
-			return grade.assessment.points < 1
-				? ''
-				: `(${round((grade.finalPoints / grade.assessment.points) * 100, 2)}%)`;
+		const parsePercent = function (dividend, divisor) {
+			return divisor < 1 ? '' : `${round((dividend / divisor) * 100, 2)}%`;
 		};
 
+		const {
+			finalPoints,
+			finalComment,
+			assessment: { points, title },
+			metadata: {
+				courseCode,
+				finalGrade: { finalPoints: totalFinalPoints, maxPoints, gradeValue },
+			},
+		} = grade;
 		return {
-			content: `New grade published for **${grade.metadata.courseCode}**:`,
+			content: `New grade published for **${courseCode}**:`,
 			embeds: [
 				new EmbedBase({
-					title: grade.assessment.title,
+					title,
 					//description: `Worth ${Math.round(grade.assessment.points / )}% of your total grade`,
 					fields: [
 						{
-							name: 'Score:',
-							value: `**${grade.finalPoints} / ${grade.assessment.points}** ${parsePercent()}`,
+							name: 'Assignment Score:',
+							value: `**${finalPoints} / ${points}** (${parsePercent(finalPoints, points)})`,
+							inline: true,
+						},
+						{
+							name: 'Overall Grade:',
+							value: `**${totalFinalPoints} / ${maxPoints}** (${parsePercent(
+								totalFinalPoints,
+								maxPoints
+							)} \u200b ${gradeValue}) `,
+							inline: true,
 						},
 						{
 							name: `Feedback:`,
-							value: !!grade.finalComment?.comment
-								? grade.finalComment.comment
+							value: !!finalComment?.comment
+								? finalComment.comment
 										.replaceAll('<br>', '\n')
 										.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
 										.replace(/<\/?[^>]+(>|$)/g, '')

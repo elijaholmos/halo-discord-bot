@@ -15,7 +15,6 @@
  */
 
 import request from 'superagent';
-import { Logger } from '..';
 
 const url = {
 	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
@@ -76,7 +75,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (!!res.error) throw new Error(res.error);
+	if (!!res.error) throw res.error;
 	//Filter posts that were published in last 10 seconds
 	//Inject the class ID so we can use it to get the name later
 	return (
@@ -92,7 +91,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
  * @param {Object} args.cookie The cookie object retrieved from Firebase
  * @param {string} args.class_slug_id unique class slug ID of format COURSE_CODE-SECTION-ID
  * @param {Object} [args.metadata] Optional metadata to be injected into each element of the response array
- * @returns {Promise<Array>} Array of all grades for the user whose `cookie` was provided
+ * @returns {Promise<{grades: Array; finalGrade: Object}>} Array of all grades for the user whose `cookie` was provided
  */
 export const getAllGrades = async function ({ cookie, class_slug_id, metadata = {} } = {}) {
 	const res = await request
@@ -114,8 +113,9 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
-	return res.body.data.gradeOverview[0].grades.map((grade) => ({ ...grade, metadata }));
+	if (!!res.error) throw res.error;
+	const { grades, finalGrade } = res.body.data.gradeOverview[0];
+	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
 };
 
 /**
@@ -146,7 +146,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return { ...res.body.data.assessmentFeedback, metadata };
 };
 
@@ -171,7 +171,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data.getInboxLeftPanelNotification.reduce(
 		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
 		[]
@@ -204,7 +204,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
 
@@ -229,7 +229,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.data;
 };
 
@@ -255,6 +255,6 @@ export const getUserId = async function ({ cookie }) {
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (res.error) return Logger.error(res.error);
+	if (!!res.error) throw res.error;
 	return res.body.payload.userid;
 };

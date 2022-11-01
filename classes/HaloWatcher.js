@@ -151,17 +151,16 @@ export class HaloWatcher extends EventEmitter {
 					if (!cookie) continue;
 					const old_grades = get([course_id, uid], null);
 					//Logger.debug(old_grades);
-					const new_grades = (
-						await Halo.getAllGrades({
-							class_slug_id: course.slugId,
-							//use the cookie of a user from the course
-							cookie,
-							//inject the readable course code into the response objects
-							metadata: {
-								courseCode: course.courseCode,
-							},
-						})
-					).filter((grade) => grade.status === 'PUBLISHED');
+					const { grades, finalGrade } = await Halo.getAllGrades({
+						class_slug_id: course.slugId,
+						//use the cookie of a user from the course
+						cookie,
+						//inject the readable course code into the response objects
+						metadata: {
+							courseCode: course.courseCode,
+						},
+					});
+					const new_grades = grades.filter((grade) => grade.status === 'PUBLISHED');
 					// Logger.debug(old_grades?.length);
 					// Logger.debug(new_grades.length);
 					set([course_id, uid], new_grades); //update local cache
@@ -195,6 +194,7 @@ export class HaloWatcher extends EventEmitter {
 								uid: await Halo.getUserId({ cookie }), //uid in scope of loop is Firebase uid
 								metadata: {
 									courseCode: course.courseCode,
+									finalGrade,
 									uid,
 								},
 							})

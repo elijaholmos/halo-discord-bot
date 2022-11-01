@@ -14,7 +14,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CookieManager, Logger } from '..';
+import { CookieManager, EmbedBase, Firebase, Logger } from '..';
+import bot from '../../bot';
 import { COOKIES, USER_401s } from '../../caches';
 
 export const handle401 = async function ({ uid, msg }) {
@@ -28,6 +29,31 @@ export const handle401 = async function ({ uid, msg }) {
 	if (COOKIES.has(uid)) {
 		Logger.debug(`[handle401] Cookie object for ${uid} detected in COOKIES cache; deleting...`);
 		CookieManager.deleteUserCookie(uid);
+
+		//check if setting enabled
+		if (!Firebase.getUserSettingValue({ uid, setting_id: 3 })) return;
+		// send notification to user
+		const user = await bot.users.fetch(Firebase.getDiscordUid(uid));
+		bot.sendDM({
+			user,
+			embed: new EmbedBase({
+				title: 'Service Disconnected',
+				description: `Halo Notification Service has temporarily lost connection to your Halo account. The connection will automatically be restored after some time; no action is required from you.
+					Periodically navigating to [halo.gcu.edu](https://halo.gcu.edu) and reloading the webpage can help prevent disconnections.`,
+			}).Error(),
+		});
+		bot.log401({
+			embed: new EmbedBase({
+				title: '401 Message Sent',
+				fields: [
+					{
+						name: 'Receipient',
+						value: bot.formatUser(user),
+						inline: true,
+					},
+				],
+			}).Error(),
+		});
 	}
 
 	//Firebase.removeUserCookie(uid);

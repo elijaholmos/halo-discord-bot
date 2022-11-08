@@ -132,10 +132,12 @@ class UserCreate extends FirebaseEvent {
 			Logger.uninstall(uid);
 
 			//retrieve user info for uninstall message
-			const { userInfo } = await Halo.getUserOverview({
-				cookie: await Firebase.getUserCookie(uid, false),
-				uid: halo_id,
-			}).catch(() => {});
+			let { userInfo } =
+				(await Halo.getUserOverview({
+					cookie: await Firebase.getUserCookie(uid, false),
+					uid: halo_id,
+				}).catch(() => null)) ?? {};
+			userInfo ??= {};
 
 			//delete user from discord_user_map
 			await db.ref('discord_user_map').child(discord_uid).remove();

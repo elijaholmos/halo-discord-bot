@@ -6,7 +6,7 @@ specifiers:
   discord.js: 13.9.2
   dotenv: 16.0.3
   express: 4.18.2
-  firebase-admin: 11.2.0
+  firebase-admin: 11.2.1
   klaw: 4.0.1
   lodash-es: 4.17.21
   moment: 2.29.4
@@ -20,7 +20,7 @@ dependencies:
   chalk: 5.1.2
   discord.js: 13.9.2
   dotenv: 16.0.3
-  firebase-admin: 11.2.0_@firebase+app-types@0.8.1
+  firebase-admin: 11.2.1_@firebase+app-types@0.8.1
   klaw: 4.0.1
   lodash-es: 4.17.21
   moment: 2.29.4
@@ -978,8 +978,8 @@ packages:
       - supports-color
     dev: true
 
-  /firebase-admin/11.2.0_@firebase+app-types@0.8.1:
-    resolution: {integrity: sha512-EGr8w4ZDXPXdwUgDZc/InSP/ciu5/FlaAmT8hw9qBnIbKHOuETYqKnzx8hxLlF8VIg7OQKsxb/PEQik6dVAIgQ==}
+  /firebase-admin/11.2.1_@firebase+app-types@0.8.1:
+    resolution: {integrity: sha512-Tz1GiZXjXAWyTFjzHXvj6KKoT45FraimYCQ1tIUkXXBKSJRCNb6utnQX14EEH/M1IzTM1dEbeMOiUc1RMil1qg==}
     engines: {node: '>=14'}
     dependencies:
       '@fastify/busboy': 1.1.0

@@ -39,7 +39,8 @@ export const refreshToken = async function ({ cookie }) {
 		contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
 		cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
 	});
-	if (!res.body?.[AUTHORIZATION_KEY] || !res.body?.[CONTEXT_KEY]) throw `Error fetching token: ${res.body.error}`;
+	if (!res.body?.[AUTHORIZATION_KEY] || !res.body?.[CONTEXT_KEY])
+		throw `Error fetching token: ${JSON.stringify(res.body)}`;
 
 	return {
 		[AUTHORIZATION_KEY]: res.body[AUTHORIZATION_KEY],

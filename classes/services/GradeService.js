@@ -76,7 +76,7 @@ export class GradeService {
 	 */
 	static #parseGradeData({ grade }) {
 		const parsePercent = function (dividend, divisor) {
-			return divisor < 1 ? '' : `${round((dividend / divisor) * 100, 2)}%`;
+			return divisor < 1 ? 'N/A' : `${round((dividend / divisor) * 100, 2)}%`;
 		};
 
 		const {

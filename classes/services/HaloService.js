@@ -15,6 +15,7 @@
  */
 
 import request from 'superagent';
+import { EmbedBase, Firebase, validateCookie } from '..';
 
 const url = {
 	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
@@ -258,4 +259,24 @@ export const getUserId = async function ({ cookie }) {
 	//Error handling and data validation could be improved
 	if (!!res.error) throw res.error;
 	return res.body.payload.userid;
+};
+
+/**
+ * Check a Discord user's connection and return a response embed
+ * @param {Object} args Destructured arguments
+ * @param {string} args.uid Discord UID of the user
+ * @returns {Promise<EmbedBase>}
+ */
+export const generateUserConnectionEmbed = async function ({ uid: discord_uid }) {
+	try {
+		const uid = Firebase.getHNSUid(discord_uid);
+		const cookie = await Firebase.getUserCookie(uid);
+
+		if (!(await validateCookie({ cookie }))) throw `Cookie for ${uid} failed to pass validation`;
+		return new EmbedBase({
+			description: '✅ **Your account is currently connceted to Halo**',
+		}).Success();
+	} catch (err) {
+		return new EmbedBase().ErrorDesc('Your account is currently not connected to Halo');
+	}
 };

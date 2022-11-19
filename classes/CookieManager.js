@@ -28,6 +28,20 @@ export const isValidCookieObject = function (obj) {
 	return obj?.hasOwnProperty(AUTHORIZATION_KEY) && obj?.hasOwnProperty(CONTEXT_KEY);
 };
 
+/**
+ * Ensure cookie object contains required keys and is not expired
+ * @returns {Promise<boolean>}
+ */
+export const validateCookie = async function ({ cookie }) {
+	try {
+		const uid = await Halo.getUserId({ cookie });
+		const overview = await Halo.getUserOverview({ cookie, uid });
+		return !!uid && !!overview;
+	} catch (error) {
+		return false;
+	}
+};
+
 export const decryptCookieObject = function (cookie) {
 	try {
 		const { [AUTHORIZATION_KEY]: auth, [CONTEXT_KEY]: context } = cookie;
@@ -100,7 +114,7 @@ export class CookieManager {
 			const cookie = decryptCookieObject(encrypted_cookie);
 			if (!isValidCookieObject(cookie))
 				return Logger.cookie(`Unable to decrypt cookie for ${uid}, ${JSON.stringify(encrypted_cookie)}`);
-			if (!(await this.validateCookie({ cookie })))
+			if (!(await validateCookie({ cookie })))
 				return Logger.cookie(`Cookie for ${uid} failed to pass validation, ${JSON.stringify(cookie)}`);
 
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
@@ -165,20 +179,6 @@ export class CookieManager {
 			}
 			//count > 3
 			await handle401({ uid, message: `Error refreshing ${uid}'s cookie: ${e}` });
-		}
-	}
-
-	/**
-	 * Ensure cookie object contains required keys and is not expired
-	 * @returns {Promise<boolean>}
-	 */
-	static async validateCookie({ cookie }) {
-		try {
-			const uid = await Halo.getUserId({ cookie });
-			const overview = await Halo.getUserOverview({ cookie, uid });
-			return !!uid && !!overview;
-		} catch (error) {
-			return false;
 		}
 	}
 }

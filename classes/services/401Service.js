@@ -14,10 +14,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CookieManager, EmbedBase, Firebase, Logger } from '..';
+import { CookieManager, EmbedBase, Firebase, Halo, Logger } from '..';
 import bot from '../../bot';
 import { COOKIES, USER_401s } from '../../caches';
-import { Halo } from '..';
 
 export const handle401 = async function ({ uid, msg }) {
 	Logger.unauth(msg);

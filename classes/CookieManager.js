@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Encrypt, Firebase, Halo, Logger, remove401 } from '.';
+import { Encrypt, Firebase, Halo, Logger, remove401, handle401 } from '.';
 import { COOKIES } from '../caches';
 import { db } from '../firebase';
 const { AUTHORIZATION_KEY, CONTEXT_KEY } = Halo;
@@ -139,15 +139,32 @@ export class CookieManager {
 		return;
 	}
 
-	static async refreshUserCookie(uid, cookie) {
+	static async refreshUserCookie(uid, cookie, { count = 0 } = {}) {
+		const { timeouts } = this;
 		Logger.cookie(`Refreshing ${uid}'s cookie...`);
 		try {
 			const res = await Halo.refreshToken({ cookie });
 			return await Firebase.updateUserCookie(uid, res);
 		} catch (e) {
-			Logger.cookie(`Error refreshing ${uid}'s cookie`);
+			Logger.cookie(`Error refreshing ${uid}'s cookie; count: ${count}`);
 			Logger.cookie(e);
-			await this.deleteUserCookie(uid);
+			if (count < 3) {
+				clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
+				//try again in 5 mins
+				return timeouts.set(
+					uid,
+					setTimeout(() => this.refreshUserCookie(uid, cookie, { count: count + 1 }), 1000 * 60 * 5)
+				);
+			} else if (count === 3) {
+				//set 60min timeout in case of extended outage
+				clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user
+				return timeouts.set(
+					uid,
+					setTimeout(() => this.refreshUserCookie(uid, cookie, { count: count + 1 }), 1000 * 60 * 60)
+				);
+			}
+			//count > 3
+			await handle401({ uid, message: `Error refreshing ${uid}'s cookie: ${e}` });
 		}
 	}
 

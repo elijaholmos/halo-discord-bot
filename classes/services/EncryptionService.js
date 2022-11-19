@@ -20,7 +20,7 @@ const AES_ALGORITHM = 'aes-256-gcm';
 /**
  * @param {string} input Base64 encoded string to be AES encrypted
  */
-export const aesEncrypt = function (input) {
+const aesEncrypt = function (input) {
 	const aes_key = randomBytes(32);
 	const nonce = randomBytes(12);
 	const cipher = createCipheriv(AES_ALGORITHM, aes_key, nonce);
@@ -34,7 +34,7 @@ export const aesEncrypt = function (input) {
 	};
 };
 
-export const aesDecrypt = function ({ aes_key, auth_tag, nonce, value }) {
+const aesDecrypt = function ({ aes_key, auth_tag, nonce, value }) {
 	const decipher = createDecipheriv(
 		AES_ALGORITHM,
 		Buffer.from(aes_key, 'base64'),
@@ -48,7 +48,7 @@ export const aesDecrypt = function ({ aes_key, auth_tag, nonce, value }) {
  * @param {string} input base64 encoded string
  * @returns {string} base64 encoded string
  */
-export const rsaEncrypt = function (input) {
+const rsaEncrypt = function (input) {
 	const encrypted = publicEncrypt(
 		{
 			key: Buffer.from(process.env.RSA_PUBLIC_KEY, 'base64'),
@@ -65,7 +65,7 @@ export const rsaEncrypt = function (input) {
  * @param {string} input base64 encoded string
  * @returns {string} base64 encoded string
  */
-export const rsaDecrypt = function (input) {
+const rsaDecrypt = function (input) {
 	return privateDecrypt(
 		{
 			key: Buffer.from(process.env.RSA_PRIVATE_KEY, 'base64'),

@@ -18,8 +18,30 @@ import express from 'express';
 import RefreshToken from '../data/RefreshToken';
 
 const router = express.Router();
+const unauth = {
+	errors: [
+		{
+			message: '401: Unauthorized',
+			extensions: {
+				code: 'UNAUTHENTICATED',
+				response: {
+					status: 401,
+					statusText: 'Unauthorized',
+					body: {
+						timestamp: Date.now(),
+						status: 401,
+						error: 'Unauthorized',
+						message: '',
+						path: '/graphql',
+					},
+				},
+			},
+		},
+	],
+};
 
 router.post('/', async (req, res) => {
+	//return res.status(200).send(unauth);
 	res.send(RefreshToken);
 });
 

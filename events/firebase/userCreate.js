@@ -173,7 +173,7 @@ class UserCreate extends FirebaseEvent {
 						},
 						{
 							name: 'Halo User',
-							value: !Object.keys(userInfo)
+							value: !Object.keys(userInfo).length
 								? 'Unable to retrieve user info'
 								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
 						},

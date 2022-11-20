@@ -58,6 +58,9 @@ export class Logger {
 			case 'cmd': {
 				return console.log(`${timestamp} [${chalk.black.bgWhite(` ${type.toUpperCase()} `)}]: ${content}`);
 			}
+			case 'intr': {
+				return console.log(`${timestamp} [${chalk.black.bgWhite(type.toUpperCase())}]: ${content}`);
+			}
 			case 'ready': {
 				return console.log(`${timestamp} [${chalk.black.bgGreen(type.toUpperCase())}]: ${content}`);
 			}
@@ -116,6 +119,10 @@ export class Logger {
 
 	static cmd(content) {
 		return this.log(content, 'cmd');
+	}
+
+	static intr(content) {
+		return this.log(content, 'intr');
 	}
 
 	static ready(content) {

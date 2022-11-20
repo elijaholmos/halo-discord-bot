@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CookieManager, EmbedBase, Firebase, Logger } from '..';
+import { CookieManager, EmbedBase, Firebase, Halo, Logger } from '..';
 import bot from '../../bot';
 import { COOKIES, USER_401s } from '../../caches';
 
@@ -34,14 +34,30 @@ export const handle401 = async function ({ uid, msg }) {
 		if (!Firebase.getUserSettingValue({ uid, setting_id: 3 })) return;
 		// send notification to user
 		const user = await bot.users.fetch(Firebase.getDiscordUid(uid));
-		bot.sendDM({
+		const msg = await bot.sendDM({
 			user,
 			embed: new EmbedBase({
 				title: 'Service Disconnected',
 				description: `Halo Notification Service has temporarily lost connection to your Halo account. The connection will automatically be restored after some time; no action is required from you.
-					Periodically navigating to [halo.gcu.edu](https://halo.gcu.edu) and reloading the webpage can help prevent disconnections.`,
+					To help prevent disconnections, periodically navigate to [halo.gcu.edu](https://halo.gcu.edu) using your web browser that has the HNS extension installed.`,
 			}).Error(),
+			components: [
+				{
+					components: [
+						{
+							type: 2,
+							style: 1,
+							custom_id: 'check-connection-btn',
+							disabled: false,
+							label: 'Check Connection',
+						},
+					],
+					type: 1,
+				},
+			],
 		});
+
+		//log 401 in private channel
 		bot.log401({
 			embed: new EmbedBase({
 				title: '401 Message Sent',
@@ -53,6 +69,20 @@ export const handle401 = async function ({ uid, msg }) {
 					},
 				],
 			}).Error(),
+		});
+
+		msg.createMessageComponentCollector({
+			filter: ({ customId }) => customId === 'check-connection-btn',
+		}).on('collect', async (intr) => {
+			const { user, customId } = intr;
+			Logger.intr(`${user.tag} (${user.id}) clicked button ${customId}`);
+			await intr.deferReply({ ephemeral: true });
+
+			return bot.intrReply({
+				intr,
+				embed: await Halo.generateUserConnectionEmbed({ uid: user.id }),
+				ephemeral: true,
+			});
 		});
 	}
 

@@ -15,20 +15,19 @@
  */
 
 import bot from '../../bot';
-import { Command, EmbedBase, Halo } from '../../classes';
+import { Command, Halo } from '../../classes';
 
-class test extends Command {
+export default class amiconnected extends Command {
 	constructor() {
 		super({
-			name: 'test',
-			description: 'Test command',
-			category: 'development',
+			name: 'amiconnected',
+			description: 'Check if your Discord account is currently connected to Halo',
+			category: 'halo',
 		});
 	}
 
 	async run({ intr }) {
 		const { user } = intr;
-		console.log('intr.user', user.id);
 		bot.intrReply({
 			intr,
 			embed: await Halo.generateUserConnectionEmbed({ uid: user.id }),
@@ -36,5 +35,3 @@ class test extends Command {
 		});
 	}
 }
-
-export default test;

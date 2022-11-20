@@ -17,7 +17,7 @@
 import { EventEmitter } from 'node:events';
 import { setIntervalAsync } from 'set-interval-async/fixed';
 import { Firebase, Halo, handle401, Logger } from '.';
-import { CLASS_ANNOUNCEMENTS, TOS_AGREEMENTS, USER_GRADES, USER_INBOX } from '../caches';
+import { CLASS_ANNOUNCEMENTS, USER_GRADES, USER_INBOX } from '../caches';
 
 export class HaloWatcher extends EventEmitter {
 	constructor() {
@@ -145,7 +145,6 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					if (!cookie) continue;
@@ -230,7 +229,6 @@ export class HaloWatcher extends EventEmitter {
 		//retrieve all inbox forums that need information fetched
 		for (const uid of ACTIVE_USERS) {
 			try {
-				if (TOS_AGREEMENTS.get(uid)?.agreed === false) continue;
 				const cookie = await Firebase.getUserCookie(uid); //store user cookie as var for multiple references
 				if (!cookie) continue;
 				for (const { forumId, unreadCount } of await Halo.getUserInbox({ cookie })) {

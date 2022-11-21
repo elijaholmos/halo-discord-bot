@@ -16,7 +16,7 @@
 
 import bot from '../../bot';
 import { CRON_USER_CLASS_STATUSES } from '../../caches';
-import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger } from '../../classes';
+import { EmbedBase, Firebase, FirebaseEvent, Halo, Logger, remove401 } from '../../classes';
 import { auth, db } from '../../firebase';
 
 class UserCreate extends FirebaseEvent {
@@ -161,6 +161,9 @@ class UserCreate extends FirebaseEvent {
 
 			//remove user from cron job
 			CRON_USER_CLASS_STATUSES.delete(uid);
+
+			//remove user from 401 cache
+			remove401(uid);
 
 			//send message to bot channel
 			bot.logConnection({

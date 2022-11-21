@@ -21,7 +21,7 @@ class setup extends Command {
 	constructor() {
 		super({
 			name: 'setup',
-			description: 'View a setup guide',
+			description: 'View the official setup guide',
 			category: 'halo',
 		});
 	}

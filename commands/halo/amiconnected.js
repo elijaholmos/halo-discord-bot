@@ -15,24 +15,23 @@
  */
 
 import bot from '../../bot';
-import { Command } from '../../classes';
+import { Command, Halo } from '../../classes';
 
-class setup extends Command {
+export default class amiconnected extends Command {
 	constructor() {
 		super({
-			name: 'setup',
-			description: 'View the official setup guide',
+			name: 'amiconnected',
+			description: 'Check if your Discord account is currently connected to Halo',
 			category: 'halo',
 		});
 	}
 
 	async run({ intr }) {
-		return await bot.intrReply({
+		const { user } = intr;
+		bot.intrReply({
 			intr,
-			content:
-				'https://elijaho.notion.site/Halo-Notification-Service-Setup-Guide-56fdb766d73149d3bfb5a9a8535f7d8f',
+			embed: await Halo.generateUserConnectionEmbed({ uid: user.id }),
+			ephemeral: true,
 		});
 	}
 }
-
-export default setup;

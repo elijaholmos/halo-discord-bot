@@ -1,6 +1,6 @@
 {
 	"name": "halo-discord-bot",
-	"version": "2.2.1",
+	"version": "2.3.0",
 	"author": "Elijah Olmos",
 	"license": "AGPL-3.0-only",
 	"main": "index.js",
@@ -30,7 +30,7 @@
 		"chalk": "5.1.2",
 		"discord.js": "13.9.2",
 		"dotenv": "16.0.3",
-		"firebase-admin": "11.2.0",
+		"firebase-admin": "11.3.0",
 		"klaw": "4.0.1",
 		"lodash-es": "4.17.21",
 		"moment": "2.29.4",

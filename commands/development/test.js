@@ -15,7 +15,7 @@
  */
 
 import bot from '../../bot';
-import { Command, EmbedBase } from '../../classes';
+import { Command, EmbedBase, Halo } from '../../classes';
 
 class test extends Command {
 	constructor() {
@@ -28,25 +28,11 @@ class test extends Command {
 
 	async run({ intr }) {
 		const { user } = intr;
-		bot.sendDM({
-			user,
-			embed: new EmbedBase({
-				title: 'Service Disconnected',
-				description: `Halo Notification Service has temporarily lost connection to your Halo account. The connection will automatically be restored after some time; no action is required from you.
-					Periodically navigating to [halo.gcu.edu](https://halo.gcu.edu) and reloading the webpage helps to prevent disconnections.`,
-			}).Error(),
-		});
-		bot.log401({
-			embed: new EmbedBase({
-				title: '401 Message Sent',
-				fields: [
-					{
-						name: 'Receipient',
-						value: bot.formatUser(user),
-						inline: true,
-					},
-				],
-			}),
+		console.log('intr.user', user.id);
+		bot.intrReply({
+			intr,
+			embed: await Halo.generateUserConnectionEmbed({ uid: user.id }),
+			ephemeral: true,
 		});
 	}
 }

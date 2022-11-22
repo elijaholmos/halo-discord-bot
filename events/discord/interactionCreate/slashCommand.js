@@ -28,8 +28,8 @@ export default class extends DiscordEvent {
 
 	async run(intr) {
 		if (!intr.isCommand()) return;
-		// Ignore commands sent by other bots or sent in DM
-		if (intr.user.bot || !intr.inGuild()) return;
+		// Ignore commands sent by other bots
+		if (intr.user.bot) return;
 
 		const command = bot.commands.get(intr.commandName);
 

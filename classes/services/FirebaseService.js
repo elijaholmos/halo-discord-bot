@@ -131,7 +131,7 @@ export const getFirebaseUserSnapshot = async function (uid) {
  * @returns {Promise<string[]>} array of HNS uids
  */
 export const getAllActiveUsers = async function getAllActiveUsersUids() {
-	return Object.keys((await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {});
+	return Object.keys((await db.ref('users').orderByChild('ext_devices').startAt(1).get()).val() ?? {});
 };
 
 /**
@@ -139,7 +139,7 @@ export const getAllActiveUsers = async function getAllActiveUsersUids() {
  * @returns {Promise<object>}
  */
 export const getAllActiveUsersFull = async function () {
-	return (await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
+	return (await db.ref('users').orderByChild('ext_devices').startAt(1).get()).val() ?? {};
 };
 
 /**

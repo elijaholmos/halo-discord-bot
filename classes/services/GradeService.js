@@ -23,26 +23,27 @@ export class GradeService {
 	 * @param {Object} grade A full Halo UserCourseClassAssessmentGrade object
 	 */
 	static processGrade = (grade) => {
-		this.#publishGrade({
-			grade,
-			message: this.#parseGradeData({ grade }),
-		});
+		this.#publishGrade({ grade });
 	};
 
 	/**
 	 * @param {Object} args Desctructured arguments
 	 * @param {Object} args.grade A full Halo UserCourseClassAssessmentGrade object
-	 * @param {Object} args.message A parsed message object to be sent straight to Discord
 	 * @returns {Promise<void>}
 	 */
-	static async #publishGrade({ grade, message }) {
+	static async #publishGrade({ grade }) {
 		try {
 			const discord_uid =
 				Firebase.getDiscordUid(grade?.metadata?.uid) ??
 				(await Firebase.getDiscordUidFromHaloUid(grade.user.id));
+			const show_overall_grade = Firebase.getUserSettingValue({
+				uid: Firebase.getHNSUid(discord_uid),
+				setting_id: 4,
+			});
+
 			const discord_user = await bot.users.fetch(discord_uid);
 			discord_user
-				.send(message)
+				.send(this.#parseGradeData({ grade, show_overall_grade }))
 				.catch((e) =>
 					Logger.error(`Error sending grade notification to ${discord_user.tag} (${discord_uid}): ${e}`)
 				);
@@ -72,9 +73,10 @@ export class GradeService {
 	/**
 	 * @param {Object} args Desctructured arguments
 	 * @param {Object} args.grade A full Halo UserCourseClassAssessmentGrade object
+	 * @param {boolean} [args.show_overall_grade=true] Whether or not to include the overall class grade in the message embed
 	 * @returns {Object} A message object to be sent straight to Discord
 	 */
-	static #parseGradeData({ grade }) {
+	static #parseGradeData({ grade, show_overall_grade = true }) {
 		const parsePercent = function (dividend, divisor) {
 			return divisor < 1 ? 'N/A' : `${round((dividend / divisor) * 100, 2)}%`;
 		};
@@ -98,15 +100,6 @@ export class GradeService {
 						{
 							name: 'Assignment Score:',
 							value: `**${finalPoints} / ${points}** (${parsePercent(finalPoints, points)})`,
-							inline: true,
-						},
-						{
-							name: 'Overall Grade:',
-							value: `**${totalFinalPoints} / ${maxPoints}** (${parsePercent(
-								totalFinalPoints,
-								maxPoints
-							)} \u200b ${gradeValue}) `,
-							inline: true,
 						},
 						{
 							name: `Feedback:`,
@@ -117,6 +110,17 @@ export class GradeService {
 										.replace(/<\/?[^>]+(>|$)/g, '')
 								: 'None',
 						},
+						...(show_overall_grade
+							? [
+									{
+										name: 'Overall Class Grade:',
+										value: `**${totalFinalPoints} / ${maxPoints}** (${parsePercent(
+											totalFinalPoints,
+											maxPoints
+										)} \u200b ${gradeValue}) `,
+									},
+							  ]
+							: []),
 					],
 					timestamp: Date.now(),
 				}),

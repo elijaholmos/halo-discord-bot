@@ -243,3 +243,27 @@ export const generateUserConnectionEmbed = async function ({ uid: discord_uid })
 		return new EmbedBase().ErrorDesc('Your account is currently not connected to Halo');
 	}
 };
+
+/**
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @param {string} args.assessment_grade_id the ID of the `UserCourseClassAssessmentGrade` - only appears on submissions that have been graded
+ *
+ * This should be the `id` property on each object retrieved from `getAllGrades()`
+ * @returns {Promise<Object>} Acknowledgement response from the server
+ */
+export const acknowledgeGrade = async function ({ cookie, assessment_grade_id }) {
+	const res = await request
+		.post(url.gateway)
+		.set(headers(cookie))
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'AddStudentGradeSeenDateTime',
+			variables: { userCourseClassAssessmentGradeId: assessment_grade_id },
+			query: 'mutation AddStudentGradeSeenDateTime($userCourseClassAssessmentGradeId: String!) {\n  addStudentGradeSeenDateTime(\n    userCourseClassAssessmentGradeId: $userCourseClassAssessmentGradeId\n  ) {\n    userLastSeenDate\n    __typename\n  }\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res.error) throw res.error;
+	return res.body.data.addStudentGradeSeenDateTime;
+};

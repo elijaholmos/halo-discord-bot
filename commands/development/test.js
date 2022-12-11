@@ -14,8 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import bot from '../../bot';
-import { Command, EmbedBase, Halo } from '../../classes';
+import { Command, Firebase, Halo } from '../../classes';
 
 class test extends Command {
 	constructor() {
@@ -27,13 +26,28 @@ class test extends Command {
 	}
 
 	async run({ intr }) {
-		const { user } = intr;
-		console.log('intr.user', user.id);
-		bot.intrReply({
-			intr,
-			embed: await Halo.generateUserConnectionEmbed({ uid: user.id }),
-			ephemeral: true,
-		});
+		try {
+			const uid = Firebase.getHNSUid(intr.user.id);
+			const cookie = await Firebase.getUserCookie(uid);
+
+			// const feedback = await Halo.getGradeFeedback({
+			// 	cookie,
+			// 	assessment_id: '1454f632-ab98-4900-8858-452160a85b9c',
+			// 	//TODO: shift to Firebase.getHaloUid() from a Firebase UID
+			// 	uid: await Halo.getUserId({ cookie }),
+			// });
+
+			// console.log('assessment id', feedback.assessment.id);
+			// console.log('feedback id', feedback.id);
+
+			const res = await Halo.acknowledgeGrade({
+				cookie,
+				assessment_grade_id: 'f6de9117-3204-4a28-ab0d-7d4939f20950',
+			});
+			console.log('res', JSON.stringify(res));
+		} catch (err) {
+			console.log(err);
+		}
 	}
 }
 

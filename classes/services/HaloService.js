@@ -31,13 +31,20 @@ const url = {
 export const AUTHORIZATION_KEY = 'TE1TX0FVVEg';
 export const CONTEXT_KEY = 'TE1TX0NPTlRFWFQ';
 
+/**
+ * Generate headers that are common to all requests
+ */
+const headers = (cookie) => ({
+	accept: '*/*',
+	'content-type': 'application/json',
+	authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
+	contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+});
+
 export const refreshToken = async function ({ cookie }) {
 	const res = await request.post(url.token).set({
-		Accept: '*/*',
-		authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
 		//'content-length': 474,
-		'content-type': 'application/json',
-		contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+		...headers(cookie),
 		cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
 	});
 	if (!res.body?.[AUTHORIZATION_KEY] || !res.body?.[CONTEXT_KEY])
@@ -60,12 +67,7 @@ export const refreshToken = async function ({ cookie }) {
 export const getClassAnnouncements = async function ({ cookie, class_id, metadata = {} } = {}) {
 	const res = await request
 		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
+		.set(headers(cookie))
 		.send({
 			//Specific GraphQL query syntax, reverse-engineered
 			operationName: 'GetAnnouncementsStudent',
@@ -98,12 +100,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 export const getAllGrades = async function ({ cookie, class_slug_id, metadata = {} } = {}) {
 	const res = await request
 		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
+		.set(headers(cookie))
 		.send({
 			//Specific GraphQL query syntax, reverse-engineered
 			operationName: 'GradeOverview',
@@ -131,12 +128,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 export const getGradeFeedback = async function ({ cookie, assessment_id, uid, metadata = {} } = {}) {
 	const res = await request
 		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
+		.set(headers(cookie))
 		.send({
 			//Specific GraphQL query syntax, reverse-engineered
 			operationName: 'AssessmentFeedback',
@@ -158,19 +150,11 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
  * @returns {Promise<[{forumId: string, unreadCount: number}]>} Array of inbox forum objects for the user whose `cookie` was provided
  */
 export const getUserInbox = async function getUserInboxForumIds({ cookie } = {}) {
-	const res = await request
-		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
-		.send({
-			//Specific GraphQL query syntax, reverse-engineered
-			operationName: 'GetInboxLeftPanelNotification',
-			query: 'query GetInboxLeftPanelNotification {\n  getInboxLeftPanelNotification {\n    unansweredCount\n    courseClassId\n    inboxForumCount {\n      forumId\n      isUnAnswered\n      forumId\n      unreadCount\n      __typename\n    }\n    __typename\n  }\n}\n',
-		});
+	const res = await request.post(url.gateway).set(headers(cookie)).send({
+		//Specific GraphQL query syntax, reverse-engineered
+		operationName: 'GetInboxLeftPanelNotification',
+		query: 'query GetInboxLeftPanelNotification {\n  getInboxLeftPanelNotification {\n    unansweredCount\n    courseClassId\n    inboxForumCount {\n      forumId\n      isUnAnswered\n      forumId\n      unreadCount\n      __typename\n    }\n    __typename\n  }\n}\n',
+	});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	if (!!res.error) throw res.error;
@@ -190,20 +174,12 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
  * @returns {Promise<Object[]>} Array of all inbox posts for the user whose `cookie` was provided
  */
 export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 1, pgSize = 10, metadata = {} } = {}) {
-	const res = await request
-		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
-		.send({
-			//Specific GraphQL query syntax, reverse-engineered
-			operationName: 'getPostsByInboxForumId',
-			variables: { forumId, pgNum, pgSize },
-			query: 'query getPostsByInboxForumId($forumId: String, $pgNum: Int, $pgSize: Int) {\n  getPostsForInboxForum: getPostsForInboxForum(\n    forumId: $forumId\n    pgNum: $pgNum\n    pgSize: $pgSize\n  ) {\n    content\n    createdBy {\n      ...courseClassUser\n      __typename\n    }\n    expiryDate\n    id\n    parentPostId\n    postStatus\n    isRead\n    publishDate\n    resources {\n      ...resource\n      __typename\n    }\n    wordCount\n    postTags {\n      tag\n      createdBy\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment resource on Resource {\n  id\n  kind\n  name\n  type\n  active\n  context\n  description\n  __typename\n}\n\nfragment courseClassUser on CourseClassUser {\n  baseRoleName\n  courseClassId\n  id\n  roleName\n  status\n  userId\n  user {\n    ...user\n    __typename\n  }\n  __typename\n}\n\nfragment user on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  __typename\n}\n',
-		});
+	const res = await request.post(url.gateway).set(headers(cookie)).send({
+		//Specific GraphQL query syntax, reverse-engineered
+		operationName: 'getPostsByInboxForumId',
+		variables: { forumId, pgNum, pgSize },
+		query: 'query getPostsByInboxForumId($forumId: String, $pgNum: Int, $pgSize: Int) {\n  getPostsForInboxForum: getPostsForInboxForum(\n    forumId: $forumId\n    pgNum: $pgNum\n    pgSize: $pgSize\n  ) {\n    content\n    createdBy {\n      ...courseClassUser\n      __typename\n    }\n    expiryDate\n    id\n    parentPostId\n    postStatus\n    isRead\n    publishDate\n    resources {\n      ...resource\n      __typename\n    }\n    wordCount\n    postTags {\n      tag\n      createdBy\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment resource on Resource {\n  id\n  kind\n  name\n  type\n  active\n  context\n  description\n  __typename\n}\n\nfragment courseClassUser on CourseClassUser {\n  baseRoleName\n  courseClassId\n  id\n  roleName\n  status\n  userId\n  user {\n    ...user\n    __typename\n  }\n  __typename\n}\n\nfragment user on User {\n  id\n  userStatus\n  firstName\n  lastName\n  userImgUrl\n  __typename\n}\n',
+	});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	if (!!res.error) throw res.error;
@@ -213,12 +189,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 export const getUserOverview = async function ({ cookie, uid }) {
 	const res = await request
 		.post(url.gateway)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
+		.set(headers(cookie))
 		.send({
 			//Specific GraphQL query syntax, reverse-engineered
 			operationName: 'HeaderFields',
@@ -242,18 +213,10 @@ export const getUserOverview = async function ({ cookie, uid }) {
  * @returns {Promise<string>} Halo UID, pulled from the cookie
  */
 export const getUserId = async function ({ cookie }) {
-	const res = await request
-		.post(url.validate)
-		.set({
-			accept: '*/*',
-			'content-type': 'application/json',
-			authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
-			contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
-		})
-		.send({
-			userToken: cookie[AUTHORIZATION_KEY],
-			contextToken: cookie[CONTEXT_KEY],
-		});
+	const res = await request.post(url.validate).set(headers(cookie)).send({
+		userToken: cookie[AUTHORIZATION_KEY],
+		contextToken: cookie[CONTEXT_KEY],
+	});
 
 	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved

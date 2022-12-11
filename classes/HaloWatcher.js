@@ -181,7 +181,7 @@ export class HaloWatcher extends EventEmitter {
 					for (const grade of this.#locateDifferenceInArrays(new_grades, old_grades)) {
 						//if the user has already viewed the grade, don't send a notification
 						if (!!grade.userLastSeenDate) continue;
-						if (!Firebase.getUserSettingValue({ uid, setting_id: 1 })) continue; //check setting inside diff loop to ensure cache was updated
+						// if (!Firebase.getUserSettingValue({ uid, setting_id: 1 })) continue; //check setting inside diff loop to ensure cache was updated
 
 						//fetch the full grade feedback
 						this.emit(
@@ -268,7 +268,7 @@ export class HaloWatcher extends EventEmitter {
 					for (const post of this.#locateDifferenceInArrays(new_inbox_posts, old_inbox_posts)) {
 						//if !post.iRead && post.id is not in cache, then dispatch event
 						if (!!post.isRead) continue;
-						if (!Firebase.getUserSettingValue({ uid, setting_id: 2 })) continue; //check setting inside diff loop to ensure cache was updated
+						// if (!Firebase.getUserSettingValue({ uid, setting_id: 2 })) continue; //check setting inside diff loop to ensure cache was updated
 						this.emit('inbox_message', { ...post, metadata: { uid } });
 					}
 				}

@@ -28,7 +28,7 @@
 	"dependencies": {
 		"bidirectional-map": "1.1.1",
 		"chalk": "5.1.2",
-		"discord.js": "13.9.2",
+		"discord.js": "14.7.1",
 		"dotenv": "16.0.3",
 		"firebase-admin": "11.3.0",
 		"klaw": "4.0.1",

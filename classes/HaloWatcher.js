@@ -145,7 +145,7 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
+					// Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					if (!cookie) continue;
 					const old_grades = get([course_id, uid], null);
@@ -195,6 +195,7 @@ export class HaloWatcher extends EventEmitter {
 									courseCode: course.courseCode,
 									finalGrade,
 									uid,
+									slugId: course.slugId,
 								},
 							})
 						);

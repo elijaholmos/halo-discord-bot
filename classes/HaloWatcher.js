@@ -96,8 +96,10 @@ export class HaloWatcher extends EventEmitter {
 						class_id,
 						active_users,
 						//inject the readable course code into the response objects
+						//this metadata is being stored in the cache unnecessarily
 						metadata: {
 							courseCode: course.courseCode,
+							slugId: course.slugId,
 						},
 					})) ?? old_announcements;
 				// Logger.debug(old_announcements?.length);

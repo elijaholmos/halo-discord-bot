@@ -267,3 +267,26 @@ export const acknowledgeGrade = async function ({ cookie, assessment_grade_id })
 	if (!!res.error) throw res.error;
 	return res.body.data.addStudentGradeSeenDateTime;
 };
+
+/**
+ * Acknowledge Halo posts (and annoucnements) on behalf of a student
+ * @param {Object} args Desctructured arguments
+ * @param {Object} args.cookie The cookie object retrieved from Firebase
+ * @param {string} args.post_id the ID of the `Post` to acknowledge
+ * @returns {Promise<Object>} Acknowledgement response from the server
+ */
+export const acknowledgePost = async function ({ cookie, post_id }) {
+	const res = await request
+		.post(url.gateway)
+		.set(headers(cookie))
+		.send({
+			//Specific GraphQL query syntax, reverse-engineered
+			operationName: 'markPostsAsRead',
+			variables: { postIds: [post_id] },
+			query: 'mutation markPostsAsRead($postIds: [String]) {\n  markPostsAsRead(postIds: $postIds)\n}\n',
+		});
+
+	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res.error) throw res.error;
+	return res.body.data.markPostsAsRead;
+};

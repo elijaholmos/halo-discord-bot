@@ -20,8 +20,8 @@ import { DiscordEvent, EmbedBase, Firebase, Halo, Logger } from '../../../classe
 export default class extends DiscordEvent {
 	constructor() {
 		super({
-			name: 'acknowledgeGrade',
-			description: 'Mark a grade as read',
+			name: 'acknowledgeAnnouncement',
+			description: 'Mark an announcement as read',
 			event_type: 'interactionCreate',
 		});
 	}
@@ -31,23 +31,23 @@ export default class extends DiscordEvent {
 		// Ignore interactions from other bots
 		if (intr.user.bot) return;
 
-		// ignore non-grade button clicks
-		// id should be structured: $grade_{assessmentId}
-		if (!intr.customId.startsWith('$grade_')) return;
+		// ignore non-post button clicks
+		// id should be structured: $post_{postId}
+		if (!intr.customId.startsWith('$post_')) return;
 
-		const assessment_grade_id = intr.customId.split('_')[1];
+		const post_id = intr.customId.split('_')[1];
 
 		try {
 			Logger.cmd(`${intr.user.tag} (${intr.user.id})  clicked ${this.name} btn with id of ${intr.customId}`);
-			await Halo.acknowledgeGrade({
+			await Halo.acknowledgePost({
 				cookie: await Firebase.getUserCookie(Firebase.getHNSUid(intr.user.id)),
-				assessment_grade_id,
+				post_id,
 			});
 			bot.intrReply({
 				intr,
 				ephemeral: true,
 				embed: new EmbedBase({
-					description: `✅ **Grade successfully marked as read**`,
+					description: `✅ **Announcement successfully marked as read**`,
 				}).Success(),
 			});
 		} catch (err) {

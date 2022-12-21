@@ -43,6 +43,7 @@ const unauth = {
 router.post('/', async (req, res) => {
 	//return res.status(200).send(unauth);
 	const { operationName, variables = {} } = req.body;
+	console.log(`operationName: ${operationName}`);
 	res.send(await GatewayController[operationName](variables));
 });
 

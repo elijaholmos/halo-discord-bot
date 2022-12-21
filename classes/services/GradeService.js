@@ -92,6 +92,7 @@ export class GradeService {
 			},
 		} = grade;
 		const feedbackUrl = `https://halo.gcu.edu/courses/${slugId}/student/gradebook#grading-feedback/${assessmentId}`;
+
 		return {
 			content: `New grade published for **${courseCode}**:`,
 			embeds: [
@@ -133,7 +134,7 @@ export class GradeService {
 						{
 							type: 2,
 							style: 1,
-							custom_id: 'tos-agree-btn',
+							custom_id: `$grade_${assessmentId}`,
 							disabled: false,
 							label: 'Mark as Read',
 							emoji: {

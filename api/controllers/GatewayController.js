@@ -20,6 +20,7 @@ import AssessmentFeedback from '../data/AssessmentFeedback';
 import HeaderFields from '../data/HeaderFields';
 import GetInboxLeftPanelNotification from '../data/GetInboxLeftPanelNotification';
 import getPostsByInboxForumId from '../data/getPostsByInboxForumId';
+import AddStudentGradeSeenDateTime from '../data/AddStudentGradeSeenDateTime';
 
 export class GatewayController {
 	static GetAnnouncementsStudent({ courseClassId }) {
@@ -39,5 +40,8 @@ export class GatewayController {
 	}
 	static getPostsByInboxForumId({}) {
 		return getPostsByInboxForumId;
+	}
+	static AddStudentGradeSeenDateTime({}) {
+		return AddStudentGradeSeenDateTime;
 	}
 }

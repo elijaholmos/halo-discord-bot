@@ -133,12 +133,10 @@ export class CookieManager {
 		const ref = db.ref('cookies');
 		ref.orderByChild('timestamp').startAt(Date.now()).on('child_added', updateHandler);
 		ref.on('child_changed', updateHandler);
-		//cookie was deleted, make sure it was due to an uninstall
-		//don't want to be deleting server-side cookies accidentally
+		//cookie was deleted, check to see it if was an uninstall
 		ref.on('child_removed', async (snapshot) => {
 			const uid = snapshot.key;
-			//ext_devices should only be zero when the user has completely uninstalled
-			if ((await Firebase.getFirebaseUserSnapshot(uid))?.ext_devices !== 0) return;
+			if (!(await Firebase.getFirebaseUserSnapshot(uid))?.uninstalled) return;
 
 			Logger.cookie(`${uid}'s cookie has been removed`);
 			clearTimeout(timeouts.get(uid)); //clear timeout if it already exists for this user

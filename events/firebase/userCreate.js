@@ -119,13 +119,9 @@ class UserCreate extends FirebaseEvent {
 	async onModify(snapshot) {
 		Logger.debug(`doc ${snapshot.key} modified`);
 		Logger.debug(snapshot.val());
-
 		//extension uninstall process
-		const uninstall_date = snapshot.val()?.uninstalled ?? 0;
-		//if uninstall did not occur within the last 5 minutes, ignore
-		//this is to allow other modifications to the doc to occur without triggering the uninstall process
-		if (Date.now() - uninstall_date <= 5000) {
-			const { halo_id, ext_devices } = snapshot.val();
+		if (!!snapshot.val()?.uninstalled) {
+			const { discord_uid, halo_id } = snapshot.val();
 			const uid = snapshot.key;
 
 			Logger.uninstall(uid);
@@ -138,32 +134,8 @@ class UserCreate extends FirebaseEvent {
 				}).catch(() => null)) ?? {};
 			userInfo ??= {};
 
-			//send message to bot channel
-			bot.logConnection({
-				embed: new EmbedBase({
-					title: 'User Uninstalled',
-					fields: [
-						{
-							name: 'Discord User',
-							value: bot.formatUser(await bot.users.fetch(uid)),
-							inline: true,
-						},
-						{
-							name: 'Device Count',
-							value: ext_devices.toString(),
-							inline: true,
-						},
-						{
-							name: 'Halo User',
-							value: !Object.keys(userInfo).length
-								? 'Unable to retrieve user info'
-								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
-						},
-					],
-				}).Error(),
-			}).catch(() => {}); //noop
-
-			if (ext_devices > 0) return; //don't delete user data if they have the ext installed on other devices
+			//delete user from discord_user_map
+			await db.ref('discord_user_map').child(discord_uid).remove();
 
 			//remove their discord tokens
 			await db.ref(`discord_tokens/${uid}`).remove();
@@ -187,6 +159,25 @@ class UserCreate extends FirebaseEvent {
 
 			//remove user from 401 cache
 			remove401(uid);
+
+			//send message to bot channel
+			bot.logConnection({
+				embed: new EmbedBase({
+					title: 'User Uninstalled',
+					fields: [
+						{
+							name: 'Discord User',
+							value: bot.formatUser(await bot.users.fetch(discord_uid)),
+						},
+						{
+							name: 'Halo User',
+							value: !Object.keys(userInfo).length
+								? 'Unable to retrieve user info'
+								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
+						},
+					],
+				}).Error(),
+			});
 		}
 	}
 

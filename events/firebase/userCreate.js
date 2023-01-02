@@ -33,8 +33,13 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onAdd(snapshot) {
+		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
-		Logger.debug(`New user created: ${uid}: ${JSON.stringify(snapshot.val())}`);
+		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
+		//set custom claim
+		await auth.setCustomUserClaims(uid, { discordUID: discord_uid });
+		//update mapping table
+		await db.ref('discord_user_map').child(discord_uid).set(uid);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = await Firebase.getUserCookie(uid, false);
 		//await CookieManager.refreshUserCookie(uid, cookie); //immediately refresh cookie to trigger cache intervals
@@ -42,7 +47,7 @@ class UserCreate extends FirebaseEvent {
 		await db.ref(`users/${uid}`).child('halo_id').set(halo_id);
 
 		//(attempt to) send connection message to user
-		const user = await bot.users.fetch(uid);
+		const user = await bot.users.fetch(discord_uid);
 		await bot.sendDM({
 			user,
 			send_disabled_msg: false,

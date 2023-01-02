@@ -19,7 +19,7 @@ import { decryptCookieObject, encryptCookieObject, isValidCookieObject, Logger }
 import { COOKIES } from '../../caches';
 import { db } from '../../firebase';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
-const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
+const ACTIVE_STAGES = ['PRE_START', 'CURRENT', 'POST'];
 
 export const getActiveClasses = async function () {
 	return (

@@ -12,7 +12,7 @@ specifiers:
   moment: 2.29.4
   node-schedule: 2.1.0
   serialize-error: 11.0.0
-  set-interval-async: 3.0.2
+  set-interval-async: 3.0.3
   superagent: 8.0.6
 
 dependencies:
@@ -26,7 +26,7 @@ dependencies:
   moment: 2.29.4
   node-schedule: 2.1.0
   serialize-error: 11.0.0
-  set-interval-async: 3.0.2
+  set-interval-async: 3.0.3
   superagent: 8.0.6
 
 devDependencies:
@@ -1892,8 +1892,8 @@ packages:
       - supports-color
     dev: true
 
-  /set-interval-async/3.0.2:
-    resolution: {integrity: sha512-s8Jl35TVylbhgeYbTJ3y3h/KnBCGvDPHyuG02My82YNwgKRErpmvNsWWec5zpt4jqTKPZyRmgCEkeFb07+j7EA==}
+  /set-interval-async/3.0.3:
+    resolution: {integrity: sha512-o4DyBv6mko+A9cH3QKek4SAAT5UyJRkfdTi6JHii6ZCKUYFun8SwgBmQrOXd158JOwBQzA+BnO8BvT64xuCaSw==}
     engines: {node: '>= 14.0.0'}
     dev: false
 

@@ -117,23 +117,16 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onModify(snapshot) {
-		const uid = snapshot.key;
-		const data = snapshot.val();
-		Logger.debug(`doc ${uid} modified: ${JSON.stringify(data)}`);
-
-		//at the moment, the only way to determine a reinstall is for these two conditions to be met:
-		//1. ext_devices has been modified and set to 1
-		//2. the `uninstalled` timestamp is present but the date is significantly in the past
-
-		const uninstall_timestamp = data?.uninstalled;
-
-		if (!Number.isInteger(uninstall_timestamp)) return;
+		Logger.debug(`doc ${snapshot.key} modified`);
+		Logger.debug(snapshot.val());
 
 		//extension uninstall process
-		//if uninstall did not occur within the last 5 seconds, ignore
-		//this is to allow other modifications to the user doc to occur without triggering the uninstall process
-		if (Date.now() - uninstall_timestamp <= 5000) {
-			const { halo_id, ext_devices } = data;
+		const uninstall_date = snapshot.val()?.uninstalled ?? 0;
+		//if uninstall did not occur within the last 5 minutes, ignore
+		//this is to allow other modifications to the doc to occur without triggering the uninstall process
+		if (Date.now() - uninstall_date <= 5000) {
+			const { halo_id, ext_devices } = snapshot.val();
+			const uid = snapshot.key;
 
 			Logger.uninstall(uid);
 
@@ -184,10 +177,7 @@ class UserCreate extends FirebaseEvent {
 
 			//remove their cookies
 			await Firebase.removeUserCookie(uid);
-			//this triggers further cookie removal in CookieManager
-
-			//remove their user doc
-			await db.ref('users').child(uid).remove();
+			//handle further cookie removal in CookieWatcher
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
 			await auth.deleteUser(uid);
@@ -196,19 +186,8 @@ class UserCreate extends FirebaseEvent {
 			CRON_USER_CLASS_STATUSES.delete(uid);
 
 			//remove user from 401 cache
-			void remove401(uid);
+			remove401(uid);
 		}
-
-		//some more care needs to be given to the reinstall flow
-		//can we just delete the user doc entirely? pros/cons
-		//below conditional (may) get triggered in initial install flow bc of the updating of halo_id
-
-		//if uninstall occurred "significantly" in the past
-		//AND the ext_devices is 1, then the user has reinstalled the ext
-		// else if (Date.now() - uninstall_timestamp >= 10000 && data.ext_devices === 1) {
-		// 	//trigger initial install flow
-		// 	this.onAdd(snapshot, true);
-		// }
 	}
 
 	onRemove(snapshot) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Elijah Olmos
+ * Copyright (C) 2023 Elijah Olmos
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import bot from '../../bot';
 import { Command, Firebase, Halo } from '../../classes';
 
 class test extends Command {
@@ -40,11 +41,37 @@ class test extends Command {
 			// console.log('assessment id', feedback.assessment.id);
 			// console.log('feedback id', feedback.id);
 
-			const res = await Halo.acknowledgeGrade({
-				cookie,
-				assessment_grade_id: 'f6de9117-3204-4a28-ab0d-7d4939f20950',
+			// const res = await Halo.acknowledgeGrade({
+			// 	cookie,
+			// 	assessment_grade_id: 'f6de9117-3204-4a28-ab0d-7d4939f20950',
+			// });
+			bot.intrReply({
+				intr,
+				content: 'test',
+				components: [
+					{
+						components: [
+							{
+								type: 2,
+								style: 1,
+								custom_id: 'tos-agree-btn',
+								disabled: false,
+								label: 'Mark as Read',
+								emoji: {
+									name: '✉',
+								},
+							},
+							{
+								type: 2,
+								style: 5,
+								label: 'View Feedback',
+								url: 'https://discord.com/channels/270408632863031298/928032710218383411',
+							},
+						],
+						type: 1,
+					},
+				],
 			});
-			console.log('res', JSON.stringify(res));
 		} catch (err) {
 			console.log(err);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Elijah Olmos
+ * Copyright (C) 2023 Elijah Olmos
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,7 +19,7 @@ import { decryptCookieObject, encryptCookieObject, isValidCookieObject, Logger }
 import { COOKIES } from '../../caches';
 import { db } from '../../firebase';
 import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
-const ACTIVE_STAGES = ['PRE_START', 'CURRENT'];
+const ACTIVE_STAGES = ['PRE_START', 'CURRENT', 'POST'];
 
 export const getActiveClasses = async function () {
 	return (

@@ -122,9 +122,9 @@ export class HaloWatcher extends EventEmitter {
 				//write local cache to file, since changes were detected
 				await writeCacheFile({ filepath: class_id, data: new_announcements });
 
-				// to prevent announcement spam upon bot restart, only emit announcements that were published in past 1 hour
+				// to prevent announcement spam upon bot restart, only emit announcements that were published in past 6 hours
 				for (const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
-					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 1 &&
+					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 6 &&
 						this.emit('announcement', announcement);
 			} catch (e) {
 				if (e.code === 401)

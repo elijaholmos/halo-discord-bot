@@ -43,9 +43,17 @@ export default class extends DiscordEvent {
 				cookie: await Firebase.getUserCookie(Firebase.getHNSUid(intr.user.id)),
 				assessment_grade_id,
 			});
+
+			// copy components, disable button, then update
+			const components = intr.message.components;
+			components[0].components.find(({ customId }) => customId === intr.customId).disabled = true;
+			await intr.update({ components });
+
+			// send response to user
 			bot.intrReply({
 				intr,
 				ephemeral: true,
+				followUp: true,
 				embed: new EmbedBase({
 					description: `✅ **Grade successfully marked as read**`,
 				}).Success(),

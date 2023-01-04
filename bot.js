@@ -186,16 +186,19 @@ class DiscordHaloBot extends Client {
 	 * @param {Object} args Destructured arguments
 	 * @param {Interaction} args.intr Discord.js `Interaction`
 	 * @param {EmbedBase | EmbedBase[]} [args.embed] Singular embed object to be included in reply. If unspecified, existing embeds are removed
+	 * @param {boolean} [args.followUp] Whether or not to send another reply instead of replacing the existing one
 	 * @returns {Promise<Message>} The reply that was sent (or the last one, if multiple were sent)
 	 */
-	async intrReply({ intr, embed = null, ...options }) {
+	async intrReply({ intr, embed = null, followUp = false, ...options }) {
 		const payload = {
 			embeds: !!embed ? [embed] : [],
 			fetchReply: true,
 			...options,
 		};
 		if (!Array.isArray(embed))
-			return intr.deferred || intr.replied ? await intr.editReply(payload) : await intr.reply(payload);
+			return intr.deferred || intr.replied
+				? await intr[followUp ? 'followUp' : 'editReply'](payload)
+				: await intr.reply(payload);
 		let msg;
 		for (const e of embed) {
 			payload.embeds = [e];

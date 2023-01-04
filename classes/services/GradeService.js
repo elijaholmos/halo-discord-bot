@@ -84,12 +84,15 @@ export class GradeService {
 		const {
 			finalPoints,
 			finalComment,
-			assessment: { points, title },
+			assessment: { points, title, id: assessmentId },
 			metadata: {
 				courseCode,
 				finalGrade: { finalPoints: totalFinalPoints, maxPoints, gradeValue },
+				slugId,
 			},
 		} = grade;
+		const feedbackUrl = `https://halo.gcu.edu/courses/${slugId}/student/gradebook#grading-feedback/${assessmentId}`;
+
 		return {
 			content: `New grade published for **${courseCode}**:`,
 			embeds: [
@@ -124,6 +127,33 @@ export class GradeService {
 					],
 					timestamp: Date.now(),
 				}),
+			],
+			components: [
+				{
+					components: [
+						{
+							type: 2,
+							style: 1,
+							custom_id: `$grade_${assessmentId}`,
+							disabled: false,
+							label: 'Mark as Read',
+							emoji: {
+								name: '✉',
+							},
+						},
+						...(feedbackUrl?.startsWith('https://')
+							? [
+									{
+										type: 2,
+										style: 5,
+										label: 'View Feedback',
+										url: feedbackUrl,
+									},
+							  ]
+							: []),
+					],
+					type: 1,
+				},
 			],
 		};
 	}

@@ -82,6 +82,10 @@ export class AnnouncementService {
 	 */
 	static #parseAnnouncementData({ announcement }) {
 		//Logger.debug(announcement);
+		const {
+			metadata: { slugId },
+		} = announcement;
+
 		return {
 			content: `New announcement posted for **${announcement.metadata.courseCode}**:`,
 			embeds: [
@@ -113,6 +117,29 @@ export class AnnouncementService {
 					],
 					timestamp: announcement.publishDate,
 				}),
+			],
+			components: [
+				{
+					components: [
+						{
+							type: 2,
+							style: 1,
+							custom_id: `$post_${announcement.id}`,
+							disabled: false,
+							label: 'Mark as Read',
+							emoji: {
+								name: '✉',
+							},
+						},
+						{
+							type: 2,
+							style: 5,
+							label: 'View Announcements',
+							url: `https://halo.gcu.edu/courses/${slugId}/announcements`,
+						},
+					],
+					type: 1,
+				},
 			],
 		};
 	}

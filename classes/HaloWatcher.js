@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Elijah Olmos
+ * Copyright (C) 2023 Elijah Olmos
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -96,8 +96,10 @@ export class HaloWatcher extends EventEmitter {
 						class_id,
 						active_users,
 						//inject the readable course code into the response objects
+						//this metadata is being stored in the cache unnecessarily
 						metadata: {
 							courseCode: course.courseCode,
+							slugId: course.slugId,
 						},
 					})) ?? old_announcements;
 				// Logger.debug(old_announcements?.length);
@@ -120,9 +122,9 @@ export class HaloWatcher extends EventEmitter {
 				//write local cache to file, since changes were detected
 				await writeCacheFile({ filepath: class_id, data: new_announcements });
 
-				// to prevent announcement spam upon bot restart, only emit announcements that were published in past 1 hour
+				// to prevent announcement spam upon bot restart, only emit announcements that were published in past 6 hours
 				for (const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
-					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 1 &&
+					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 6 &&
 						this.emit('announcement', announcement);
 			} catch (e) {
 				if (e.code === 401)
@@ -145,7 +147,7 @@ export class HaloWatcher extends EventEmitter {
 		for (const [course_id, course] of Object.entries(COURSES)) {
 			for (const uid of Firebase.getActiveUsersInClass(course_id)) {
 				try {
-					//Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
+					// Logger.debug(`Getting ${uid} grades for ${course.courseCode}...`);
 					const cookie = await Firebase.getUserCookie(uid); //store user cookie for multiple uses
 					if (!cookie) continue;
 					const old_grades = get([course_id, uid], null);
@@ -195,6 +197,7 @@ export class HaloWatcher extends EventEmitter {
 									courseCode: course.courseCode,
 									finalGrade,
 									uid,
+									slugId: course.slugId,
 								},
 							})
 						);

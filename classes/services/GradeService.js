@@ -84,6 +84,7 @@ export class GradeService {
 		const {
 			finalPoints,
 			finalComment,
+			id: gradeId,
 			assessment: { points, title, id: assessmentId },
 			metadata: {
 				courseCode,
@@ -134,7 +135,7 @@ export class GradeService {
 						{
 							type: 2,
 							style: 1,
-							custom_id: `$grade_${assessmentId}`,
+							custom_id: `$grade_${gradeId}`,
 							disabled: false,
 							label: 'Mark as Read',
 							emoji: {

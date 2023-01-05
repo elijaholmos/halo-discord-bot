@@ -249,7 +249,7 @@ export const generateUserConnectionEmbed = async function ({ uid: discord_uid })
  * @param {Object} args.cookie The cookie object retrieved from Firebase
  * @param {string} args.assessment_grade_id the ID of the `UserCourseClassAssessmentGrade` - only appears on submissions that have been graded
  *
- * This should be the `id` property on each object retrieved from `getAllGrades()`
+ * This should be the `id` property on each object retrieved from `getAllGrades()`, NOT the `id` of the `CourseClassAssessment`
  * @returns {Promise<Object>} Acknowledgement response from the server
  */
 export const acknowledgeGrade = async function ({ cookie, assessment_grade_id }) {

@@ -237,7 +237,7 @@ export const generateUserConnectionEmbed = async function ({ uid: discord_uid })
 
 		if (!(await validateCookie({ cookie }))) throw `Cookie for ${uid} failed to pass validation`;
 		return new EmbedBase({
-			description: '✅ **Your account is currently connceted to Halo**',
+			description: '✅ **Your account is currently connected to Halo**',
 		}).Success();
 	} catch (err) {
 		return new EmbedBase().ErrorDesc('Your account is currently not connected to Halo');

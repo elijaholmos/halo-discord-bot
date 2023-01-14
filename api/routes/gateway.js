@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Elijah Olmos
+ * Copyright (C) 2023 Elijah Olmos
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -43,6 +43,7 @@ const unauth = {
 router.post('/', async (req, res) => {
 	//return res.status(200).send(unauth);
 	const { operationName, variables = {} } = req.body;
+	console.log(`operationName: ${operationName}`);
 	res.send(await GatewayController[operationName](variables));
 });
 

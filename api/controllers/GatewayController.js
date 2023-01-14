@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Elijah Olmos
+ * Copyright (C) 2023 Elijah Olmos
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,6 +20,8 @@ import AssessmentFeedback from '../data/AssessmentFeedback';
 import HeaderFields from '../data/HeaderFields';
 import GetInboxLeftPanelNotification from '../data/GetInboxLeftPanelNotification';
 import getPostsByInboxForumId from '../data/getPostsByInboxForumId';
+import AddStudentGradeSeenDateTime from '../data/AddStudentGradeSeenDateTime';
+import markPostsAsRead from '../data/markPostsAsRead';
 
 export class GatewayController {
 	static GetAnnouncementsStudent({ courseClassId }) {
@@ -39,5 +41,11 @@ export class GatewayController {
 	}
 	static getPostsByInboxForumId({}) {
 		return getPostsByInboxForumId;
+	}
+	static AddStudentGradeSeenDateTime({}) {
+		return AddStudentGradeSeenDateTime;
+	}
+	static markPostsAsRead({}) {
+		return markPostsAsRead;
 	}
 }

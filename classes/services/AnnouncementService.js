@@ -39,14 +39,11 @@ export class AnnouncementService {
 		for (const uid of Firebase.getActiveUsersInClass(announcement.courseClassId)) {
 			try {
 				// if (!Firebase.getUserSettingValue({ uid, setting_id: 0 })) continue;
-				const discord_uid = Firebase.getDiscordUid(uid);
-				const discord_user = await bot.users.fetch(discord_uid);
+				const discord_user = await bot.users.fetch(uid);
 				discord_user
 					.send(message)
-					.catch((e) =>
-						Logger.error(`Error sending announcement to ${discord_user.tag} (${discord_uid}): ${e}`)
-					);
-				Logger.log(`Announcement DM sent to ${discord_user.tag} (${discord_uid})`);
+					.catch((e) => Logger.error(`Error sending announcement to ${discord_user.tag} (${uid}): ${e}`));
+				Logger.log(`Announcement DM sent to ${discord_user.tag} (${uid})`);
 				bot.logDiscord({
 					embed: new EmbedBase({
 						title: 'Announcement Message Sent',

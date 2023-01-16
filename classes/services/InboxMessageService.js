@@ -37,8 +37,7 @@ export class InboxMessageService {
 	static async #publishInboxMessage({ inbox_message, message }) {
 		try {
 			const discord_uid =
-				Firebase.getDiscordUid(inbox_message?.metadata?.uid) ??
-				(await Firebase.getDiscordUidFromHaloUid(inbox_message.user.id));
+				inbox_message?.metadata?.uid ?? (await Firebase.getDiscordUidFromHaloUid(inbox_message.user.id));
 			const discord_user = await bot.users.fetch(discord_uid);
 			discord_user
 				.send(message)

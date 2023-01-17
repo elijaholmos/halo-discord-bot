@@ -18,7 +18,7 @@ import { ServerValue } from 'firebase-admin/database';
 import { decryptCookieObject, encryptCookieObject, isValidCookieObject, Logger } from '..';
 import { COOKIES } from '../../caches';
 import { db } from '../../firebase';
-import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
+import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT', 'POST'];
 
 export const getActiveClasses = async function () {

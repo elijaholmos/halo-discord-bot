@@ -33,13 +33,8 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onAdd(snapshot) {
-		const { discord_uid } = snapshot.val();
 		const uid = snapshot.key;
-		Logger.debug(`New user created: ${JSON.stringify(snapshot.val())}`);
-		//set custom claim
-		await auth.setCustomUserClaims(uid, { discordUID: discord_uid });
-		//update mapping table
-		await db.ref('discord_user_map').child(discord_uid).set(uid);
+		Logger.debug(`New user created: ${uid}: ${JSON.stringify(snapshot.val())}`);
 		//retrieve and set their halo id (at this point, user should have halo cookie in db)
 		const cookie = await Firebase.getUserCookie(uid, false);
 		//await CookieManager.refreshUserCookie(uid, cookie); //immediately refresh cookie to trigger cache intervals
@@ -47,7 +42,7 @@ class UserCreate extends FirebaseEvent {
 		await db.ref(`users/${uid}`).child('halo_id').set(halo_id);
 
 		//(attempt to) send connection message to user
-		const user = await bot.users.fetch(discord_uid);
+		const user = await bot.users.fetch(uid);
 		await bot.sendDM({
 			user,
 			send_disabled_msg: false,
@@ -122,12 +117,23 @@ class UserCreate extends FirebaseEvent {
 	 * @param {DataSnapshot} snapshot
 	 */
 	async onModify(snapshot) {
-		Logger.debug(`doc ${snapshot.key} modified`);
-		Logger.debug(snapshot.val());
+		const uid = snapshot.key;
+		const data = snapshot.val();
+		Logger.debug(`doc ${uid} modified: ${JSON.stringify(data)}`);
+
+		//at the moment, the only way to determine a reinstall is for these two conditions to be met:
+		//1. ext_devices has been modified and set to 1
+		//2. the `uninstalled` timestamp is present but the date is significantly in the past
+
+		const uninstall_timestamp = data?.uninstalled;
+
+		if (!Number.isInteger(uninstall_timestamp)) return;
+
 		//extension uninstall process
-		if (!!snapshot.val()?.uninstalled) {
-			const { discord_uid, halo_id } = snapshot.val();
-			const uid = snapshot.key;
+		//if uninstall did not occur within the last 5 seconds, ignore
+		//this is to allow other modifications to the user doc to occur without triggering the uninstall process
+		if (Date.now() - uninstall_timestamp <= 5000) {
+			const { halo_id, ext_devices } = data;
 
 			Logger.uninstall(uid);
 
@@ -139,8 +145,32 @@ class UserCreate extends FirebaseEvent {
 				}).catch(() => null)) ?? {};
 			userInfo ??= {};
 
-			//delete user from discord_user_map
-			await db.ref('discord_user_map').child(discord_uid).remove();
+			//send message to bot channel
+			bot.logConnection({
+				embed: new EmbedBase({
+					title: 'User Uninstalled',
+					fields: [
+						{
+							name: 'Discord User',
+							value: bot.formatUser(await bot.users.fetch(uid)),
+							inline: true,
+						},
+						{
+							name: 'Device Count',
+							value: ext_devices.toString(),
+							inline: true,
+						},
+						{
+							name: 'Halo User',
+							value: !Object.keys(userInfo).length
+								? 'Unable to retrieve user info'
+								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
+						},
+					],
+				}).Error(),
+			}).catch(() => {}); //noop
+
+			if (ext_devices > 0) return; //don't delete user data if they have the ext installed on other devices
 
 			//remove their discord tokens
 			await db.ref(`discord_tokens/${uid}`).remove();
@@ -154,7 +184,10 @@ class UserCreate extends FirebaseEvent {
 
 			//remove their cookies
 			await Firebase.removeUserCookie(uid);
-			//handle further cookie removal in CookieWatcher
+			//this triggers further cookie removal in CookieManager
+
+			//remove their user doc
+			await db.ref('users').child(uid).remove();
 
 			//delete their user acct in case they reinstall, to retrigger the auth process
 			await auth.deleteUser(uid);
@@ -163,27 +196,19 @@ class UserCreate extends FirebaseEvent {
 			CRON_USER_CLASS_STATUSES.delete(uid);
 
 			//remove user from 401 cache
-			remove401(uid);
-
-			//send message to bot channel
-			bot.logConnection({
-				embed: new EmbedBase({
-					title: 'User Uninstalled',
-					fields: [
-						{
-							name: 'Discord User',
-							value: bot.formatUser(await bot.users.fetch(discord_uid)),
-						},
-						{
-							name: 'Halo User',
-							value: !Object.keys(userInfo).length
-								? 'Unable to retrieve user info'
-								: `${userInfo.firstName} ${userInfo.lastName} (\`${halo_id}\`)`,
-						},
-					],
-				}).Error(),
-			});
+			void remove401(uid);
 		}
+
+		//some more care needs to be given to the reinstall flow
+		//can we just delete the user doc entirely? pros/cons
+		//below conditional (may) get triggered in initial install flow bc of the updating of halo_id
+
+		//if uninstall occurred "significantly" in the past
+		//AND the ext_devices is 1, then the user has reinstalled the ext
+		// else if (Date.now() - uninstall_timestamp >= 10000 && data.ext_devices === 1) {
+		// 	//trigger initial install flow
+		// 	this.onAdd(snapshot, true);
+		// }
 	}
 
 	onRemove(snapshot) {

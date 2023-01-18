@@ -40,7 +40,7 @@ export default class extends DiscordEvent {
 		try {
 			Logger.cmd(`${intr.user.tag} (${intr.user.id})  clicked ${this.name} btn with id of ${intr.customId}`);
 			await Halo.acknowledgeGrade({
-				cookie: await Firebase.getUserCookie(Firebase.getHNSUid(intr.user.id)),
+				cookie: await Firebase.getUserCookie(intr.user.id),
 				assessment_grade_id,
 			});
 

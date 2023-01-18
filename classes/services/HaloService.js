@@ -230,14 +230,13 @@ export const getUserId = async function ({ cookie }) {
  * @param {string} args.uid Discord UID of the user
  * @returns {Promise<EmbedBase>}
  */
-export const generateUserConnectionEmbed = async function ({ uid: discord_uid }) {
+export const generateUserConnectionEmbed = async function ({ uid }) {
 	try {
-		const uid = Firebase.getHNSUid(discord_uid);
 		const cookie = await Firebase.getUserCookie(uid);
 
 		if (!(await validateCookie({ cookie }))) throw `Cookie for ${uid} failed to pass validation`;
 		return new EmbedBase({
-			description: '✅ **Your account is currently connceted to Halo**',
+			description: '✅ **Your account is currently connected to Halo**',
 		}).Success();
 	} catch (err) {
 		return new EmbedBase().ErrorDesc('Your account is currently not connected to Halo');

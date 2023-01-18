@@ -33,7 +33,7 @@ export const handle401 = async function ({ uid, msg }) {
 		//check if setting enabled
 		if (!Firebase.getUserSettingValue({ uid, setting_id: 3 })) return;
 		// send notification to user
-		const user = await bot.users.fetch(Firebase.getDiscordUid(uid));
+		const user = await bot.users.fetch(uid);
 		const msg = await bot.sendDM({
 			user,
 			embed: new EmbedBase({

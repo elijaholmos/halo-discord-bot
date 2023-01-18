@@ -40,24 +40,20 @@ export default class extends DiscordEvent {
 		try {
 			Logger.cmd(`${intr.user.tag} (${intr.user.id})  clicked ${this.name} btn with id of ${intr.customId}`);
 			await Halo.acknowledgePost({
-				cookie: await Firebase.getUserCookie(Firebase.getHNSUid(intr.user.id)),
+				cookie: await Firebase.getUserCookie(intr.user.id),
 				post_id,
 			});
 
-			// copy components, disable button, then update
+			// copy components, disable button, then update as "confirmation" to user
 			const components = intr.message.components;
-			components[0].components.find(({ customId }) => customId === intr.customId).disabled = true;
+			Object.assign(
+				components
+					.flatMap(({ components }) => components)
+					// api is weird and return customId if cached, custom_id otherwise
+					.find(({ custom_id, customId }) => (custom_id ?? customId) === intr.customId),
+				{ disabled: true, style: 'SUCCESS', label: 'Marked as Read', emoji: { name: '✅' } }
+			);
 			await intr.update({ components });
-
-			// send response to user
-			bot.intrReply({
-				intr,
-				ephemeral: true,
-				followUp: true,
-				embed: new EmbedBase({
-					description: `✅ **Announcement successfully marked as read**`,
-				}).Success(),
-			});
 		} catch (err) {
 			Logger.error(`Error with btn ${this.name} ${intr.customId}: ${err}`);
 			bot.intrReply({

@@ -28,8 +28,7 @@ class test extends Command {
 
 	async run({ intr }) {
 		try {
-			const uid = Firebase.getHNSUid(intr.user.id);
-			const cookie = await Firebase.getUserCookie(uid);
+			const cookie = await Firebase.getUserCookie(intr.user.id);
 
 			// const feedback = await Halo.getGradeFeedback({
 			// 	cookie,

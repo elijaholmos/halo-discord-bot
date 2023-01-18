@@ -33,11 +33,9 @@ export class GradeService {
 	 */
 	static async #publishGrade({ grade }) {
 		try {
-			const discord_uid =
-				Firebase.getDiscordUid(grade?.metadata?.uid) ??
-				(await Firebase.getDiscordUidFromHaloUid(grade.user.id));
+			const discord_uid = grade?.metadata?.uid ?? (await Firebase.getDiscordUidFromHaloUid(grade.user.id));
 			const show_overall_grade = Firebase.getUserSettingValue({
-				uid: Firebase.getHNSUid(discord_uid),
+				uid: discord_uid,
 				setting_id: 4,
 			});
 

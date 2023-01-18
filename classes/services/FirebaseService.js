@@ -18,7 +18,7 @@ import { ServerValue } from 'firebase-admin/database';
 import { decryptCookieObject, encryptCookieObject, isValidCookieObject, Logger } from '..';
 import { COOKIES } from '../../caches';
 import { db } from '../../firebase';
-import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, DISCORD_USER_MAP, USER_SETTINGS_STORE } from '../../stores';
+import { CLASS_USERS_MAP, DEFAULT_SETTINGS_STORE, USER_SETTINGS_STORE } from '../../stores';
 const ACTIVE_STAGES = ['PRE_START', 'CURRENT', 'POST'];
 
 export const getActiveClasses = async function () {
@@ -32,30 +32,14 @@ export const getAllClasses = async function () {
 };
 
 /**
- * @returns {string[]} array of discord uids
- */
-export const getActiveDiscordUsersInClass = function (class_id) {
-	return process.env.NODE_ENV === 'production'
-		? Object.keys(CLASS_USERS_MAP.get(class_id) ?? {}).map(DISCORD_USER_MAP.get)
-		: ['139120967208271872'];
-};
-
-/**
- * @returns {Promise<string[]>} array of HNS IDs
- */
-export const getActiveUsersInClassAsync = async function (class_id) {
-	return Object.keys((await db.ref('class_users_map').child(class_id).get()) ?? {});
-};
-
-/**
- * @returns {string[]} array of HNS IDs
+ * @returns {string[]} array of Discord uids
  */
 export const getActiveUsersInClass = function (class_id) {
 	return Object.keys(CLASS_USERS_MAP.get(class_id) ?? {});
 };
 
 /**
- * @param {string} uid HNS UID
+ * @param {string} uid discord UID
  * @returns {Promise<string[]>} array of class IDs
  */
 export const getAllUserClasses = async function (uid) {
@@ -64,7 +48,7 @@ export const getAllUserClasses = async function (uid) {
 
 /**
  * Get the Halo cookie object for a user
- * @param {string} uid HNS UID
+ * @param {string} uid Discord UID
  * @param {boolean} check_cache Whether the local cache should be checked first
  */
 export const getUserCookie = async function (uid, check_cache = true) {
@@ -95,6 +79,7 @@ export const removeUserCookie = async function (uid) {
 
 /**
  * Convert a Halo UID to a Discord UID
+ * TODO: implement caching to improve performance
  * @param {string} uid halo user id
  * @returns {Promise<string | null>} discord user id
  */
@@ -104,34 +89,16 @@ export const getDiscordUidFromHaloUid = async function (uid) {
 		: '139120967208271872';
 };
 
-/**
- * Convert a HNS UID to a Discord UID
- * @param {string} uid
- * @returns {string | null} discord uid, if exists in map
- */
-export const getDiscordUid = function (uid) {
-	return process.env.NODE_ENV === 'production' ? DISCORD_USER_MAP.get(uid) : '139120967208271872';
-};
-
-/**
- * Convert a Discord UID to a HNS UID
- * @param {string} discord_uid
- * @returns {string | null} HNS uid, if exists in map
- */
-export const getHNSUid = function (discord_uid) {
-	return DISCORD_USER_MAP.get(discord_uid);
-};
-
 export const getFirebaseUserSnapshot = async function (uid) {
 	return (await db.ref('users').child(uid).once('value')).val();
 };
 
 /**
  * Get all users currently using the service
- * @returns {Promise<string[]>} array of HNS uids
+ * @returns {Promise<string[]>} array of Discord uids
  */
 export const getAllActiveUsers = async function getAllActiveUsersUids() {
-	return Object.keys((await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {});
+	return Object.keys((await db.ref('users').orderByChild('ext_devices').startAt(1).get()).val() ?? {});
 };
 
 /**
@@ -139,12 +106,12 @@ export const getAllActiveUsers = async function getAllActiveUsersUids() {
  * @returns {Promise<object>}
  */
 export const getAllActiveUsersFull = async function () {
-	return (await db.ref('users').orderByChild('uninstalled').equalTo(null).get()).val() ?? {};
+	return (await db.ref('users').orderByChild('ext_devices').startAt(1).get()).val() ?? {};
 };
 
 /**
  * Retrieve a user's settings
- * @param {string} uid discord-halo uid
+ * @param {string} uid discord uid
  * @returns {object} user settings
  */
 export const getUserSettings = function (uid) {
@@ -154,7 +121,7 @@ export const getUserSettings = function (uid) {
 /**
  * Get the user-set value associated with the `setting_id`
  * @param {object} args Destructured arguments
- * @param {string} args.uid discord-halo uid
+ * @param {string} args.uid discord uid
  * @param {string | number} args.setting_id ID of setting to retieve
  * @returns {any} The value of the user's setting if set, otherwise the default setting value
  */

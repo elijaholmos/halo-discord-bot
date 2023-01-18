@@ -1,14 +1,14 @@
 {
 	"name": "halo-discord-bot",
-	"version": "2.4.1",
+	"version": "2.5.0",
 	"author": "Elijah Olmos",
 	"license": "AGPL-3.0-only",
 	"main": "index.js",
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"test": "nodemon --ignore logs/ --ignore cache/ --ignore api/",
-		"test:api": "nodemon -w api/ api/index.js",
+		"dev": "nodemon --ignore logs/ --ignore cache/ --ignore api/",
+		"dev:api": "nodemon -w api/ api/index.js",
 		"start": "node --experimental-specifier-resolution=node .",
 		"deploy": "pm2 start index.js --name halo-discord --node-args='--experimental-specifier-resolution=node'"
 	},
@@ -31,7 +31,7 @@
 		"discord.js": "13.9.2",
 		"dotenv": "16.0.3",
 		"firebase-admin": "11.4.1",
-		"klaw": "4.0.1",
+		"klaw": "4.1.0",
 		"lodash-es": "4.17.21",
 		"moment": "2.29.4",
 		"node-schedule": "2.1.0",

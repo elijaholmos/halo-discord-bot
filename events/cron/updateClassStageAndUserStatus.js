@@ -215,7 +215,7 @@ export default class extends CronEvent {
 			} catch (e) {
 				if (e.code === 401)
 					Logger.cron(`[${this.name}] Received 401 while attempt to work with ${uid}'s cookie`);
-				else Logger.cron(`Error while working with ${uid}'s cookie: ${e}`);
+				else Logger.cron(`Error while working with ${uid}'s cookie: ${JSON.stringify(e)}`);
 			}
 		}
 

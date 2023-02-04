@@ -76,7 +76,7 @@ export default class extends CronEvent {
 				}
 
 				const cookie = await Firebase.getUserCookie(uid);
-				if (!cookie) throw 'Firebase.getUserCookie returned null';
+				if (!cookie) throw `Firebase.getUserCookie(${uid}) returned null`;
 
 				const { classes } = await Halo.getUserOverview({
 					cookie,

@@ -76,12 +76,32 @@ export default class extends CronEvent {
 				}
 
 				const cookie = await Firebase.getUserCookie(uid);
-				if (!cookie) throw 'Firebase.getUserCookie returned null';
+				if (!cookie) throw `Firebase.getUserCookie(${uid}) returned null`;
 
 				const { classes } = await Halo.getUserOverview({
 					cookie,
 					uid: halo_id,
 				});
+
+				// detect user being removed from class
+				for (const class_id in CRON_USER_CLASS_STATUSES.get(uid)) {
+					if (!!classes.courseClasses.find(({ id }) => id === class_id)) continue;
+					// user was removed from class
+					Logger.cron(`[${this.name}] ${uid} removed class detected: ${class_id}`);
+					changelog.push({
+						type: 'user_remove_class',
+						uid,
+						class_id,
+					});
+					//update db
+					await db.ref('user_classes_map').child(uid).child(class_id).remove();
+					await db.ref('class_users_map').child(class_id).child(uid).remove();
+					//update local caches
+					const data = CRON_USER_CLASS_STATUSES.get(uid);
+					delete data[class_id];
+					CRON_USER_CLASS_STATUSES.set(uid, data);
+					await CRON_USER_CLASS_STATUSES.writeCacheFile({ filepath: uid, data });
+				}
 
 				for (const {
 					id: class_id,
@@ -111,7 +131,7 @@ export default class extends CronEvent {
 						await CRON_CLASS_STAGES.writeCacheFile({ filepath: class_id, data });
 					} //if this is true, next statement is guaranteed to (redundantly) trigger
 
-					//realistically, stage is the only thing that will change at a course level
+					// realistically, stage is the only thing that will change at a course level
 					else if (CRON_CLASS_STAGES.get(class_id)?.stage !== stage) {
 						Logger.cron(
 							`[${this.name}] ${class_id} stage changed from ${

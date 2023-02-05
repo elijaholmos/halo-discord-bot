@@ -13,7 +13,7 @@ specifiers:
   node-schedule: 2.1.0
   serialize-error: 11.0.0
   set-interval-async: 3.0.3
-  superagent: 8.0.8
+  superagent: 8.0.9
 
 dependencies:
   bidirectional-map: 1.1.1
@@ -27,7 +27,7 @@ dependencies:
   node-schedule: 2.1.0
   serialize-error: 11.0.0
   set-interval-async: 3.0.3
-  superagent: 8.0.8
+  superagent: 8.0.9
 
 devDependencies:
   express: 4.18.2
@@ -1949,8 +1949,8 @@ packages:
     dev: false
     optional: true
 
-  /superagent/8.0.8:
-    resolution: {integrity: sha512-OpxPrqqWKOjmuomLq5pCm4LWCSFdgAQ11XVkMl7t4ie13WxWuLkdJ83ZgG2jOQeLXKwMR2p9k30hLrKGAzkPaA==}
+  /superagent/8.0.9:
+    resolution: {integrity: sha512-4C7Bh5pyHTvU33KpZgwrNKh/VQnvgtCSqPRfJAUdmrtSYePVzVg4E4OzsrbkhJj9O7SO6Bnv75K/F8XVZT8YHA==}
     engines: {node: '>=6.4.0 <13 || >=14'}
     dependencies:
       component-emitter: 1.3.0

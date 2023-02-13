@@ -15,6 +15,8 @@
  */
 
 import bot from '../../bot';
+import { Collection } from 'discord.js';
+import { writeFile } from 'node:fs/promises';
 import { Command, Firebase, Halo } from '../../classes';
 
 class test extends Command {
@@ -28,49 +30,17 @@ class test extends Command {
 
 	async run({ intr }) {
 		try {
-			const cookie = await Firebase.getUserCookie(intr.user.id);
-
-			// const feedback = await Halo.getGradeFeedback({
-			// 	cookie,
-			// 	assessment_id: '1454f632-ab98-4900-8858-452160a85b9c',
-			// 	//TODO: shift to Firebase.getHaloUid() from a Firebase UID
-			// 	uid: await Halo.getUserId({ cookie }),
-			// });
-
-			// console.log('assessment id', feedback.assessment.id);
-			// console.log('feedback id', feedback.id);
-
-			// const res = await Halo.acknowledgeGrade({
-			// 	cookie,
-			// 	assessment_grade_id: 'f6de9117-3204-4a28-ab0d-7d4939f20950',
-			// });
-			bot.intrReply({
-				intr,
-				content: 'test',
-				components: [
-					{
-						components: [
-							{
-								type: 2,
-								style: 1,
-								custom_id: 'tos-agree-btn',
-								disabled: false,
-								label: 'Mark as Read',
-								emoji: {
-									name: '✉',
-								},
-							},
-							{
-								type: 2,
-								style: 5,
-								label: 'View Feedback',
-								url: 'https://discord.com/channels/270408632863031298/928032710218383411',
-							},
-						],
-						type: 1,
-					},
-				],
-			});
+			let payload = new Collection();
+			const channel = await bot.channels.fetch(bot.config.channels.private_log);
+			const getMessages = async ({ before = null } = {}) => {
+				if (new Date().getSeconds() === 1) console.log('Fetching messages...');
+				const messages = await channel.messages.fetch({ limit: 100, before }, { force: true });
+				payload = payload.concat(messages);
+				if (messages.size === 100) return getMessages({ before: messages.lastKey() });
+			};
+			await getMessages();
+			console.log(payload.size);
+			await writeFile('./tmp/payload.json', JSON.stringify(payload.toJSON()));
 		} catch (err) {
 			console.log(err);
 		}

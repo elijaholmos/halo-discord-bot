@@ -175,149 +175,17 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 					userId: $userId
 				) {
 					assessment {
-						courseClassId
-						inPerson
-						attachments {
-							id
-							resourceId
-							title
-						}
-						description
-						dueDate
-						exemptAccommodations
 						id
 						points
-						requiresLopesWrite
-						rubric {
-							name
-							id
-						}
-						startDate
-						tags
 						title
-						type
 					}
 					id
-					gradedDate
-					userLastSeenDate
-					dueDate
-					accommodatedDueDate
 					finalPoints
 					finalComment {
-						commentResources {
-							resource {
-								id
-								kind
-								name
-								context
-								description
-								embedReady
-								type
-							}
-						}
 						comment
-					}
-					assignmentSubmission {
-						id
-						dueDate
-						accommodatedDueDate
-						submissionDate
-						resources {
-							id
-							isFinal
-							percentQuotedText
-							similarityReportStatusEnum
-							similarityScore
-							wordCount
-							uploadDate
-							uploadedBy {
-								id
-								firstName
-								lastName
-								userImgUrl
-							}
-							resource {
-								id
-								kind
-								name
-								type
-								context
-								description
-								embedReady
-							}
-						}
-					}
-					rubricScores {
-						comment
-						criteriaId
-						rubricCellId
-					}
-					assessmentGroup {
-						id
-						name
-						groupStatus
-						groupUsers {
-							id
-							status
-							user {
-								id
-								firstName
-								lastName
-								userImgUrl
-							}
-						}
-					}
-					userQuizAssessment {
-						accommodatedDuration
-						dueTime
-						duration
-						startTime
-						userQuizId
-						submissionDate
-					}
-					post {
-						id
-						content
-						expiryDate
-						forumId
-						forumTitle
-						modifiedDate
-						originalPostId
-						parentPostId
-						postStatus
-						postTags {
-							tag
-						}
-						publishDate
-						resources {
-							id
-							kind
-							name
-							type
-							context
-							description
-							embedReady
-						}
-						wordCount
-						isRead
-						tenantId
-					}
-					participationSummary {
-						allPostsCount
-						endDate
-						substantivePostsSummary {
-							date
-							substantivePostsCount
-							totalPostsCount
-						}
 					}
 					user {
 						id
-						firstName
-						lastName
-						userImgUrl
-						sourceId
-						isAccommodated
 					}
 				}
 			}

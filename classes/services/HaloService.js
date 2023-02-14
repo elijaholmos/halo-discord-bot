@@ -288,61 +288,25 @@ export const getUserOverview = async function ({ cookie, uid }) {
 		document: gql`
 			query HeaderFields($userId: String!, $skipClasses: Boolean!) {
 				userInfo: getUserById(id: $userId) {
-					id
 					firstName
 					lastName
-					userImgUrl
-					sourceId
 				}
 				classes: getCourseClassesForUser @skip(if: $skipClasses) {
 					courseClasses {
 						id
 						classCode
 						slugId
-						startDate
-						endDate
 						name
-						description
 						stage
-						modality
-						version
 						courseCode
-						units {
-							id
-							current
-							title
-							sequence
-						}
-						instructors {
-							...headerUserFields
-						}
 						students {
-							isAccommodated
-							isHonors
 							...headerUserFields
 						}
 					}
 				}
 			}
 			fragment headerUserFields on CourseClassUser {
-				id
-				courseClassId
-				roleName
-				baseRoleName
-				status
 				userId
-				user {
-					...headerUser
-				}
-			}
-			fragment headerUser on User {
-				id
-				userStatus
-				firstName
-				lastName
-				userImgUrl
-				sourceId
-				lastLogin
 			}
 		`,
 		variables: {

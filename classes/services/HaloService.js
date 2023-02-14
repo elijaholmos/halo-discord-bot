@@ -129,57 +129,17 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 					courseClassUserIds: $courseClassUserIds
 				) {
 					finalGrade {
-						id
 						finalPoints
 						gradeValue
-						isPublished
 						maxPoints
 					}
 					grades {
 						userLastSeenDate
-						assignmentSubmission {
-							id
-							submissionDate
-						}
 						assessment {
 							id
 						}
-						post {
-							id
-							publishDate
-						}
-						dueDate
-						accommodatedDueDate
-						finalComment {
-							comment
-							commentResources {
-								resource {
-									id
-									kind
-									name
-									type
-									active
-									context
-									description
-								}
-							}
-						}
-						finalPoints
 						id
 						status
-						userQuizAssessment {
-							accommodatedDuration
-							dueTime
-							duration
-							startTime
-							submissionDate
-							userQuizId
-						}
-						history {
-							comment
-							dueDate
-							status
-						}
 					}
 				}
 			}

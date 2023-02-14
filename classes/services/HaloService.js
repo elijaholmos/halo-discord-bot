@@ -72,54 +72,22 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 		document: gql`
 			query GetAnnouncementsStudent($courseClassId: String!) {
 				announcements(courseClassId: $courseClassId) {
-					contextId
-					countUnreadPosts
-					courseClassId
-					dueDate
-					forumId
-					forumType
-					lastPost {
-						isReplied
-					}
-					startDate
-					endDate
-					title
 					posts {
-						content
-						expiryDate
-						forumId
-						forumTitle
 						id
-						isRead
-						modifiedDate
-						originalPostId
-						parentPostId
-						postStatus
+						content
 						publishDate
-						startDate
-						tenantId
 						title
-						postReadReceipts {
-							readTime
-						}
-						postTags {
-							tag
-						}
+						postStatus
 						createdBy {
-							id
 							user {
 								firstName
 								lastName
 							}
 						}
 						resources {
+							id
 							kind
 							name
-							id
-							description
-							type
-							active
-							context
 						}
 					}
 				}

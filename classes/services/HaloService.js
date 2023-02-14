@@ -213,11 +213,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		document: gql`
 			query GetInboxLeftPanelNotification {
 				getInboxLeftPanelNotification {
-					unansweredCount
-					courseClassId
 					inboxForumCount {
-						forumId
-						isUnAnswered
 						forumId
 						unreadCount
 					}

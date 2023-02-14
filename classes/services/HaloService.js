@@ -250,19 +250,11 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 					createdBy {
 						...courseClassUser
 					}
-					expiryDate
 					id
-					parentPostId
-					postStatus
 					isRead
 					publishDate
 					resources {
 						...resource
-					}
-					wordCount
-					postTags {
-						tag
-						createdBy
 					}
 				}
 			}
@@ -270,28 +262,15 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 				id
 				kind
 				name
-				type
-				active
-				context
-				description
 			}
 			fragment courseClassUser on CourseClassUser {
-				baseRoleName
-				courseClassId
-				id
-				roleName
-				status
-				userId
 				user {
 					...user
 				}
 			}
 			fragment user on User {
-				id
-				userStatus
 				firstName
 				lastName
-				userImgUrl
 			}
 		`,
 		variables: { forumId, pgNum, pgSize },

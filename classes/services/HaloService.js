@@ -14,12 +14,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { request, gql } from 'graphql-request';
-import _request from 'superagent';
+import { gql, request } from 'graphql-request';
+import sa_request from 'superagent';
 import { EmbedBase, Firebase, validateCookie } from '..';
 
 const url = {
-	gateway: process.env.NODE_ENV === 'production' ? 'https://gateway.halo.gcu.edu' : 'http://localhost:3000/gateway',
 	token:
 		process.env.NODE_ENV === 'production'
 			? 'https://halo.gcu.edu/api/refresh-token'
@@ -33,6 +32,22 @@ export const AUTHORIZATION_KEY = 'TE1TX0FVVEg';
 export const CONTEXT_KEY = 'TE1TX0NPTlRFWFQ';
 
 /**
+ * GraphQL request wrapper
+ */
+const req = async (opts = {}) => {
+	try {
+		return await request({
+			url:
+				process.env.NODE_ENV === 'production'
+					? 'https://gateway.halo.gcu.edu'
+					: 'http://localhost:3000/gateway', //default gql url
+			...opts,
+		});
+	} catch (e) {
+		return e?.response?.errors?.[0];
+	}
+};
+/**
  * Generate headers that are common to all requests
  */
 const headers = (cookie) => ({
@@ -43,7 +58,7 @@ const headers = (cookie) => ({
 });
 
 export const refreshToken = async function ({ cookie }) {
-	const res = await _request.post(url.token).set({
+	const res = await sa_request.post(url.token).set({
 		//'content-length': 474,
 		...headers(cookie),
 		cookie: new URLSearchParams(Object.entries(cookie)).toString().replaceAll('&', '; '),
@@ -66,8 +81,7 @@ export const refreshToken = async function ({ cookie }) {
  * @returns {Promise<Array>} Array of announcements published within the past 10 seconds
  */
 export const getClassAnnouncements = async function ({ cookie, class_id, metadata = {} } = {}) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query GetAnnouncementsStudent($courseClassId: String!) {
@@ -98,13 +112,13 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 		},
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (!!res.error) throw res.error;
+	if (!!res?.message) throw res;
 	//Filter posts that were published in last 10 seconds
 	//Inject the class ID so we can use it to get the name later
 	return (
-		res.body.data.announcements.posts
+		res.announcements.posts
 			.filter((post) => post.postStatus === 'PUBLISHED')
 			//.filter(post => new Date(post.publishDate).getTime() > new Date().getTime() - 10000)
 			.map((post) => ({ ...post, courseClassId: class_id, metadata }))
@@ -119,8 +133,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
  * @returns {Promise<{grades: Array; finalGrade: Object}>} Array of all grades for the user whose `cookie` was provided
  */
 export const getAllGrades = async function ({ cookie, class_slug_id, metadata = {} } = {}) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query GradeOverview($courseClassSlugId: String!, $courseClassUserIds: [String]) {
@@ -150,9 +163,9 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		},
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	const { grades, finalGrade } = res.body.data.gradeOverview[0];
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	const { grades, finalGrade } = res.gradeOverview[0];
 	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
 };
 
@@ -165,8 +178,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
  * @returns {Promise<Object>} Array of all grades for the user whose `cookie` was provided
  */
 export const getGradeFeedback = async function ({ cookie, assessment_id, uid, metadata = {} } = {}) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query AssessmentFeedback($assessmentId: String!, $userId: String!) {
@@ -196,9 +208,9 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		},
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	return { ...res.body.data.assessmentFeedback, metadata };
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	return { ...res.assessmentFeedback, metadata };
 };
 
 /**
@@ -207,8 +219,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
  * @returns {Promise<[{forumId: string, unreadCount: number}]>} Array of inbox forum objects for the user whose `cookie` was provided
  */
 export const getUserInbox = async function getUserInboxForumIds({ cookie } = {}) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query GetInboxLeftPanelNotification {
@@ -222,12 +233,9 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		`,
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	return res.body.data.getInboxLeftPanelNotification.reduce(
-		(acc, { inboxForumCount }) => acc.concat(inboxForumCount),
-		[]
-	);
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	return res.getInboxLeftPanelNotification.reduce((acc, { inboxForumCount }) => acc.concat(inboxForumCount), []);
 };
 
 /**
@@ -240,8 +248,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
  * @returns {Promise<Object[]>} Array of all inbox posts for the user whose `cookie` was provided
  */
 export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 1, pgSize = 10, metadata = {} } = {}) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query getPostsByInboxForumId($forumId: String, $pgNum: Int, $pgSize: Int) {
@@ -276,14 +283,13 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		variables: { forumId, pgNum, pgSize },
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	return res.body.data.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	return res.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
 
 export const getUserOverview = async function ({ cookie, uid }) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			query HeaderFields($userId: String!, $skipClasses: Boolean!) {
@@ -315,10 +321,10 @@ export const getUserOverview = async function ({ cookie, uid }) {
 		},
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
-	if (!!res.error) throw res.error;
-	return res.body.data;
+	if (!!res?.message) throw res;
+	return res;
 };
 
 /**
@@ -328,7 +334,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
  * @returns {Promise<string>} Halo UID, pulled from the cookie
  */
 export const getUserId = async function ({ cookie }) {
-	const res = await _request.post(url.validate).set(headers(cookie)).send({
+	const res = await sa_request.post(url.validate).set(headers(cookie)).send({
 		userToken: cookie[AUTHORIZATION_KEY],
 		contextToken: cookie[CONTEXT_KEY],
 	});
@@ -367,8 +373,7 @@ export const generateUserConnectionEmbed = async function ({ uid }) {
  * @returns {Promise<Object>} Acknowledgement response from the server
  */
 export const acknowledgeGrade = async function ({ cookie, assessment_grade_id }) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			mutation AddStudentGradeSeenDateTime($userCourseClassAssessmentGradeId: String!) {
@@ -380,9 +385,9 @@ export const acknowledgeGrade = async function ({ cookie, assessment_grade_id })
 		variables: { userCourseClassAssessmentGradeId: assessment_grade_id },
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	return res.body.data.addStudentGradeSeenDateTime;
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	return res.addStudentGradeSeenDateTime;
 };
 
 /**
@@ -393,8 +398,7 @@ export const acknowledgeGrade = async function ({ cookie, assessment_grade_id })
  * @returns {Promise<Object>} Acknowledgement response from the server
  */
 export const acknowledgePost = async function ({ cookie, post_id }) {
-	const res = await request({
-		url: url.gateway,
+	const res = await req({
 		requestHeaders: headers(cookie),
 		document: gql`
 			mutation markPostsAsRead($postIds: [String]) {
@@ -404,7 +408,7 @@ export const acknowledgePost = async function ({ cookie, post_id }) {
 		variables: { postIds: [post_id] },
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
-	if (!!res.error) throw res.error;
-	return res.body.data.markPostsAsRead;
+	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (!!res?.message) throw res;
+	return res.markPostsAsRead;
 };

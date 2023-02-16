@@ -313,6 +313,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 			}
 			fragment headerUserFields on CourseClassUser {
 				userId
+				status
 			}
 		`,
 		variables: {

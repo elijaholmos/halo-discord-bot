@@ -22,14 +22,17 @@ import { serializeError } from 'serialize-error';
 
 export class Logger {
 	static async log(content, type = 'log') {
-		const timestamp = `[${chalk.white(moment().format('YYYY-MM-DD HH:mm:ss'))}]`;
+		const date = moment();
+		const timestamp = `[${chalk.white(date.format('YYYY-MM-DD HH:mm:ss'))}]`;
 		type !== 'error' && !!content && content.constructor === Object && (content = JSON.stringify(content));
 		switch (type) {
 			case 'log': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/log.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/log.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return console.log(`${timestamp} [${chalk.bgBlue(` ${type.toUpperCase()} `)}]: ${content}`);
@@ -38,19 +41,23 @@ export class Logger {
 				return console.log(`${timestamp} [${chalk.black.bgYellow(type.toUpperCase())}]: ${content}`);
 			}
 			case 'error': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/error.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/error.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${JSON.stringify(serializeError(content))}\n`
 				);
 				return console.log(`${timestamp} [${chalk.bgRed(type.toUpperCase())}]: ${content}`);
 			}
 			case 'debug': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/debug.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/debug.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return console.log(`${timestamp} [${chalk.green(type.toUpperCase())}]: ${content}`);
@@ -65,37 +72,45 @@ export class Logger {
 				return console.log(`${timestamp} [${chalk.black.bgGreen(type.toUpperCase())}]: ${content}`);
 			}
 			case 'uninstall': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/uninstall.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/uninstall.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return console.log(`${timestamp} [${chalk.yellow(type.toUpperCase())}]: ${content}`);
 			}
 			case 'unauth': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/unauth.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/unauth.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return; //don't output to console
 			}
 			case 'cookie': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/cookie.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/cookie.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return console.log(`${timestamp} [${chalk.grey(type.toUpperCase())}]: ${content}`);
 			}
 			case 'cron': {
-				//create file first, if it does not exist
-				await fs.mkdir('./' + path.relative(process.cwd(), 'log/'), { recursive: true });
+				//create dir first, if it does not exist
+				await fs.mkdir('./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/`), {
+					recursive: true,
+				});
 				fs.appendFile(
-					'./' + path.relative(process.cwd(), 'log/cron.log'),
+					'./' + path.relative(process.cwd(), `log/${date.format('YYYY-MM-DD')}/cron.log`),
 					`[${moment().format('YYYY-MM-DD HH:mm:ss')}]: ${content}\n`
 				);
 				return console.log(`${timestamp} [${chalk.bgYellow(type.toUpperCase())}]: ${content}`);

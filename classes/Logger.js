@@ -115,6 +115,9 @@ export class Logger {
 				);
 				return console.log(`${timestamp} [${chalk.bgYellow(type.toUpperCase())}]: ${content}`);
 			}
+			case 'health': {
+				return console.log(`${timestamp} [${chalk.black.bgGreen(type.toUpperCase())}]: ${content}`);
+			}
 			default:
 				throw new TypeError('Unknown log type');
 		}
@@ -158,5 +161,9 @@ export class Logger {
 
 	static cron(content) {
 		return this.log(content, 'cron');
+	}
+
+	static health(content) {
+		return this.log(content, 'health');
 	}
 }

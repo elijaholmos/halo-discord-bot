@@ -8,6 +8,7 @@ specifiers:
   express: 4.18.2
   firebase-admin: 11.5.0
   graphql-request: 5.1.0
+  html-entities: 2.3.3
   klaw: 4.1.0
   lodash-es: 4.17.21
   moment: 2.29.4
@@ -23,6 +24,7 @@ dependencies:
   dotenv: 16.0.3
   firebase-admin: 11.5.0
   graphql-request: 5.1.0_graphql@16.6.0
+  html-entities: 2.3.3
   klaw: 4.1.0
   lodash-es: 4.17.21
   moment: 2.29.4
@@ -1234,6 +1236,10 @@ packages:
   /hexoid/1.0.0:
     resolution: {integrity: sha512-QFLV0taWQOZtvIRIAdBChesmogZrtuXvVWsFHZTk2SU+anspqZ2vMnoLg7IE1+Uk16N19APic1BuF8bC8c2m5g==}
     engines: {node: '>=8'}
+    dev: false
+
+  /html-entities/2.3.3:
+    resolution: {integrity: sha512-DV5Ln36z34NNTDgnz0EWGBLZENelNAtkiFA4kyNOG2tDI6Mz1uSWiq1wAKdyjnJwyDiDO7Fa2SO1CTxPXL8VxA==}
     dev: false
 
   /http-errors/2.0.0:

@@ -136,8 +136,7 @@ export class EmbedBase extends MessageEmbed {
 		this.description &&= truncate(this.description.trim(), { length: 4095, omission: '\u2026' });
 		// I'd like to split the embeds before slicing fields, if possible
 		this.fields = this.fields
-			.map((f) => this.splitField(f))
-			.flat()
+			.flatMap((f) => this.splitField(f))
 			.slice(0, 25)
 			.map((f) => ({
 				...f,

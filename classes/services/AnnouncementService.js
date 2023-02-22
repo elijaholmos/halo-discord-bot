@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { decode } from 'html-entities';
 import { EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
 
@@ -92,10 +93,15 @@ export class AnnouncementService {
 					fields: [
 						{
 							name: 'Message',
-							value: announcement.content
-								.replaceAll('<br>', '\n')
-								.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
-								.replace(/<\/?[^>]+(>|$)/g, ''),
+							value: decode(
+								announcement.content
+									.replaceAll('<br>', '\n')
+									.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
+									.replaceAll('<li>', '\n\t\u2022 ')
+									.replaceAll('</ol>', '\n')
+									.replaceAll('</ul>', '\n')
+									.replace(/<\/?[^>]+(>|$)/g, '')
+							),
 						},
 						//TODO: cleanup dry code
 						...(!!announcement.resources.filter(({ kind }) => kind !== 'URL').length

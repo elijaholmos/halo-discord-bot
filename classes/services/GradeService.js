@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { decode } from 'html-entities';
 import { round } from 'lodash-es';
 import { EmbedBase, Firebase, Logger } from '..';
 import bot from '../../bot';
@@ -106,10 +107,15 @@ export class GradeService {
 						{
 							name: `Feedback:`,
 							value: !!finalComment?.comment
-								? finalComment.comment
-										.replaceAll('<br>', '\n')
-										.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
-										.replace(/<\/?[^>]+(>|$)/g, '')
+								? decode(
+										finalComment.comment
+											.replaceAll('<br>', '\n')
+											.replaceAll('</p><p>', '\n') //this is kinda hacky ngl
+											.replaceAll('<li>', '\n\t\u2022 ')
+											.replaceAll('</ol>', '\n')
+											.replaceAll('</ul>', '\n')
+											.replace(/<\/?[^>]+(>|$)/g, '')
+								  )
 								: 'None',
 						},
 						...(show_overall_grade

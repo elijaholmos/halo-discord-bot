@@ -15,7 +15,7 @@
  */
 
 import bot from '../../bot';
-import { Command, Firebase, Halo } from '../../classes';
+import { Command, Firebase, Halo, HealthManager } from '../../classes';
 
 class test extends Command {
 	constructor() {
@@ -28,8 +28,7 @@ class test extends Command {
 
 	async run({ intr }) {
 		try {
-			const cookie = await Firebase.getUserCookie(intr.user.id);
-
+			HealthManager.publishLogs();
 			// const feedback = await Halo.getGradeFeedback({
 			// 	cookie,
 			// 	assessment_id: '1454f632-ab98-4900-8858-452160a85b9c',

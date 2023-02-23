@@ -32,3 +32,4 @@ export * from './services/GradeService';
 export * from './services/InboxMessageService';
 export * from './services/401Service';
 export * as Encrypt from './services/EncryptionService';
+export * from './HealthManager';

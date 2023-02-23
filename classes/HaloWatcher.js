@@ -16,7 +16,7 @@
 
 import { EventEmitter } from 'node:events';
 import { setIntervalAsync } from 'set-interval-async/fixed';
-import { Firebase, Halo, handle401, Logger } from '.';
+import { Firebase, Halo, handle401, HealthManager, Logger } from '.';
 import { CLASS_ANNOUNCEMENTS, USER_GRADES, USER_INBOX } from '../caches';
 
 export class HaloWatcher extends EventEmitter {
@@ -24,9 +24,18 @@ export class HaloWatcher extends EventEmitter {
 		super();
 
 		//create intervals
-		setIntervalAsync(async () => await this.#watchForAnnouncements(), 20000);
-		setIntervalAsync(async () => await this.#watchForGrades(), 20000);
-		setIntervalAsync(async () => await this.#watchForInboxMessages(), 20000);
+		setIntervalAsync(async () => {
+			await this.#watchForAnnouncements();
+			HealthManager.record('ANNOUNCEMENTS');
+		}, 20000);
+		setIntervalAsync(async () => {
+			await this.#watchForGrades();
+			HealthManager.record('GRADES');
+		}, 20000);
+		setIntervalAsync(async () => {
+			await this.#watchForInboxMessages();
+			HealthManager.record('INBOX_MESSAGES');
+		}, 20000);
 	}
 
 	/**

@@ -55,6 +55,7 @@ const headers = (cookie) => ({
 	'content-type': 'application/json',
 	authorization: `Bearer ${cookie[AUTHORIZATION_KEY]}`,
 	contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
+	'Apollo-Require-Preflight': 'true',
 });
 
 export const refreshToken = async function ({ cookie }) {

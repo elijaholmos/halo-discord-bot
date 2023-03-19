@@ -155,7 +155,7 @@ export class CookieManager {
 		return;
 	}
 
-	static async refreshUserCookie(uid, cookie, { count = 4 } = {}) {
+	static async refreshUserCookie(uid, cookie, { count = 0 } = {}) {
 		const { timeouts } = this;
 		Logger.cookie(`Refreshing ${uid}'s cookie...`);
 		try {

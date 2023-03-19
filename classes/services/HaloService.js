@@ -113,7 +113,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 		},
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (!!res?.message) throw res;
 	//Filter posts that were published in last 10 seconds
@@ -164,7 +164,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		},
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	const { grades, finalGrade } = res.gradeOverview[0];
 	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
@@ -209,7 +209,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		},
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return { ...res.assessmentFeedback, metadata };
 };
@@ -234,7 +234,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		`,
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.getInboxLeftPanelNotification.reduce((acc, { inboxForumCount }) => acc.concat(inboxForumCount), []);
 };
@@ -284,7 +284,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		variables: { forumId, pgNum, pgSize },
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
@@ -323,7 +323,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 		},
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (!!res?.message) throw res;
 	return res;
@@ -341,7 +341,11 @@ export const getUserId = async function ({ cookie }) {
 		contextToken: cookie[CONTEXT_KEY],
 	});
 
-	if (res.body?.errors?.[0]?.message?.includes('401')) throw { code: 401, cookie };
+	if (
+		res.body?.errors?.[0]?.message?.includes('401') ||
+		res.body?.errors?.[0]?.message?.includes('response was malformed')
+	)
+		throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (!!res.error) throw res.error;
 	return res.body.payload.userid;
@@ -387,7 +391,7 @@ export const acknowledgeGrade = async function ({ cookie, assessment_grade_id })
 		variables: { userCourseClassAssessmentGradeId: assessment_grade_id },
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.addStudentGradeSeenDateTime;
 };
@@ -410,7 +414,7 @@ export const acknowledgePost = async function ({ cookie, post_id }) {
 		variables: { postIds: [post_id] },
 	});
 
-	if (res?.message?.includes('401')) throw { code: 401, cookie };
+	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.markPostsAsRead;
 };

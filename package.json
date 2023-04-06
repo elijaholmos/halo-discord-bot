@@ -30,7 +30,7 @@
 		"chalk": "5.2.0",
 		"discord.js": "13.14.0",
 		"dotenv": "16.0.3",
-		"firebase-admin": "11.5.0",
+		"firebase-admin": "11.6.0",
 		"graphql-request": "5.1.0",
 		"html-entities": "2.3.3",
 		"klaw": "4.1.0",

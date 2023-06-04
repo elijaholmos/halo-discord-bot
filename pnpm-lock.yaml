@@ -1,4 +1,8 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 dependencies:
   bidirectional-map:
@@ -11,8 +15,8 @@ dependencies:
     specifier: 13.14.0
     version: 13.14.0
   dotenv:
-    specifier: 16.0.3
-    version: 16.0.3
+    specifier: 16.1.4
+    version: 16.1.4
   firebase-admin:
     specifier: 11.6.0
     version: 11.6.0
@@ -798,8 +802,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /dotenv@16.0.3:
-    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+  /dotenv@16.1.4:
+    resolution: {integrity: sha512-m55RtE8AsPeJBpOIFKihEmqUcoVncQIwo7x9U8ZwLEZw9ZpXboz2c+rvog+jUaJvVrZ5kBOeYQBX5+8Aa/OZQw==}
     engines: {node: '>=12'}
     dev: false
 

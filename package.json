@@ -1,6 +1,6 @@
 {
 	"name": "halo-discord-bot",
-	"version": "2.5.3",
+	"version": "2.5.4",
 	"author": "Elijah Olmos",
 	"license": "AGPL-3.0-only",
 	"main": "index.js",
@@ -28,9 +28,9 @@
 	"dependencies": {
 		"bidirectional-map": "1.1.1",
 		"chalk": "5.2.0",
-		"discord.js": "13.9.2",
-		"dotenv": "16.0.3",
-		"firebase-admin": "11.5.0",
+		"discord.js": "13.14.0",
+		"dotenv": "16.3.1",
+		"firebase-admin": "11.6.0",
 		"graphql-request": "5.1.0",
 		"html-entities": "2.3.3",
 		"klaw": "4.1.0",

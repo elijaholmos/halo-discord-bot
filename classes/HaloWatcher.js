@@ -131,10 +131,21 @@ export class HaloWatcher extends EventEmitter {
 				//write local cache to file, since changes were detected
 				await writeCacheFile({ filepath: class_id, data: new_announcements });
 
+				/**
+				 * Determine if an announcement was published "recently" (determined by inner-function criteria)
+				 * @returns {boolean} Whether or not the announcement was published recently
+				 */
+				const isRecentAnnouncement = function (announcement) {
+					const publishTime = new Date(announcement.publishDate).getTime();
+					const startTime = new Date(announcement.startDate).getTime();
+					const threshold = new Date().getTime() - 1000 * 60 * 60 * 48; // 48 hours
+
+					return publishTime > threshold || startTime > threshold;
+				};
+
 				// to prevent announcement spam upon bot restart, only emit announcements that were published in past 6 hours
 				for (const announcement of this.#locateDifferenceInArrays(new_announcements, old_announcements))
-					new Date(announcement.publishDate).getTime() > new Date().getTime() - 1000 * 60 * 60 * 6 &&
-						this.emit('announcement', announcement);
+					isRecentAnnouncement(announcement) && this.emit('announcement', announcement);
 			} catch (e) {
 				if (e.code === 401)
 					Logger.unauth(`Received 401 while fetching announcements for course ${course.courseCode}`);

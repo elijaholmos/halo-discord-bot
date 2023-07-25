@@ -91,6 +91,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 						id
 						content
 						publishDate
+						startDate
 						title
 						postStatus
 						createdBy {

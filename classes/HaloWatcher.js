@@ -138,7 +138,7 @@ export class HaloWatcher extends EventEmitter {
 				const isRecentAnnouncement = function (announcement) {
 					const publishTime = new Date(announcement.publishDate).getTime();
 					const startTime = new Date(announcement.startDate).getTime();
-					const threshold = new Date().getTime() - 1000 * 60 * 60 * 6; // 6 hours
+					const threshold = new Date().getTime() - 1000 * 60 * 60 * 48; // 48 hours
 
 					return publishTime > threshold || startTime > threshold;
 				};

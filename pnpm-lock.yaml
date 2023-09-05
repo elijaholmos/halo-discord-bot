@@ -39,8 +39,8 @@ dependencies:
     specifier: 2.1.1
     version: 2.1.1
   serialize-error:
-    specifier: 11.0.0
-    version: 11.0.0
+    specifier: 11.0.2
+    version: 11.0.2
   set-interval-async:
     specifier: 3.0.3
     version: 3.0.3
@@ -2080,8 +2080,8 @@ packages:
       - supports-color
     dev: true
 
-  /serialize-error@11.0.0:
-    resolution: {integrity: sha512-YKrURWDqcT3VGX/s/pCwaWtpfJEEaEw5Y4gAnQDku92b/HjVj4r4UhA5QrMVMFotymK2wIWs5xthny5SMFu7Vw==}
+  /serialize-error@11.0.2:
+    resolution: {integrity: sha512-o43i0jLcA0LXA5Uu+gI1Vj+lF66KR9IAcy0ThbGq1bAMPN+k5IgSHsulfnqf/ddKAz6dWf+k8PD5hAr9oCSHEQ==}
     engines: {node: '>=14.16'}
     dependencies:
       type-fest: 2.19.0

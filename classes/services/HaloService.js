@@ -57,6 +57,13 @@ const headers = (cookie) => ({
 	contexttoken: `Bearer ${cookie[CONTEXT_KEY]}`,
 	'Apollo-Require-Preflight': 'true',
 });
+/**
+ * Check if a response contains an authentication error
+ */
+const isAuthError = (res) =>
+	res?.message?.includes('401') ||
+	res?.message?.includes('response was malformed') ||
+	res.extensions.errorCode == 401;
 
 export const refreshToken = async function ({ cookie }) {
 	const res = await sa_request.post(url.token).set({
@@ -114,7 +121,7 @@ export const getClassAnnouncements = async function ({ cookie, class_id, metadat
 		},
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (!!res?.message) throw res;
 	//Filter posts that were published in last 10 seconds
@@ -165,7 +172,7 @@ export const getAllGrades = async function ({ cookie, class_slug_id, metadata = 
 		},
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	const { grades, finalGrade } = res.gradeOverview[0];
 	return { grades: grades.map((grade) => ({ ...grade, metadata })), finalGrade };
@@ -210,7 +217,7 @@ export const getGradeFeedback = async function ({ cookie, assessment_id, uid, me
 		},
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return { ...res.assessmentFeedback, metadata };
 };
@@ -235,7 +242,7 @@ export const getUserInbox = async function getUserInboxForumIds({ cookie } = {})
 		`,
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.getInboxLeftPanelNotification.reduce((acc, { inboxForumCount }) => acc.concat(inboxForumCount), []);
 };
@@ -285,7 +292,7 @@ export const getPostsForInboxForum = async function ({ cookie, forumId, pgNum = 
 		variables: { forumId, pgNum, pgSize },
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.getPostsForInboxForum.map((post) => ({ ...post, metadata }));
 };
@@ -324,7 +331,7 @@ export const getUserOverview = async function ({ cookie, uid }) {
 		},
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	//Error handling and data validation could be improved
 	if (!!res?.message) throw res;
 	return res;
@@ -344,7 +351,8 @@ export const getUserId = async function ({ cookie }) {
 
 	if (
 		res.body?.errors?.[0]?.message?.includes('401') ||
-		res.body?.errors?.[0]?.message?.includes('response was malformed')
+		res.body?.errors?.[0]?.message?.includes('response was malformed') ||
+		isAuthError(res.body)
 	)
 		throw { code: 401, cookie };
 	//Error handling and data validation could be improved
@@ -392,7 +400,7 @@ export const acknowledgeGrade = async function ({ cookie, assessment_grade_id })
 		variables: { userCourseClassAssessmentGradeId: assessment_grade_id },
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.addStudentGradeSeenDateTime;
 };
@@ -415,7 +423,7 @@ export const acknowledgePost = async function ({ cookie, post_id }) {
 		variables: { postIds: [post_id] },
 	});
 
-	if (res?.message?.includes('401') || res?.message?.includes('response was malformed')) throw { code: 401, cookie };
+	if (isAuthError(res)) throw { code: 401, cookie };
 	if (!!res?.message) throw res;
 	return res.markPostsAsRead;
 };

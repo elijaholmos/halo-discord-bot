@@ -96,21 +96,30 @@ export class LocalCache {
 			for await (const item of klaw('./' + relative(process.cwd(), path))) {
 				const file_path = parse(item.path);
 				if (file_path?.ext !== '.json') continue; //ignore directories and non-json files
-				_cache.set(
-					file_path.name.split('.')[0],
-					JSON.parse(await readFile(item.path, 'utf8').catch(() => '[]'))
-				);
+				try {
+					const parsedJson = JSON.parse(await readFile(item.path, 'utf8').catch(() => '[]'));
+					_cache.set(file_path.name.split('.')[0], parsedJson);
+				} catch (e) {
+					console.log('caught map error');
+					console.log(e);
+					console.log(`${file_path.dir}, ${file_path.name}`);
+					await rm(item.path, { force: true });
+				}
 			}
 		else
 			for await (const item of klaw('./' + relative(process.cwd(), path))) {
 				const file_path = parse(item.path);
 				if (file_path?.ext !== '.json') continue; //ignore directories and non-json files
 
-				set(
-					_cache,
-					[file_path.dir.split(sep).pop(), file_path.name],
-					JSON.parse(await readFile(item.path, 'utf8').catch(() => '[]'))
-				);
+				try {
+					const parsedJson = JSON.parse(await readFile(item.path, 'utf8').catch(() => '[]'));
+					set(_cache, [file_path.dir.split(sep).pop(), file_path.name], parsedJson);
+				} catch (e) {
+					console.log('caught non-map error');
+					console.log(e);
+					console.log(`${file_path.dir}, ${file_path.name}`);
+					await rm(item.path, { force: true });
+				}
 			}
 	}
 

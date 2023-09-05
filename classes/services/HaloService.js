@@ -63,7 +63,7 @@ const headers = (cookie) => ({
 const isAuthError = (res) =>
 	res?.message?.includes('401') ||
 	res?.message?.includes('response was malformed') ||
-	res.extensions.errorCode == 401;
+	res?.extensions?.errorCode == 401;
 
 export const refreshToken = async function ({ cookie }) {
 	const res = await sa_request.post(url.token).set({

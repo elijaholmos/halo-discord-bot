@@ -18,8 +18,8 @@ dependencies:
     specifier: 16.3.1
     version: 16.3.1
   firebase-admin:
-    specifier: 11.11.0
-    version: 11.11.0
+    specifier: 11.11.1
+    version: 11.11.1
   graphql-request:
     specifier: 5.1.0
     version: 5.1.0(graphql@16.8.1)
@@ -1123,8 +1123,8 @@ packages:
       - supports-color
     dev: true
 
-  /firebase-admin@11.11.0:
-    resolution: {integrity: sha512-lp784gXFAJgUEtjSdYNZGTWZqltqjBkoaPSQhDKnmWXJP/MCbWdiDY1hsdkl/6O4O4KFovTjUDLu26sojwdQvw==}
+  /firebase-admin@11.11.1:
+    resolution: {integrity: sha512-UyEbq+3u6jWzCYbUntv/HuJiTixwh36G1R9j0v71mSvGAx/YZEWEW7uSGLYxBYE6ckVRQoKMr40PYUEzrm/4dg==}
     engines: {node: '>=14'}
     dependencies:
       '@fastify/busboy': 1.2.1

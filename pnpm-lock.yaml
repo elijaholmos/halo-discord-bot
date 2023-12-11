@@ -21,8 +21,8 @@ dependencies:
     specifier: 11.11.1
     version: 11.11.1
   graphql-request:
-    specifier: 5.1.0
-    version: 5.1.0(graphql@16.8.1)
+    specifier: 5.2.0
+    version: 5.2.0(graphql@16.8.1)
   html-entities:
     specifier: 2.4.0
     version: 2.4.0
@@ -1341,8 +1341,8 @@ packages:
     dev: false
     optional: true
 
-  /graphql-request@5.1.0(graphql@16.8.1):
-    resolution: {integrity: sha512-0OeRVYigVwIiXhNmqnPDt+JhMzsjinxHE7TVy3Lm6jUzav0guVcL0lfSbi6jVTRAxcbwgyr6yrZioSHxf9gHzw==}
+  /graphql-request@5.2.0(graphql@16.8.1):
+    resolution: {integrity: sha512-pLhKIvnMyBERL0dtFI3medKqWOz/RhHdcgbZ+hMMIb32mEPa5MJSzS4AuXxfI4sRAu6JVVk5tvXuGfCWl9JYWQ==}
     peerDependencies:
       graphql: 14 - 16
     dependencies:

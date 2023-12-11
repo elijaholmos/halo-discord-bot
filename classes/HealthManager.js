@@ -27,9 +27,9 @@ export class HealthManager {
 
 	static publishLogs() {
 		const flags = [];
-		// find all records that are older than 3min
+		// find all records that are older than 5min
 		const fields = Array.from(this.#records).map(([event, date]) => {
-			if (date < Date.now() - 180000) flags.push(event);
+			if (date < Date.now() - 300000) flags.push(event);
 			return {
 				name: `\`${event}\``,
 				value: bot.formatTimestamp(date, 'R'),

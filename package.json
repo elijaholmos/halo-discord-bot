@@ -34,7 +34,7 @@
 		"graphql-request": "5.1.0",
 		"html-entities": "2.4.0",
 		"klaw": "4.1.0",
-		"lodash-es": "4.17.21",
+		"lodash-es": "4.17.23",
 		"moment": "2.29.4",
 		"node-schedule": "2.1.1",
 		"serialize-error": "11.0.2",
